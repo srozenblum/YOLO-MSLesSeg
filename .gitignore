@@ -1,0 +1,84 @@
+# ========================
+#    CARPETAS DEL PIPELINE
+# ========================
+
+# Dataset original MSLesSeg
+MSLesSeg-Dataset/
+
+# Datasets generados por setup.py
+datasets/
+datasets/*
+
+# Volúmenes reconstruidos
+vols/
+vols/*
+
+# Métricas, resultados
+results/
+results/*
+
+# Pesos y logs de entrenamiento YOLO
+trains/
+trains/*
+
+# Volúmenes GT locales
+GT/
+GT/*
+
+# ========================
+#    LOGS DEL PROYECTO
+# ========================
+*.log
+
+# ========================
+#    ARCHIVOS GRANDES
+# ========================
+*.nii
+*.nii.gz
+*.zip
+
+# ========================
+#    PYTHON / ENTORNOS
+# ========================
+
+# Entornos virtuales
+venv/
+venv_* /
+.venv/
+ENV/
+env/
+env*/
+
+# Archivos generados por Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Directorios creados por pip (editable installs)
+*.egg-info/
+*.egg/
+
+# ========================
+#    EDITORES / SISTEMA
+# ========================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# VSCode / PyCharm
+.vscode/
+.idea/
+
+# ========================
+#    NOTEBOOKS TEMPORALES
+# ========================
+*.ipynb_checkpoints/
+
+# ========================
+#    DEMO
+# ========================
+demo/**/output/
+demo/**/temp/
