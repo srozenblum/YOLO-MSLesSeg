@@ -1,0 +1,409 @@
+"""
+Script: utils.py
+
+Descripción:
+    Conjunto de utilidades comunes utilizadas como apoyo para los scripts
+    principales, proporcionando funciones reutilizables y homogéneas que
+    evitan duplicar lógica entre diferentes etapas.
+
+Bloques funcionales principales:
+    - Directorios y archivos:
+        Creación, eliminación y validación de rutas; filtrado de archivos
+        irrelevantes.
+
+    - Volúmenes NIfTI:
+        Carga, guardado, validación dimensional y reconstrucción de volúmenes 3D.
+
+    - Modelos YOLO:
+        Carga segura de modelos y manejo básico de errores.
+
+    - JSON:
+        Lectura y escritura de diccionarios en formato JSON.
+
+    - Pacientes y folds:
+        Obtención de IDs, listado, y división en folds.
+
+    - Cálculo de percentiles:
+        Tipo de dato personalizado int_o_percentil y cálculo de percentil.
+
+    - Procesamiento de imagen:
+        Normalización de máscaras binarias, conversión a uint8, conversión RGB/BGR
+        y normalización a escala de grises.
+
+    - Métricas y validación:
+        Validación de reconstrucciones, verificación de volúmenes predichos y
+        evaluación resumida del estado global de resultados parciales.
+
+    - Logging de estado:
+        Funciones auxiliares para registrar el estado de ejecución de un fold
+        dentro de etapas del pipeline (p. ej. predicción, reconstrucción o evaluación),
+        incluyendo compatibilidad con niveles personalizados como SKIP.
+
+Modos de uso:
+    - Interno: se importa desde cualquier etapa del pipeline.
+    - No está diseñado para ejecución directa por CLI.
+
+Convenciones:
+    - Todas las rutas se manejan con pathlib.Path.
+    - Las funciones nunca silencian errores críticos: relanzan excepciones.
+    - Las máscaras binarias se normalizan al rango {0, 1}.
+    - El tipo `int_o_percentil` admite valores enteros o strings "P<n>".
+"""
+
+import argparse
+import json
+import os
+import re
+import shutil
+from pathlib import Path
+
+import cv2
+import nibabel as nib
+import numpy as np
+from ultralytics import YOLO
+
+from yolo_mslesseg.utils.configurar_logging import get_logger
+
+# Configurar logger
+logger = get_logger(__file__)
+
+
+# ===============================
+#     DIRECTORIOS Y ARCHIVOS
+# ===============================
+
+
+def ruta_existente(path):
+    """Verifica que la ruta exista."""
+    return Path(path).exists()
+
+
+def crear_directorio(path):
+    """Crea el directorio si no existe."""
+    Path(path).mkdir(parents=True, exist_ok=True)
+
+
+def eliminar_directorio(input_dir):
+    """Elimina el directorio de forma recursiva."""
+    path = Path(input_dir)
+    if path.exists() and path.is_dir():
+        shutil.rmtree(path)
+
+
+def archivo_ignorable(nombre):
+    """Devuelve True si el archivo parece de sistema u oculto."""
+    nombre_lower = nombre.lower()
+    return (
+        nombre.startswith(".")
+        or nombre.startswith("~")
+        or nombre_lower.endswith(".tmp")
+    )
+
+
+def construir_nombre_configuracion(modalidad, num_cortes, k_folds, epochs):
+    """
+    Construye el nombre de la carpeta de configuración global del modelo
+    (modalidad, número de cortes, k_folds y epochs).
+
+    Ejemplo:
+        ['FLAIR'], 'P50', 5, 50 → FLAIR_P50_5folds_50epochs
+    """
+    modalidades = "".join(modalidad)  # Ej: ['FLAIR'] → "FLAIR"
+    return f"{modalidades}_{num_cortes}c_{k_folds}folds_{epochs}epochs"
+
+
+# ===============================
+#   MANEJO DE VOLÚMENES NIFTI
+# ===============================
+
+
+def cargar_volumen(vol_path):
+    """Carga un archivo NIfTI y devuelve su array de datos."""
+    try:
+        return nib.load(vol_path).get_fdata()
+    except Exception as e:
+        logger.error(f"❌ Error al cargar el volumen desde {vol_path}: {e}")
+        raise
+
+
+def cargar_referencia_nifti(referencia_path):
+    """Carga un archivo NIfTI y devuelve su shape y affine."""
+    if not ruta_existente(referencia_path):
+        raise FileNotFoundError(f"Archivo no encontrado: {referencia_path}")
+    try:
+        nifti = nib.load(referencia_path)
+        return nifti.shape, nifti.affine
+    except nib.filebasedimages.ImageFileError as e:
+        raise ValueError(f"Archivo no válido: {referencia_path}") from e
+
+
+def guardar_volumen(volumen, affine, output_path):
+    """Guarda un volumen NIfTI en la ruta de salida indicada."""
+    try:
+        nifti_out = nib.Nifti1Image(volumen, affine)
+        nib.save(nifti_out, output_path)
+    except Exception as e:
+        logger.error(f"❌ Error al guardar el volumen en {output_path}: {e}")
+        raise
+
+
+def reconstruccion_valida(pred_vol_path, gt_vol_path):
+    """
+    Valida que la reconstrucción de un paciente sea consistente con su GT.
+    """
+    pred_vol = cargar_volumen(pred_vol_path)
+    gt_vol = cargar_volumen(gt_vol_path)
+
+    if pred_vol.shape != gt_vol.shape:
+        logger.warning(f"⚠️ Dimensiones distintas: {pred_vol.shape} vs {gt_vol.shape}")
+        return False
+
+    return True
+
+
+def volumenes_predichos_completos(paciente_dir):
+    """
+    Verifica que existan los tres volúmenes predichos (axial, coronal, sagital)
+    para un paciente dentro de su directorio de predicciones.
+    """
+    planos = ["axial", "coronal", "sagital"]
+    paciente_id = Path(paciente_dir).name
+    return all(
+        (Path(paciente_dir) / f"{paciente_id}_{plano}.nii.gz").exists()
+        for plano in planos
+    )
+
+
+def verificar_volumenes_grupo(root_dir):
+    """
+    Verifica que todos los pacientes dentro de root_dir
+    tengan los volúmenes predichos en los tres planos
+    (axial, coronal y sagital).
+    """
+    pacientes = listar_pacientes(root_dir)
+    pacientes_incompletos = []
+
+    for paciente_id in pacientes:
+        paciente_pred_root_dir = root_dir / paciente_id
+        if not volumenes_predichos_completos(paciente_pred_root_dir):
+            pacientes_incompletos.append(paciente_id)
+
+    return pacientes_incompletos == []
+
+
+# ===============================
+#     MANEJO DE MODELOS YOLO
+# ===============================
+
+
+def cargar_modelo(model_path):
+    """Carga el modelo YOLO."""
+    try:
+        return YOLO(model_path)
+    except Exception as e:
+        raise RuntimeError(f"No se pudo cargar el modelo YOLO: {e}")
+
+
+def existe_modelo_entrenado(modelo, epochs, fold_test):
+    """Verifica si existen los pesos entrenados del modelo para un fold específico."""
+    model_path = (
+        Path("trains")
+        / f"{modelo.base_path}_{epochs}epochs"
+        / modelo.plano
+        / f"fold{fold_test}"
+        / "weights"
+        / "best.pt"
+    )
+
+    return model_path.exists() and model_path.stat().st_size > 0
+
+
+# ===============================
+#             JSON
+# ===============================
+
+
+def escribir_json(dic, json_path):
+    """Guarda un diccionario en formato JSON."""
+    with open(json_path, "w") as f:
+        json.dump(dic, f)
+
+
+def leer_json(json_path):
+    """Lee un archivo JSON y devuelve su contenido en un diccionario."""
+    if os.path.exists(json_path):
+        with open(json_path, "r") as f:
+            return json.load(f)
+    raise FileNotFoundError(f"Archivo no encontrado: {json_path}")
+
+
+# ===============================
+# UTILIDADES DE PACIENTES Y FOLDS
+# ===============================
+
+
+def obtener_id(paciente):
+    """Extrae el ID de un paciente desde su nombre (P12 → 12)."""
+    match = re.search(r"P(\d+)", paciente)
+    return (
+        int(match.group(1)) if match else float("inf")
+    )  # Devolver un valor muy grande si no se encuentra un número
+
+
+def listar_pacientes(input_dir):
+    """
+    Devuelve una lista ordenada de IDs de pacientes en un directorio
+    """
+    input_path = Path(input_dir)
+
+    pacientes = [d.name for d in input_path.iterdir() if not archivo_ignorable(d.name)]
+    if not pacientes:
+        raise FileNotFoundError(f"No se encontraron pacientes en {input_dir}.")
+
+    return sorted(pacientes, key=lambda p: int(p[1:]) if p[1:].isdigit() else 1_000_000)
+
+
+def calcular_fold(paciente_id, k_folds=5):
+    """Asigna un paciente a su fold correspondiente (validación cruzada)."""
+
+    # Convertir ID del paciente a número
+    numero = int(paciente_id[1:])
+
+    # Crear lista de IDs válidos (P1–P53)
+    todos_los_ids = [i for i in range(1, 54)]
+
+    # Dividir consecutivamente en k_folds
+    folds = np.array_split(todos_los_ids, k_folds)
+
+    # Buscar a qué fold pertenece el paciente
+    for i, fold in enumerate(folds, 1):
+        if numero in fold:
+            return i
+
+    raise ValueError(f"No se puede calcular el fold del paciente {paciente_id}.")
+
+
+# ===============================
+#     MANEJO DE PERCENTILES
+# ===============================
+
+
+def int_o_percentil(valor):
+    """Admite valores enteros o percentiles ('P<n>')."""
+    try:
+        return int(valor)
+    except ValueError:
+        if (
+            isinstance(valor, str)
+            and valor.upper().startswith("P")
+            and valor[1:].isdigit()
+        ):
+            return valor.upper()
+        raise argparse.ArgumentTypeError(
+            "El valor debe ser un entero o un string de formato 'PX' (ejemplo: P10 para percentil 10)."
+        )
+
+
+def calcular_percentil(json_path, p, verbose=False):
+    """Calcula el percentil deseado en función de la distribución de cortes"""
+    cortes_dict = leer_json(json_path)
+    cortes_por_paciente = [len(indices) for indices in cortes_dict.values()]
+
+    if not cortes_por_paciente:
+        raise ValueError("El archivo JSON no contiene pacientes o está vacío.")
+
+    percentil_valor = int(np.percentile(cortes_por_paciente, p))
+    if verbose:
+        logger.info(
+            f"📊 Se recomienda extraer {percentil_valor} cortes por paciente (percentil {p})."
+        )
+
+    return percentil_valor
+
+
+# ===============================
+#     PROCESAMIENTO DE IMAGEN
+# ===============================
+
+
+def normalizar_mascara_binaria(mask_path):
+    """
+    Normaliza y guarda una máscara binaria a valores 0 (fondo) y 1 (objeto).
+    """
+    mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
+    mask_bin = (mask > 0).astype(np.uint8)
+    cv2.imwrite(mask_path, mask_bin)
+
+
+def normalizar_a_uint8(imagen):
+    """
+    Normaliza una imagen (float32/64) al rango 0–255 y tipo uint8.
+    """
+    if imagen.dtype != np.uint8:
+        imagen = imagen.astype(np.float32)
+        imagen -= np.min(imagen)
+        if np.ptp(imagen) > 0:
+            imagen = 255 * (imagen / np.ptp(imagen))
+        imagen = imagen.astype(np.uint8)
+    return imagen
+
+
+def convertir_a_bgr(imagen):
+    """
+    Convierte una imagen 2D o RGB a formato BGR.
+    """
+    imagen_uint8 = normalizar_a_uint8(imagen)
+    if len(imagen_uint8.shape) == 2:  # Imagen gris
+        img_bgr = cv2.cvtColor(imagen_uint8, cv2.COLOR_GRAY2BGR)
+    else:  # Imagen RGB
+        img_bgr = cv2.cvtColor(imagen_uint8, cv2.COLOR_RGB2BGR)
+    return img_bgr
+
+
+def verificar_grises(imagen):
+    """
+    Devuelve la imagen en escala de grises, convirtiendo si es necesario.
+    """
+    if imagen.ndim == 3 and imagen.shape[2] == 3:  # Imagen en color (3 canales)
+        return cv2.cvtColor(imagen, cv2.COLOR_BGR2GRAY)
+    return imagen  # Ya está en grises
+
+
+# ===============================
+#      MÉTRICAS Y VALIDACIÓN
+# ===============================
+
+
+def evaluar_resultados(resultados):
+    """
+    Evalúa el estado global de una lista de resultados parciales.
+    """
+    if not resultados:
+        return None  # Evita fallo si la lista está vacía
+
+    if all(r is None for r in resultados):
+        return None
+    elif all(r is True for r in resultados):
+        return True
+    else:
+        return "parcial"
+
+
+# ===============================
+#   LOGGING DE ESTADO DE FOLDS
+# ===============================
+
+
+def log_estado_fold(logger, resultado, fold):
+    """
+    Registra en el logger el estado de ejecución de un fold
+    para una etapa específica del pipeline.
+    """
+    if resultado is None:
+        logger.skip(f"⏩ Fold {fold} ya existente.")
+    elif resultado is True or isinstance(resultado, (dict, list)):
+        logger.info(f"🆗 Fold {fold} completado.")
+    elif resultado == "parcial":
+        logger.info(f"🔁 Fold {fold} parcialmente actualizado.")
+    else:
+        logger.warning(f"⚠️ Fold {fold}: estado desconocido.")

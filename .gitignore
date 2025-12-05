@@ -5,7 +5,7 @@
 # Dataset original MSLesSeg
 MSLesSeg-Dataset/
 
-# Datasets generados por setup.py
+# Datasets generados por extraer_dataset.py
 datasets/
 datasets/*
 
