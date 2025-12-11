@@ -90,10 +90,12 @@ El repositorio se organiza de la siguiente manera:
 └── README.md
 ```
 
-> ℹ️ Las carpetas `configs/`, `utils/` y `extras/` contienen módulos internos utilizados por los scripts del _pipeline_.
+> [!NOTE]
+> Las carpetas `configs/`, `utils/` y `extras/` contienen módulos internos utilizados por los scripts del pipeline.
 > No es necesario acceder a ellos directamente para la ejecución del proyecto.
 
-> ℹ️ Las carpetas marcadas con *️⃣ se generan automáticamente durante la ejecución.
+> [!NOTE]
+> Las carpetas marcadas con *️⃣ se generan automáticamente durante la ejecución.
 
 ---
 
@@ -128,11 +130,10 @@ Para ejecutar correctamente el proyecto se requiere el siguiente entorno básico
 
 ## ⚙️ Configuración del entorno
 
-### 1. Ubicarse en la carpeta raíz del proyecto
-
-Antes de ejecutar cualquier comando, situarse en la carpeta raíz del proyecto:
+### 1. Clonar el repositorio
 
 ```bash
+git clone https://github.com/srozenblum/YOLO-MSLesSeg
 cd YOLO-MSLesSeg
 ```
 
@@ -178,7 +179,7 @@ proyecto:
 python -m yolo_mslesseg.ejecutar_pipeline \
     --plano "axial" \
     --modalidad "FLAIR" \
-    --mejora "CLAHE" \
+    --mejora "LT" \
     --num_cortes P50 \
     --epochs 50 \
     --completo
@@ -201,15 +202,17 @@ y llevar a cabo experimentos para distintas configuraciones:
 | `--k_folds`         | Entero                                     | Número de folds para validación cruzada.            | ❌           | `5`               |
 | `--epochs`          | Entero                                     | Número de épocas de entrenamiento.                  | ✅           | —                 |
 | `--umbral_consenso` | `2` o `3`                                  | Umbral para votación mayoritaria del consenso.      | ❌           | `2`               |
-| `--completo`        | Flag                                       | Ejecutar el flujo sobre todos los pacientes.        | ✅ (❗)       | —                 |
-| `--paciente_id`     | ID (`P#`)                                  | Ejecutar el flujo solo para el paciente indicado.   | ✅ (❗)       | —                 |
+| `--completo`        | Flag                                       | Ejecutar el flujo sobre todos los pacientes.        | ✅           | —                 |
+| `--paciente_id`     | ID (`P#`)                                  | Ejecutar el flujo solo para el paciente indicado.   | ✅           | —                 |
 | `--entrenar`        | Flag                                       | Incluir la etapa de entrenamiento.                  | ❌           | `False`           |
 | `--limpiar`         | Flag                                       | Limpiar todos los resultados generados previamente. | ❌           | `False`           |
 
-> ❗️ Los argumentos `--completo` y `--paciente_id` son **mutuamente excluyentes**.  
-> Solo uno de ellos puede utilizarse en cada instancia de ejecución.
+> [!IMPORTANT]
+> Los argumentos `--completo` y `--paciente_id` son **mutuamente excluyentes**.  
+> Solo uno de ellos puede utilizarse en cada ejecución del _pipeline_.
 
-> ℹ️ El entrenamiento del modelo no se ejecuta automáticamente.
+> [!NOTE]
+> El entrenamiento del modelo no se ejecuta automáticamente.
 > Por defecto, se omite esta etapa porque es computacionalmente intensiva.
 > Esto permite acelerar la ejecución del _pipeline_ y favorecer la reproducibilidad cuando ya existen pesos entrenados.
 > Para ejecutar el entrenamiento, es necesario activarlo explícitamente con el flag `--entrenar`.
@@ -238,7 +241,7 @@ reducido
 de pacientes y modelos preentrenados. La demo está diseñada para mostrar rápidamente el funcionamiento del sistema sin
 necesidad de entrenar modelos ni procesar el conjunto completo.
 
-Se encuentra en la carpeta `demo/` y dispone de su propio [README](\demo\README_demo.md) con instrucciones
+Se encuentra en la carpeta `demo/` y dispone de su propio [README](demo/README_demo.md) con instrucciones
 detalladas. Para consultar sus particularidades, es necesario dirigirse a dicha carpeta y seguir la documentación allí
 incluida.
 
@@ -340,3 +343,11 @@ biomédico:
 
 - Documentación de Ultralytics YOLO11: https://docs.ultralytics.com/es/models/yolo11/.
 - Competición MSLesSeg y conjunto de datos: https://www.nature.com/articles/s41597-025-05250-y.
+
+---
+
+## 🧾 Licencia
+
+---
+
+## 📬 Contacto
