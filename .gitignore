@@ -43,7 +43,7 @@ GT/*
 
 # Entornos virtuales
 venv/
-venv_* /
+venv_*/
 .venv/
 ENV/
 env/
