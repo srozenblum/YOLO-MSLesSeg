@@ -2,53 +2,55 @@
 Script: ejecutar_demo.py
 
 Descripción:
-    Ejecuta una demostración resumida y controlada del pipeline
+    Ejecuta una demostración simplificada y controlada del pipeline
     YOLO-MSLesSeg utilizando únicamente pacientes específicos y
     sin entrenar ningún modelo.
 
-    Actualmente incluye dos ejecuciones individuales:
-    # TODO: ACLARAR QUE SE CALCULARON CON EL SCRIPT
-        - P14 sin mejora (plano sagital)
-        - P18 con HE (plano sagital)
+    Incluye dos ejecuciones de pacientes individuales, seleccionados a
+    partir del análisis de resultados en `analizar_pacientes_dsc.py`:
+        - Mejor paciente: P14, sin algoritmo de mejora, en el plano sagital.
+        - Peor paciente: P18, con ecualización de histograma (HE), en el plano axial.
+
+    Además de ejecutar el pipeline, genera dos visualizaciones por cada paciente:
+        - Visualización para el mejor corte: imagen estática que muestra el corte
+          que obtuvo el mayor DSC, con la predicción del modelo superpuesta (TP/FP/FN).
+        - GIF completo: animación dinámica que recorre todos los cortes del paciente
+          que contienen lesión, con la predicción del modelo superpuesta (TP/FP/FN).
 
 Modo de ejecución:
-    Este script debe ejecutarse únicamente por CLI. No es parte del pipeline, por lo que
-    no está preparado para uso interno.
+    Este script debe ejecutarse únicamente por CLI. No es parte del pipeline,
+    por lo que no está preparado para uso interno.
 
 Argumentos CLI:
+    Todos los parámetros necesarios para la ejecución del pipeline están fijados
+    dentro de este script. La demo no admite argumentos por línea de comandos:
+    las configuraciones están fijadas para garantizar una ejecución reproducible
+    y aislada del flujo de trabajo normal.
 
 Uso por CLI:
-
-
+    python -m demo.ejecutar_demo
 """
 
 import os
-import sys
 from pathlib import Path
 
 from yolo_mslesseg.ejecutar_pipeline import main as pipeline_main
+from yolo_mslesseg.extras.generar_gif_predicciones import main as generar_gif
+from yolo_mslesseg.extras.visualizar_prediccion_corte import (
+    main as visualizar_prediccion_corte,
+)
+from yolo_mslesseg.utils.configurar_logging import configurar_logging_demo, get_logger
+
+# Configurar logger
+logger = get_logger(__file__)
 
 
 def ejecutar_demo_paciente(paciente_id, mejora, plano):
     """
-    Ejecuta la demo para un paciente específico utilizando el pipeline real.
-
-    Parámetros:
-        paciente_id (str): Identificador del paciente (por ejemplo, "P14").
-        mejora      (str opcional): Algoritmo de mejora de imagen ("HE", "CLAHE",
-                                    "GC", "LT") o None para sin mejora.
-        plano       (str): Plano anatómico ("axial", "coronal", "sagital").
-
-    Descripción:
-        - Imprime un encabezado en stderr para mantener consistencia con el
-          sistema de logging del pipeline.
-        - Construye un `argv` equivalente a una llamada CLI al pipeline.
-        - Invoca `pipeline_main(argv)` como si fuera una ejecución independiente.
+    Ejecuta la demo para un paciente específico utilizando el pipeline.
     """
-    sys.stderr.write(
-        f"\n=== Ejecutando demo para {paciente_id} "
-        f"(mejora={mejora}, plano={plano}) ===\n"
-    )
+
+    logger.header(f"\n🧪 Ejecutando demo de YOLO-MSLesSeg")
 
     argv = [
         "--plano",
@@ -70,9 +72,16 @@ def ejecutar_demo_paciente(paciente_id, mejora, plano):
         argv += ["--mejora", mejora]
 
     pipeline_main(argv)
+    generar_gif(argv)
+    visualizar_prediccion_corte(argv)
 
 
 def main():
+    """
+    Entrada CLI del script.
+    """
+    configurar_logging_demo()
+
     # Guardar cwd original
     original_cwd = Path.cwd()
     demo_cwd = Path(__file__).resolve().parent
@@ -82,7 +91,7 @@ def main():
 
     try:
         ejecutar_demo_paciente("P14", mejora=None, plano="sagital")
-        ejecutar_demo_paciente("P18", mejora="HE", plano="sagital")
+        ejecutar_demo_paciente("P18", mejora="HE", plano="axial")
 
     finally:
         # Restaurar cwd original
