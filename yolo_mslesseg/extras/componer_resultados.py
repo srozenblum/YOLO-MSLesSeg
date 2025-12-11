@@ -28,7 +28,7 @@ Argumentos CLI:
         No filtra los planos incluidos en el CSV final.
 
     --modalidad (list[str], opcional)
-        Modalidad o modalidades de imagen ('T1', 'T2', 'FLAIR').
+        Modalidad o modalidades de imagen MRI ('T1', 'T2', 'FLAIR').
         Por defecto todas. Se usa para localizar el experimento.
 
     --num_cortes (int_o_percentil, requerido)
@@ -46,7 +46,7 @@ Argumentos CLI:
         Por defecto 5.
 
     --limpiar (flag, opcional)
-        Si está presente, elimina el archivo de salida existente antes de crear uno nuevo.
+        Si existe, elimina el archivo de salida existente antes de crear uno nuevo.
 
 Uso por CLI:
     python -m yolo_mslesseg.extras.componer_resultados \
@@ -231,15 +231,15 @@ def ejecutar_flujo(modelo, epochs, limpiar):
     """
     Ejecuta el flujo de composición de resultados.
     """
-    logger.header(f"⚒️ Ejecutando {Path(__file__).stem}")
+    logger.header(f"📊️ Generando tabla de resultados")
 
-    configuracion_global = construir_nombre_configuracion(
-        modelo.modalidad, modelo.num_cortes, modelo.k_folds, epochs
-    )
+    configuracion_global = construir_nombre_configuracion(modelo, epochs)
 
     output_path = Path("results") / f"{configuracion_global}_results.csv"
 
+    # Limpiar si corresponde
     if limpiar and ruta_existente(output_path):
+        logger.info(f"♻️ Eliminando tabla previa.")
         output_path.unlink(missing_ok=True)
 
     componer_resultados(configuracion_global)
@@ -264,7 +264,7 @@ def parsear_args():
         required=True,
         choices=["axial", "coronal", "sagital"],
         metavar="[axial, coronal, sagital]",
-        help="Plano anatómico del modelo [axial, coronal, sagital].",
+        help="Plano anatómico de extracción.",
     )
     parser.add_argument(
         "--modalidad",
