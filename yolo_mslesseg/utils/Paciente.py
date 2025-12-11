@@ -87,7 +87,7 @@ class Paciente:
         if not id.startswith("P"):
             raise ValueError(
                 f"ID de paciente no válido: '{id}'. "
-                "Debe seguir el formato 'P#' (por ejemplo, P1, P12, P53)."
+                "Debe seguir el formato 'P#' (por ejemplo: P1, P12, P53)."
             )
 
         if plano not in self.PLANOS:

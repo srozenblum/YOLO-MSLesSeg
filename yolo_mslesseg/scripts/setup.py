@@ -61,11 +61,11 @@ logger = get_logger(__file__)
 def dataset_existente(dataset_root):
     """
     Verifica si el dataset MSLesSeg ya existe
-    (es decir, si existen las carpetas train/ y test/).
+    (es decir, si existen las carpetas train/ o test/).
     """
     train_dir = dataset_root / "train"
     test_dir = dataset_root / "test"
-    return train_dir.exists() and test_dir.exists()
+    return train_dir.exists() or test_dir.exists()
 
 
 def gt_existente(gt_root):
@@ -328,12 +328,6 @@ def parsear_args():
         description="Descarga el dataset MSLesSeg desde Figshare y organiza la estructura de directorios para la ejecución del pipeline.",
     )
     parser.add_argument(
-        "--url",
-        default="https://springernature.figshare.com/ndownloader/files/52771814",
-        help="Enlace directo de descarga al archivo ZIP del dataset.",
-        metavar="<URL>",
-    )
-    parser.add_argument(
         "--limpiar",
         action="store_true",
         default=False,
@@ -349,17 +343,22 @@ def main():
     """
     args = parsear_args()
 
-    ejecutar_flujo(url=args.url, limpiar=args.limpiar, verbose=True)
+    ejecutar_flujo(
+        url="https://springernature.figshare.com/ndownloader/files/52771814",
+        limpiar=args.limpiar,
+        verbose=True,
+    )
 
 
-def ejecutar_setup_pipeline(
-    url="https://springernature.figshare.com/ndownloader/files/52771814", limpiar=False
-):
+def ejecutar_setup_pipeline(limpiar=False):
     """
     Entrada interna para el pipeline:
     ejecuta el flujo sin usar el parser CLI.
     """
-    ejecutar_flujo(url=url, limpiar=limpiar)
+    ejecutar_flujo(
+        url="https://springernature.figshare.com/ndownloader/files/52771814",
+        limpiar=limpiar,
+    )
 
 
 if __name__ == "__main__":

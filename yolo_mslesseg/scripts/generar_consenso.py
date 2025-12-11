@@ -19,7 +19,7 @@ Modos de ejecución:
 
 Argumentos CLI:
     --modalidad (list[str], opcional)
-        Modalidad o modalidades de imagen ('T1', 'T2', 'FLAIR').
+        Modalidad o modalidades de imagen MRI ('T1', 'T2', 'FLAIR').
         Por defecto todas.
 
     --num_cortes (int_o_percentil, requerido)
@@ -59,7 +59,7 @@ Uso por CLI:
 
 Entradas:
     - Volúmenes predichos (.nii.gz): generados previamente por `reconstruir_volumen.py` en
-        almacenados en vols/<mejora>/<modalidad>_<num_cortes>c_<k_folds>folds_<epochs>epochs/<fold_test>/PX/
+        almacenados en pred_vols/<mejora>/<modalidad>_<num_cortes>c_<k_folds>folds_<epochs>epochs/<fold_test>/PX/
 
     - Ground truth (.nii.gz): volúmenes originales ubicados en GT/<paciente_id>/
         utilizados como referencia para la validación.
@@ -70,7 +70,7 @@ Entradas:
 
 Salidas:
     - Volúmenes de consenso 3D (.nii.gz) en
-        vols/<mejora>/<modalidad>_<num_cortes>c_<k_folds>folds_<epochs>epochs/<fold_test>/PX/
+        pred_vols/<mejora>/<modalidad>_<num_cortes>c_<k_folds>folds_<epochs>epochs/<fold_test>/PX/
 """
 
 import argparse
@@ -169,7 +169,7 @@ def construir_paths(paciente_id, config):
     para un paciente individual.
     """
     paths = {
-        plano: config.vols_fold_dir / paciente_id / f"{paciente_id}_{plano}.nii.gz"
+        plano: config.pred_vols_fold_dir / paciente_id / f"{paciente_id}_{plano}.nii.gz"
         for plano in config.PLANOS
     }
     paths["gt"] = config.gt_dir / paciente_id / f"{paciente_id}_MASK.nii.gz"
@@ -239,7 +239,7 @@ def ejecutar_flujo_consenso(config, limpiar, umbral=2, verbose=False):
     # Ejecución por fold
     else:
         consensos_generados = generar_consenso_por_paciente(
-            input_dir=config.vols_fold_dir, config=config, umbral=umbral
+            input_dir=config.pred_vols_fold_dir, config=config, umbral=umbral
         )
         log_estado_fold(
             logger=logger, resultado=consensos_generados, fold=config.fold_test

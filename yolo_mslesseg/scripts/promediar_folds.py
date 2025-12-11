@@ -22,10 +22,10 @@ Modos de ejecución:
 
 Argumentos CLI:
     --plano (str, requerido)
-        Plano anatómico del modelo ('axial', 'coronal', 'sagital', 'consenso').
+        Plano anatómico de extracción ('axial', 'coronal', 'sagital').
 
-   --modalidad (list[str], opcional)
-        Modalidad o modalidades de imagen ('T1', 'T2', 'FLAIR').
+    --modalidad (list[str], opcional)
+        Modalidad o modalidades de imagen MRI ('T1', 'T2', 'FLAIR').
         Por defecto todas.
 
     --num_cortes (int_o_percentil, requerido)
@@ -216,7 +216,7 @@ def parsear_args(argv=None):
         required=True,
         choices=["axial", "coronal", "sagital"],
         metavar="[axial, coronal, sagital]",
-        help="Plano anatómico del modelo [axial, coronal, sagital].",
+        help="Plano anatómico de extracción.",
     )
     parser.add_argument(
         "--modalidad",
@@ -224,14 +224,14 @@ def parsear_args(argv=None):
         choices=["T1", "T2", "FLAIR"],
         default=["T1", "T2", "FLAIR"],
         metavar="",
-        help="Modalidad(es) de imagen MRI [T1, T2, FLAIR]. Por defecto todas.",
+        help="Modalidad(es) de imagen MRI. Por defecto todas.",
     )
     parser.add_argument(
         "--num_cortes",
         type=int_o_percentil,
         required=True,
         metavar="<num_cortes>",
-        help="Número de cortes extraídos [valor fijo o percentil].",
+        help="Número de cortes extraídos (valor fijo o percentil).",
     )
     parser.add_argument(
         "--mejora",
@@ -239,7 +239,7 @@ def parsear_args(argv=None):
         default=None,
         choices=["HE", "CLAHE", "GC", "LT"],
         metavar="<mejora>",
-        help="Algoritmo de mejora de imagen aplicado [HE, CLAHE, GC, LT]. Por defecto None.",
+        help="Algoritmo de mejora de imagen aplicado. Por defecto None.",
     )
     parser.add_argument(
         "--epochs",

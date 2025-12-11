@@ -44,7 +44,7 @@ class ConfigRecVol:
                  │   └── ...
                  └── ...
 
-        vols/: volúmenes predichos por el modelo (reconstruidos a partir de las máscaras 2D)
+        pred_vols/: volúmenes predichos por el modelo (reconstruidos a partir de las máscaras 2D)
         └── <mejora>/
              └── <modalidad>_<num_cortes>c_<k_folds>folds_<epochs>epochs/
                  ├── <fold_test>/
@@ -80,10 +80,10 @@ class ConfigRecVol:
         dataset_fold_dir (Path):
             Directorio del fold correspondiente dentro del dataset.
 
-        vols_base_dir (Path):
+        pred_vols_base_dir (Path):
             Directorio base de los volúmenes reconstruidos del experimento.
 
-        vols_fold_dir (Path):
+        pred_vols_fold_dir (Path):
             Directorio de los volúmenes reconstruidos del fold.
 
         gt_dir (Path):
@@ -129,7 +129,7 @@ class ConfigRecVol:
         self._resolver_rutas_dataset()
 
         # --- Directorios de volúmenes (salida) ---
-        self._resolver_rutas_vols()
+        self._resolver_rutas_pred_vols()
 
         # --- Rutas específicas del paciente (si aplica) ---
         self._resolver_rutas_paciente()
@@ -175,13 +175,13 @@ class ConfigRecVol:
         # Dataset del fold
         self.dataset_fold_dir = self.dataset_base_dir / f"fold{self.fold_test}"
 
-    def _resolver_rutas_vols(self):
-        self.vols_base_dir = (
-            Path("vols") / f"{self.modelo.base_path}_{self.epochs}epochs"
+    def _resolver_rutas_pred_vols(self):
+        self.pred_vols_base_dir = (
+            Path("pred_vols") / f"{self.modelo.base_path}_{self.epochs}epochs"
         )
 
         # Volúmenes del fold
-        self.vols_fold_dir = self.vols_base_dir / f"fold{self.fold_test}"
+        self.pred_vols_fold_dir = self.pred_vols_base_dir / f"fold{self.fold_test}"
 
     def _resolver_rutas_paciente(self):
         if not self.es_paciente_individual:
@@ -195,7 +195,7 @@ class ConfigRecVol:
             / "pred_masks"
         )
         self.paciente_vol_root = (
-            self.vols_base_dir / f"fold{self.fold_test}" / self.paciente.id
+            self.pred_vols_base_dir / f"fold{self.fold_test}" / self.paciente.id
         )
 
         # Archivos NIfTI (volumen predicho y ground truth)
@@ -215,16 +215,16 @@ class ConfigRecVol:
         Limpia los volúmenes reconstruidos en el plano correspondiente
         para todos los pacientes del fold.
         """
-        if ruta_existente(self.vols_fold_dir):
-            pacientes = listar_pacientes(self.vols_fold_dir)
+        if ruta_existente(self.pred_vols_fold_dir):
+            pacientes = listar_pacientes(self.pred_vols_fold_dir)
 
             for paciente_id in pacientes:
-                paciente_vols_dir = self.vols_fold_dir / paciente_id
-                if not paciente_vols_dir.is_dir():
+                paciente_pred_vols_dir = self.pred_vols_fold_dir / paciente_id
+                if not paciente_pred_vols_dir.is_dir():
                     continue
 
                 # Eliminar archivo NIfTI del plano del modelo
-                for archivo in paciente_vols_dir.iterdir():
+                for archivo in paciente_pred_vols_dir.iterdir():
                     if self.plano.lower() in archivo.name.lower() and archivo.suffixes[
                         -2:
                     ] == [".nii", ".gz"]:
@@ -270,7 +270,7 @@ class ConfigRecVol:
         Verifica que existan los archivos de entrada y el directorio de salida para
         los pacientes del fold.
         - Entrada: directorio de máscaras 2D predichas por paciente (pred_masks_dir).
-        - Salida: directorio de volúmenes reconstruidos por paciente (vols_fold_dir).
+        - Salida: directorio de volúmenes reconstruidos por paciente (pred_vols_fold_dir).
         """
         pacientes = listar_pacientes(self.dataset_fold_dir)
 
@@ -278,7 +278,7 @@ class ConfigRecVol:
             paciente_pred_masks_dir = (
                 self.dataset_fold_dir / paciente_id / self.plano / "pred_masks"
             )
-            paciente_vols_fold_dir = self.vols_fold_dir / paciente_id
+            paciente_pred_vols_fold_dir = self.pred_vols_fold_dir / paciente_id
 
             # pred_masks_dir
             if not ruta_existente(
@@ -288,8 +288,8 @@ class ConfigRecVol:
                     f"Faltan pred_masks de {paciente_id}: {paciente_pred_masks_dir}."
                 )
 
-            # vols_fold_dir
-            crear_directorio(paciente_vols_fold_dir)  # Asegurar salida
+            # pred_vols_fold_dir
+            crear_directorio(paciente_pred_vols_fold_dir)  # Asegurar salida
 
     def _verificar_paths_paciente(self):
         """

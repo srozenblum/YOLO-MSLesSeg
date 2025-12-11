@@ -23,10 +23,10 @@ Modos de ejecución:
 
 Argumentos CLI:
     --plano (str, requerido)
-        Plano anatómico del modelo ('axial', 'coronal', 'sagital', 'consenso').
+        Plano anatómico de extracción ('axial', 'coronal', 'sagital').
 
-   --modalidad (list[str], opcional)
-        Modalidad o modalidades de imagen ('T1', 'T2', 'FLAIR').
+    --modalidad (list[str], opcional)
+        Modalidad o modalidades de imagen MRI ('T1', 'T2', 'FLAIR').
         Por defecto todas.
 
     --num_cortes (int_o_percentil, requerido)
@@ -64,7 +64,7 @@ Uso por CLI:
 
 Entradas:
     - Volúmenes predichos (.nii.gz): generados previamente por `reconstruir_volumen.py` en
-        vols/<mejora>/<modalidad>_<num_cortes>c_<k_folds>folds_<epochs>epochs/<fold_test>/PX/.
+        pred_vols/<mejora>/<modalidad>_<num_cortes>c_<k_folds>folds_<epochs>epochs/<fold_test>/PX/.
 
     - Ground truth (.nii.gz): volúmenes originales ubicados en GT/<paciente_id>/
         utilizados como referencia para la evaluación.
@@ -83,7 +83,6 @@ import sys
 from pathlib import Path
 
 import numpy as np
-from sklearn.metrics import roc_auc_score
 
 from yolo_mslesseg.configs.ConfigEval import ConfigEval
 from yolo_mslesseg.utils.Modelo import Modelo
@@ -98,62 +97,14 @@ from yolo_mslesseg.utils.utils import (
     escribir_json,
     log_estado_fold,
     leer_json,
+    AUC,
+    precision,
+    recall,
+    DSC,
 )
 
 # Configurar logger
 logger = get_logger(__file__)
-
-
-# =============================
-#           MÉTRICAS
-# =============================
-
-
-def dice(y_true, y_pred):
-    """Calcula el DSC."""
-
-    intersection = np.sum(y_true * y_pred)
-    dsc = (2.0 * intersection) / (np.sum(y_true) + np.sum(y_pred) + 1e-8)
-
-    return float(np.round(dsc, 3))
-
-
-def precision(y_true, y_pred):
-    """Calcula la precisión."""
-
-    tp = np.sum((y_true == 1) & (y_pred == 1))
-    fp = np.sum((y_true == 0) & (y_pred == 1))
-    prec = tp / (tp + fp + 1e-8)
-
-    return float(np.round(prec, 3))
-
-
-def recall(y_true, y_pred):
-    """Calcula el recall."""
-
-    tp = np.sum((y_true == 1) & (y_pred == 1))
-    fn = np.sum((y_true == 1) & (y_pred == 0))
-    rec = tp / (tp + fn + 1e-8)
-
-    return float(np.round(rec, 3))
-
-
-def AUC(y_true, y_pred):
-    """Calcula el AUC."""
-
-    try:
-        # Aplanar los arrays
-        y_true = y_true.flatten()
-        y_pred = y_pred.flatten()
-        if len(np.unique(y_true)) < 2:
-            logger.warning("⚠️ AUC no definido: y_true contiene una sola clase.")
-            return np.nan
-        auc = float(np.round(roc_auc_score(y_true, y_pred), 3))
-        return auc
-
-    except Exception as e:
-        logger.warning(f"⚠️ No se pudo calcular AUC: {e}")
-        return np.nan
 
 
 # =============================
@@ -168,7 +119,7 @@ def generar_diccionario_metricas(gt_vol, pred_vol):
     """
 
     metricas = {
-        "DSC": dice(gt_vol, pred_vol),
+        "DSC": DSC(gt_vol, pred_vol),
         "AUC": AUC(gt_vol, pred_vol),
         "Precision": precision(gt_vol, pred_vol),
         "Recall": recall(gt_vol, pred_vol),
@@ -248,12 +199,12 @@ def construir_paths(paciente_id, config):
     Construye un diccionario de paths (pred_vol, gt_vol, metricas_json)
     para un paciente individual.
     """
-    root_vols = config.vols_fold_dir / paciente_id
+    root_pred_vols = config.pred_vols_fold_dir / paciente_id
     root_gt = config.gt_dir / paciente_id
     root_res = config.results_fold_dir / paciente_id
 
     return {
-        "pred_vol": root_vols / f"{paciente_id}_{config.plano}.nii.gz",
+        "pred_vol": root_pred_vols / f"{paciente_id}_{config.plano}.nii.gz",
         "gt_vol": root_gt / f"{paciente_id}_MASK.nii.gz",
         "results_json": root_res / f"{paciente_id}_{config.plano}_results.json",
     }
@@ -331,7 +282,7 @@ def ejecutar_flujo_eval(config, limpiar, verbose=False):
     # Ejecucion por fold
     else:
         metricas_fold = calcular_metricas_fold(
-            input_dir=config.vols_fold_dir, config=config
+            input_dir=config.pred_vols_fold_dir, config=config
         )
         log_estado_fold(logger=logger, resultado=metricas_fold, fold=config.fold_test)
 
@@ -359,7 +310,7 @@ def parsear_args(argv=None):
         required=True,
         choices=["axial", "coronal", "sagital"],
         metavar="[axial, coronal, sagital]",
-        help="Plano anatómico del modelo.",
+        help="Plano anatómico de extracción.",
     )
     parser.add_argument(
         "--modalidad",

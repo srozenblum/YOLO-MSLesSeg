@@ -30,9 +30,8 @@ Bloques funcionales principales:
         Normalización de máscaras binarias, conversión a uint8, conversión RGB/BGR
         y normalización a escala de grises.
 
-    - Métricas y validación:
-        Validación de reconstrucciones, verificación de volúmenes predichos y
-        evaluación resumida del estado global de resultados parciales.
+    - Métricas y evaluación:
+        Cálculo de métricas de rendimiento y evaluación de resultados parciales.
 
     - Logging de estado:
         Funciones auxiliares para registrar el estado de ejecución de un fold
@@ -60,6 +59,8 @@ from pathlib import Path
 import cv2
 import nibabel as nib
 import numpy as np
+from PIL import Image
+from sklearn.metrics import roc_auc_score
 from ultralytics import YOLO
 
 from yolo_mslesseg.utils.configurar_logging import get_logger
@@ -100,16 +101,48 @@ def archivo_ignorable(nombre):
     )
 
 
-def construir_nombre_configuracion(modalidad, num_cortes, k_folds, epochs):
+def construir_nombre_configuracion(modelo, epochs):
     """
     Construye el nombre de la carpeta de configuración global del modelo
     (modalidad, número de cortes, k_folds y epochs).
-
-    Ejemplo:
-        ['FLAIR'], 'P50', 5, 50 → FLAIR_P50_5folds_50epochs
     """
-    modalidades = "".join(modalidad)  # Ej: ['FLAIR'] → "FLAIR"
-    return f"{modalidades}_{num_cortes}c_{k_folds}folds_{epochs}epochs"
+    modalidades = "".join(modelo.modalidad)  # Ej: ['FLAIR'] → "FLAIR"
+    return f"{modalidades}_{modelo.num_cortes}c_{modelo.k_folds}folds_{epochs}epochs"
+
+
+def base_dir_paciente(paciente, modelo):
+    """
+    Devuelve el directorio base donde se almacenan las imágenes, predicciones
+    y máscaras ground truth de un paciente dentro del dataset YOLO.
+    """
+    repo_root = Path(__file__).resolve().parents[2]
+
+    paciente_id = paciente.id
+    plano = paciente.plano
+
+    k_folds = modelo.k_folds
+    fold = calcular_fold(paciente_id, k_folds)
+
+    return (
+        repo_root / "datasets" / modelo.base_path / f"fold{fold}" / paciente_id / plano
+    )
+
+
+def paths_paciente(paciente, modelo, corte):
+    """
+    Construye y devuelve un diccionario con las rutas a la imagen, la predicción y
+    la máscara ground truth de un corte específico del paciente.
+    """
+    paciente_id = paciente.id
+    modalidad = paciente.modalidad_str
+
+    base_dir = base_dir_paciente(paciente=paciente, modelo=modelo)
+
+    return {
+        "img": base_dir / "images" / f"{paciente_id}_{modalidad}_{corte}.png",
+        "pred": base_dir / "pred_masks" / f"{paciente_id}_{modalidad}_{corte}.png",
+        "gt": base_dir / "GT_masks" / f"{paciente_id}_{corte}.png",
+    }
 
 
 # ===============================
@@ -283,6 +316,25 @@ def calcular_fold(paciente_id, k_folds=5):
     raise ValueError(f"No se puede calcular el fold del paciente {paciente_id}.")
 
 
+def obtener_cortes_paciente(paciente, modelo):
+    """
+    Devuelve una lista ordenada de los cortes disponibles para un paciente
+    en un plano dado, extraídos a partir del subdirectorio images/ del dataset YOLO.
+    """
+    base_dir = base_dir_paciente(paciente=paciente, modelo=modelo)
+    images_dir = base_dir / "images"
+
+    cortes = []
+    for fname in images_dir.glob("*.png"):
+        try:
+            corte = int(fname.stem.split("_")[-1])
+            cortes.append(corte)
+        except ValueError:
+            continue  # Ignorar archivos que no sigan la convención
+
+    return sorted(cortes)
+
+
 # ===============================
 #     MANEJO DE PERCENTILES
 # ===============================
@@ -324,6 +376,29 @@ def calcular_percentil(json_path, p, verbose=False):
 # ===============================
 #     PROCESAMIENTO DE IMAGEN
 # ===============================
+
+
+def cargar_png(path):
+    """
+    Carga un archivo PNG en escala de grises
+    y lo devuelve como array de NumPy.
+    """
+    return np.array(Image.open(path).convert("L"))
+
+
+def preparar_cortes_pred_gt(img_path, pred_path, gt_path):
+    """
+    Carga y prepara la imagen, la máscara de predicción y la máscara GT
+    correspondientes a un mismo corte, aplicando la corrección geométrica
+    necesaria para la predicción.
+    """
+    img = cargar_png(img_path)
+    pred = (cargar_png(pred_path) > 0).astype(float)
+    gt = (cargar_png(gt_path) > 0).astype(float)
+
+    pred = np.rot90(pred, 1)  # Rotación correctiva
+
+    return img, pred, gt
 
 
 def normalizar_mascara_binaria(mask_path):
@@ -370,7 +445,7 @@ def verificar_grises(imagen):
 
 
 # ===============================
-#      MÉTRICAS Y VALIDACIÓN
+#     EVALUACIÓN DE RESULTADOS
 # ===============================
 
 
@@ -387,6 +462,54 @@ def evaluar_resultados(resultados):
         return True
     else:
         return "parcial"
+
+
+# =============================
+#           MÉTRICAS
+# =============================
+
+
+def DSC(y_true, y_pred):
+    """Calcula el DSC."""
+    intersection = np.sum(y_true * y_pred)
+    dsc = (2.0 * intersection) / (np.sum(y_true) + np.sum(y_pred) + 1e-8)
+
+    return float(np.round(dsc, 3))
+
+
+def precision(y_true, y_pred):
+    """Calcula la precisión."""
+    tp = np.sum((y_true == 1) & (y_pred == 1))
+    fp = np.sum((y_true == 0) & (y_pred == 1))
+    prec = tp / (tp + fp + 1e-8)
+
+    return float(np.round(prec, 3))
+
+
+def recall(y_true, y_pred):
+    """Calcula el recall."""
+    tp = np.sum((y_true == 1) & (y_pred == 1))
+    fn = np.sum((y_true == 1) & (y_pred == 0))
+    rec = tp / (tp + fn + 1e-8)
+
+    return float(np.round(rec, 3))
+
+
+def AUC(y_true, y_pred):
+    """Calcula el AUC."""
+    try:
+        # Aplanar los arrays
+        y_true = y_true.flatten()
+        y_pred = y_pred.flatten()
+        if len(np.unique(y_true)) < 2:
+            logger.warning("⚠️ AUC no definido: y_true contiene una sola clase.")
+            return np.nan
+        auc = float(np.round(roc_auc_score(y_true, y_pred), 3))
+        return auc
+
+    except Exception as e:
+        logger.warning(f"⚠️ No se pudo calcular AUC: {e}")
+        return np.nan
 
 
 # ===============================

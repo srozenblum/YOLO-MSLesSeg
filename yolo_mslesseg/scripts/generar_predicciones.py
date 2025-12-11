@@ -23,10 +23,10 @@ Modos de ejecución:
 
 Argumentos CLI:
     --plano (str, requerido)
-        Plano anatómico del modelo ('axial', 'coronal', 'sagital').
+        Plano anatómico de extracción ('axial', 'coronal', 'sagital').
 
     --modalidad (list[str], opcional)
-        Modalidad o modalidades de imagen ('T1', 'T2', 'FLAIR').
+        Modalidad o modalidades de imagen MRI ('T1', 'T2', 'FLAIR').
         Por defecto todas.
 
     --num_cortes (int_o_percentil, requerido)
@@ -374,7 +374,7 @@ def parsear_args(argv=None):
         required=True,
         choices=["axial", "coronal", "sagital"],
         metavar="[axial, coronal, sagital]",
-        help="Plano anatómico del modelo.",
+        help="Plano anatómico de extracción.",
     )
     parser.add_argument(
         "--modalidad",

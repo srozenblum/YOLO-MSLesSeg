@@ -6,7 +6,7 @@ Descripción:
     de predicción 2D generadas por el modelo YOLO, ya sea para un paciente
     individual o para todos los pacientes de un fold. Los volúmenes
     reconstruidos se validan automáticamente frente a las máscaras ground
-    truth y se almacenan en el directorio vols/.
+    truth y se almacenan en el directorio pred_vols/.
 
 Modos de ejecución:
     1. CLI (uso independiente):
@@ -20,10 +20,10 @@ Modos de ejecución:
 
 Argumentos CLI:
     --plano (str, requerido)
-        Plano anatómico del modelo ('axial', 'coronal', 'sagital').
+        Plano anatómico de extracción ('axial', 'coronal', 'sagital').
 
     --modalidad (list[str], opcional)
-        Modalidad o modalidades de imagen ('T1', 'T2', 'FLAIR').
+        Modalidad o modalidades de imagen MRI ('T1', 'T2', 'FLAIR').
         Por defecto todas.
 
     --num_cortes (int_o_percentil, requerido)
@@ -70,7 +70,7 @@ Entradas:
 
 Salidas:
     - Volúmenes reconstruidos (.nii.gz) en
-    vols/<mejora>/<modalidad>_<num_cortes>c_<k_folds>folds_<epochs>epochs/<fold_test>/PX/
+    pred_vols/<mejora>/<modalidad>_<num_cortes>c_<k_folds>folds_<epochs>epochs/<fold_test>/PX/
 """
 
 import argparse
@@ -276,12 +276,12 @@ def construir_paths(paciente_id, config):
     Construye un diccionario de paths (pred_vol, gt_vol, pred_masks)
     para un paciente individual.
     """
-    root_vols = config.vols_fold_dir / paciente_id
+    root_pred_vols = config.pred_vols_fold_dir / paciente_id
     root_gt = config.gt_dir / paciente_id
     root_dataset = config.dataset_fold_dir / paciente_id / config.plano
 
     return {
-        "pred_vol": root_vols / f"{paciente_id}_{config.plano}.nii.gz",
+        "pred_vol": root_pred_vols / f"{paciente_id}_{config.plano}.nii.gz",
         "gt_vol": root_gt / f"{paciente_id}_MASK.nii.gz",
         "pred_masks": root_dataset / "pred_masks",
     }
@@ -379,7 +379,7 @@ def parsear_args(argv=None):
         required=True,
         choices=["axial", "coronal", "sagital"],
         metavar="[axial, coronal, sagital]",
-        help="Plano anatómico del modelo.",
+        help="Plano anatómico de extracción.",
     )
     parser.add_argument(
         "--modalidad",

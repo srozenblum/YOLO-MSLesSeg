@@ -26,7 +26,7 @@ class ConfigConsenso:
            Genera los consensos para todos los pacientes del fold indicado.
 
     Convenciones de directorios:
-        vols/: volúmenes predichos por el modelo
+        pred_vols/: volúmenes predichos por el modelo
         └── <mejora>/
              └── <modalidad>_<num_cortes>c_<k_folds>folds_<epochs>epochs/
                  ├── <fold_test>/
@@ -58,10 +58,10 @@ class ConfigConsenso:
             Número de fold utilizado como conjunto de test (1, ..., `k_folds`).
             Si la ejecución es para un paciente individual, se calcula automáticamente.
 
-        vols_base_dir (Path):
+        pred_vols_base_dir (Path):
             Directorio base de volúmenes reconstruidos del experimento.
 
-        vols_fold_dir (Path):
+        pred_vols_fold_dir (Path):
             Directorio de volúmenes reconstruidos del fold.
 
         gt_dir (Path):
@@ -101,7 +101,7 @@ class ConfigConsenso:
         self._resolver_modo_ejecucion()
 
         # --- Directorios de volúmenes (entrada y salida) ---
-        self._resolver_rutas_vols()
+        self._resolver_rutas_pred_vols()
 
         # --- Rutas del paciente (si corresponde) ---
         self._resolver_rutas_paciente()
@@ -141,19 +141,19 @@ class ConfigConsenso:
                 "Debe especificarse un modo de ejecución: fold de test o paciente individual."
             )
 
-    def _resolver_rutas_vols(self):
-        self.vols_base_dir = (
-            Path("vols") / f"{self.modelo.base_path}_{self.epochs}epochs"
+    def _resolver_rutas_pred_vols(self):
+        self.pred_vols_base_dir = (
+            Path("pred_vols") / f"{self.modelo.base_path}_{self.epochs}epochs"
         )
 
         # Volúmenes del fold
-        self.vols_fold_dir = self.vols_base_dir / f"fold{self.fold_test}"
+        self.pred_vols_fold_dir = self.pred_vols_base_dir / f"fold{self.fold_test}"
 
     def _resolver_rutas_paciente(self):
         if not self.es_paciente_individual:
             return
 
-        self.paciente_vol_root = self.vols_fold_dir / self.paciente.id
+        self.paciente_vol_root = self.pred_vols_fold_dir / self.paciente.id
 
         # Diccionario con los volúmenes predichos por plano
         self.paciente_pred_vol = {
@@ -175,11 +175,11 @@ class ConfigConsenso:
         Limpia los archivos de consenso en el plano correspondiente
         para todos los pacientes del fold.
         """
-        if ruta_existente(self.vols_fold_dir):
-            pacientes = listar_pacientes(self.vols_fold_dir)
+        if ruta_existente(self.pred_vols_fold_dir):
+            pacientes = listar_pacientes(self.pred_vols_fold_dir)
 
             for paciente_id in pacientes:
-                paciente_dir = self.vols_fold_dir / paciente_id
+                paciente_dir = self.pred_vols_fold_dir / paciente_id
                 if not paciente_dir.is_dir():
                     continue
 
@@ -233,10 +233,10 @@ class ConfigConsenso:
         - Entrada: volúmenes predichos en los 3 planos.
         - Salida: mismo directorio que el de entrada, se verifica implícitamente.
         """
-        pacientes = listar_pacientes(self.vols_fold_dir)
+        pacientes = listar_pacientes(self.pred_vols_fold_dir)
 
         for paciente_id in pacientes:
-            paciente_root = self.vols_fold_dir / paciente_id
+            paciente_root = self.pred_vols_fold_dir / paciente_id
 
             # Volumen por plano
             for plano in ("axial", "coronal", "sagital"):

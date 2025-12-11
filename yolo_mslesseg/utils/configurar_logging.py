@@ -30,6 +30,7 @@ from pathlib import Path
 #               NIVELES PERSONALIZADOS
 # ============================================================
 
+
 def registrar_nivel_personalizado(valor, nombre):
     """Registra un nivel de logging personalizado y añade logger.<nombre_en_minusculas>()."""
     logging.addLevelName(valor, nombre)
@@ -53,6 +54,7 @@ ANSI_ESCAPE = re.compile(r"\x1B\[[0-?][ -/][@-~]")
 # ============================================================
 #                   FORMATTERS
 # ============================================================
+
 
 class ColorFormatter(logging.Formatter):
     """Formatter con colores ANSI para la consola."""
@@ -87,6 +89,7 @@ class NoColorFormatter(logging.Formatter):
 #               CONFIGURACIÓN GLOBAL DE LOGGING
 # ============================================================
 
+
 def configurar_logging(level=logging.INFO, log_file=None):
     """
     Configura logging global:
@@ -118,9 +121,31 @@ def configurar_logging(level=logging.INFO, log_file=None):
 configurar_logging()
 
 
+def configurar_logging_demo():
+    """
+    Configura logging para la ejecución de la demo.
+    """
+    logger = logging.getLogger()
+
+    # 1. Eliminar SOLO el FileHandler que apunta a pipeline.log
+    for h in list(logger.handlers):
+        if isinstance(h, logging.FileHandler):
+            # Evitar borrar otros handlers futuros por accidente
+            if "pipeline.log" in str(getattr(h, "baseFilename", "")):
+                logger.removeHandler(h)
+
+    # 2. Añadir FileHandler para demo.log
+    demo_log_path = Path(__file__).resolve().parent / "demo.log"
+    demo_handler = logging.FileHandler(demo_log_path, mode="w")
+    demo_handler.setLevel(logging.INFO)
+
+    logger.addHandler(demo_handler)
+
+
 # ============================================================
 #               FUNCIÓN PÚBLICA PARA SCRIPTS
 # ============================================================
+
 
 def get_logger(source_file):
     """

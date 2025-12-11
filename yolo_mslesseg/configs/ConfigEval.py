@@ -47,7 +47,7 @@ class ConfigEval:
                  │   └── ...
                  └── ...
 
-        vols/: volúmenes predichos por el modelo
+        pred_vols/: volúmenes predichos por el modelo
         └── <mejora>/
              └── <modalidad>_<num_cortes>c_<k_folds>folds_<epochs>epochs/
                  ├── <fold_test>/
@@ -80,10 +80,10 @@ class ConfigEval:
             Número de fold utilizado como conjunto de test (1, ..., `k_folds`).
             Si la ejecución es para un paciente individual, se calcula automáticamente.
 
-        vols_base_dir (Path):
+        pred_vols_base_dir (Path):
             Directorio base de los volúmenes reconstruidos del experimento.
 
-        vols_fold_dir (Path):
+        pred_vols_fold_dir (Path):
             Directorio de los volúmenes reconstruidos del fold.
 
         gt_dir (Path):
@@ -136,7 +136,7 @@ class ConfigEval:
         self._resolver_modo_ejecucion()
 
         # --- Directorios de volúmenes (entrada) ---
-        self._resolver_rutas_vols()
+        self._resolver_rutas_pred_vols()
 
         # --- Directorios de resultados (salida) ---
         self._resolver_rutas_resultados()
@@ -182,13 +182,13 @@ class ConfigEval:
 
         # En modo fold y modo experimento no hay nada más que resolver
 
-    def _resolver_rutas_vols(self):
-        self.vols_base_dir = (
-            Path("vols") / f"{self.modelo.base_path}_{self.epochs}epochs"
+    def _resolver_rutas_pred_vols(self):
+        self.pred_vols_base_dir = (
+            Path("pred_vols") / f"{self.modelo.base_path}_{self.epochs}epochs"
         )
 
         # Volúmenes del fold
-        self.vols_fold_dir = self.vols_base_dir / f"fold{self.fold_test}"
+        self.pred_vols_fold_dir = self.pred_vols_base_dir / f"fold{self.fold_test}"
 
     def _resolver_rutas_resultados(self):
         self.results_base_dir = (
@@ -213,7 +213,7 @@ class ConfigEval:
             return
 
         self.paciente_vol_root = (
-            self.vols_base_dir / f"fold{self.fold_test}" / self.paciente.id
+            self.pred_vols_base_dir / f"fold{self.fold_test}" / self.paciente.id
         )
         self.paciente_results_root = (
             self.results_base_dir / f"fold{self.fold_test}" / self.paciente.id
@@ -318,12 +318,14 @@ class ConfigEval:
         - Entrada: ground truth y predicciones por paciente (gt_dir y pred_vol_dir)
         - Salida: directorio raíz de métricas por paciente (results_root).
         """
-        pacientes = listar_pacientes(self.vols_fold_dir)
+        pacientes = listar_pacientes(self.pred_vols_fold_dir)
 
         for paciente_id in pacientes:
             paciente_gt_dir = self.gt_dir / paciente_id / f"{paciente_id}_MASK.nii.gz"
             paciente_pred_vol_dir = (
-                self.vols_fold_dir / paciente_id / f"{paciente_id}_{self.plano}.nii.gz"
+                self.pred_vols_fold_dir
+                / paciente_id
+                / f"{paciente_id}_{self.plano}.nii.gz"
             )
             results_root_paciente = self.results_fold_dir / paciente_id
 

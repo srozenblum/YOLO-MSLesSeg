@@ -10,6 +10,12 @@ Descripción:
     resultados ya existen, evitando recomputar trabajo innecesario. Esto permite
     reiniciar ejecuciones sin perder progreso previo.
 
+    Además, la etapa de entrenamiento es opcional. Por defecto, el pipeline
+    no vuelve a entrenar los modelos YOLO en cada ejecución: esto evita
+    un costo computacional innecesario y favorece la reproducibilidad
+    cuando ya existen pesos entrenados. El entrenamiento se puede activar
+    explícitamente en la llamada CLI.
+
 Etapas:
     (0) Set up                    → descarga del dataset de entrada MSLesSeg
                                     y creación de la estructura de directorios.
@@ -25,10 +31,10 @@ Etapas:
 
 Argumentos CLI:
     --plano (str, requerido)
-        Plano anatómico del modelo ('axial', 'coronal', 'sagital').
+        Plano anatómico de extracción ('axial', 'coronal', 'sagital').
 
     --modalidad (list[str], opcional)
-        Modalidad(es) de extracción [T1, T2, FLAIR].
+        Modalidad o modalidades de imagen MRI ('T1', 'T2', 'FLAIR').
         Por defecto todas.
 
     --num_cortes (int_o_percentil, requerido)
@@ -91,7 +97,6 @@ from yolo_mslesseg.utils.utils import (
 
 # Configurar logger
 configurar_logging(level=logging.INFO, log_file="pipeline.log")
-# TODO: VER SI SE PUEDE MODIFICAR A DEMO.LOG
 logger = get_logger(__file__)
 
 
@@ -110,10 +115,10 @@ def verificar_folds_consenso(modelo, epochs, k_folds):
     folds_incompletos = []
 
     for fold in range(1, k_folds + 1):
-        vols_fold_dir = (
-            Path("vols") / f"{modelo.base_path}_{epochs}epochs" / f"fold{fold}"
+        pred_vols_fold_dir = (
+            Path("pred_vols") / f"{modelo.base_path}_{epochs}epochs" / f"fold{fold}"
         )
-        if verificar_volumenes_grupo(vols_fold_dir):
+        if verificar_volumenes_grupo(pred_vols_fold_dir):
             folds_validos.append(fold)
         else:
             folds_incompletos.append(fold)
@@ -269,14 +274,14 @@ def ejecutar_consenso(modelo, epochs, k_folds, paciente, umbral_consenso, limpia
             k_folds=k_folds,
         )
 
-        vols_root = (
-            Path("vols")
+        pred_vols_root = (
+            Path("pred_vols")
             / f"{modelo.base_path}_{epochs}epochs"
             / f"fold{fold_paciente}"
             / paciente.id
         )
 
-        if not volumenes_predichos_completos(vols_root):
+        if not volumenes_predichos_completos(pred_vols_root):
             logger.warning(f"\n⚠️ Omitiendo consenso: faltan volúmenes predichos.")
             return False
 
@@ -456,7 +461,7 @@ def parsear_args(argv=None):
         required=True,
         choices=["axial", "coronal", "sagital"],
         metavar="[axial, coronal, sagital]",
-        help="Plano anatómico del modelo.",
+        help="Plano anatómico de extracción.",
     )
     parser.add_argument(
         "--modalidad",
@@ -513,7 +518,7 @@ def parsear_args(argv=None):
         "--paciente_id",
         type=str,
         metavar="<paciente_id>",
-        help="Ejecutar el flujo de trabajo solo para un paciente específico (por ejemplo, -pa P12).",
+        help="Extraer el dataset YOLO solo para el paciente indicado.",
     )
     parser.add_argument(
         "--entrenar",
