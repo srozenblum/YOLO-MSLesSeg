@@ -8,8 +8,10 @@
 
 Este proyecto implementa un pipeline completo de segmentación y evaluación de lesiones de esclerosis múltiple en
 imágenes de resonancia magnética utilizando modelos
-[YOLO11-seg](https://docs.ultralytics.com/es/models/yolo11/).
-El trabajo se basa en el conjunto de datos de la **MSLesSeg Competition** del ICPR 2024, una competición internacional
+[**YOLO11-seg**](https://docs.ultralytics.com/es/models/yolo11/).
+El trabajo se basa en el conjunto de datos de la [**MSLesSeg Competition
+**](https://www.nature.com/articles/s41597-025-05250-y) del ICPR 2024, una competición
+internacional
 de referencia en la validación de métodos automáticos para la segmentación de lesiones de esclerosis múltiple.  
 El objetivo es contribuir en esta línea de investigación mediante un enfoque original que combina modelos de
 aprendizaje profundo con distintos algoritmos de mejora de imagen, permitiendo desarrollar una herramienta reproducible
@@ -177,16 +179,17 @@ proyecto:
 
 ```bash
 python -m yolo_mslesseg.ejecutar_pipeline \
-    --plano "axial" \
-    --modalidad "FLAIR" \
-    --mejora "LT" \
+    --plano axial \
+    --modalidad FLAIR \
+    --mejora CLAHE \
     --num_cortes P50 \
     --epochs 50 \
     --completo
 ```
 
-Este comando ejecuta automáticamente todas las fases del flujo.
-Los resultados se almacenan en la carpeta `results/`, siguiendo la estructura definida por el repositorio.
+Este comando ejecuta automáticamente todas las fases del flujo de trabajo.
+Las métricas de rendimiento obtenidas se almacenan en la carpeta `results/`, siguiendo la estructura definida por el
+repositorio.
 
 ### Parámetros de ejecución
 
@@ -198,7 +201,7 @@ y llevar a cabo experimentos para distintas configuraciones:
 | `--plano`           | `axial`, `coronal`, `sagital`              | Plano anatómico de extracción.                      | ✅           | —                 |
 | `--modalidad`       | `T1`, `T2`, `FLAIR` (múltiples permitidas) | Modalidad(es) de imagen MRI.                        | ❌           | Todas             |
 | `--num_cortes`      | Entero o percentil (`PXX`)                 | Número de cortes a extraer.                         | ✅           | —                 |
-| `--mejora`          | `HE`, `CLAHE`, `GC`, `LT`                  | Algoritmo de mejora de imagen.                      | ❌           | Ninguno           |
+| `--mejora`          | `HE`, `CLAHE`, `GC`, `LT`, `None`          | Algoritmo de mejora de imagen.                      | ❌           | `None`            |
 | `--k_folds`         | Entero                                     | Número de folds para validación cruzada.            | ❌           | `5`               |
 | `--epochs`          | Entero                                     | Número de épocas de entrenamiento.                  | ✅           | —                 |
 | `--umbral_consenso` | `2` o `3`                                  | Umbral para votación mayoritaria del consenso.      | ❌           | `2`               |
@@ -222,8 +225,7 @@ y llevar a cabo experimentos para distintas configuraciones:
 ## 🔧 Ejecución modular
 
 También es posible ejecutar las diferentes etapas de forma individual, utilizando los _scripts_ ubicados en la carpeta
-`scripts/`.  
-Cada módulo (`setup.py`, `train.py`, `generar_predicciones.py`, `generar_consenso.py`,
+`scripts/`. Cada módulo (`setup.py`, `train.py`, `generar_predicciones.py`, `generar_consenso.py`,
 `reconstruir_volumen.py`, `eval.py`, etc.) puede invocarse directamente desde la línea de comandos.
 
 Los argumentos admitidos por cada script son ligeramente diferentes a los de `ejecutar_pipeline.py`. Cada archivo
@@ -245,7 +247,7 @@ Se encuentra en la carpeta `demo/` y dispone de su propio [README](demo/README_d
 detalladas. Para consultar sus particularidades, es necesario dirigirse a dicha carpeta y seguir la documentación allí
 incluida.
 
-Puede ejecutarse con el siguiente comando:
+Puede ejecutarse con el siguiente comando desde la raíz del repositorio:
 
 ```bash
 python -m demo.ejecutar_demo
@@ -263,26 +265,26 @@ que permite apreciar la consistencia de las predicciones a lo largo de todo volu
 
 ### Segmentación en los tres planos anatómicos
 
-El siguiente ejemplo corresponde a un paciente de referencia (P1, sin algoritmo de mejora).
+El siguiente ejemplo corresponde a un paciente de referencia: P1, con transformación logarítmica (LT).
 Muestra la predicción del modelo separando TP en verde, FP en naranja y FN en azul, superpuestos sobre la imagen FLAIR
 en los planos axial, coronal y sagital. Además, en cada corte se muestra el correspondiente valor del Dice Similarity
 Coefficient (DSC).
 
 <p align="center">
-  <img src="visualizaciones/Control/FLAIR_P50c_5folds_50epochs/fold1/P1/axial/P1_FLAIR_103.png" height="270">
-  <img src="visualizaciones/Control/FLAIR_P50c_5folds_50epochs/fold1/P1/coronal/P1_FLAIR_73.png" height="270">
-  <img src="visualizaciones/Control/FLAIR_P50c_5folds_50epochs/fold1/P1/sagital/P1_FLAIR_110.png" height="270">
+  <img src="visualizaciones/LT/FLAIR_P50c_5folds_50epochs/fold1/P1/axial/P1_FLAIR_103.png" height="270">
+  <img src="visualizaciones/LT/FLAIR_P50c_5folds_50epochs/fold1/P1/coronal/P1_FLAIR_73.png" height="270">
+  <img src="visualizaciones/LT/FLAIR_P50c_5folds_50epochs/fold1/P1/sagital/P1_FLAIR_119.png" height="270">
 </p>
 
 ### Secuencia completa de un paciente
 
-La siguiente animación recorre todos los cortes utilizados por el modelo para otro paciente de referencia (P42, con
-ecualización de histograma, en el plano axial). Muestra la segmentación generada en el plano axial para todos los cortes
+La siguiente animación recorre todos los cortes utilizados por el modelo para otro paciente de referencia: P42, con
+corrección gamma (GC), en el plano axial. Muestra la segmentación generada en el plano axial para todos los cortes
 del volumen que
 contienen lesión. En este caso, se incluye el valor del DSC calculado a nivel de volumen.
 
 <p align="center">
-  <img src="visualizaciones/HE/FLAIR_P50c_5folds_50epochs/fold4/P42/axial/P42_FLAIR.gif" width="350">
+  <img src="visualizaciones/GC/FLAIR_P50c_5folds_50epochs/fold4/P42/axial/P42_FLAIR.gif" width="350">
 </p>
 
 ---
