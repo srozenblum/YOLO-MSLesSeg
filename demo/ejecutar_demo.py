@@ -8,8 +8,8 @@ Descripción:
 
     Incluye dos ejecuciones de pacientes individuales, seleccionados a
     partir del análisis de resultados en `analizar_pacientes_dsc.py`:
-        - Mejor paciente: P14, sin algoritmo de mejora, en el plano sagital.
-        - Peor paciente: P18, con ecualización de histograma (HE), en el plano axial.
+        - Paciente con mayor DSC: P14, sin algoritmo de mejora, en el plano sagital.
+        - Paciente con menor DSC: P18, con ecualización de histograma (HE), en el plano axial.
 
     Además de ejecutar el pipeline, genera dos visualizaciones por cada paciente:
         - Visualización para el mejor corte: imagen estática que muestra el corte
