@@ -82,3 +82,6 @@ __pycache__/
 # ========================
 demo/**/output/
 demo/**/temp/
+
+!demo/trains/
+!demo/MSLesSeg-Dataset/
