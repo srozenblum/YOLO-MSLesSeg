@@ -68,7 +68,13 @@ Argumentos CLI:
         Limpiar resultados previos antes de generar nuevos.
 
 Uso por CLI:
-    python ejecutar_pipeline.py --plano axial --modalidad FLAIR --num_cortes P50 --mejora "HE" --epochs 50 --completo
+    python -m yolo_mslesseg.ejecutar_pipeline \
+        --plano axial \
+        --modalidad FLAIR \
+        --num_cortes P50 \
+        --mejora HE \
+        --epochs 50 \
+        --completo
 """
 
 import argparse

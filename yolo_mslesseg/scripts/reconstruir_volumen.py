@@ -52,7 +52,7 @@ Argumentos CLI:
 
 Uso:
     python -m yolo_mslesseg.scripts.reconstruir_volumen \
-        --plano "sagital" \
+        --plano sagital \
         --num_cortes P75 \
         --epochs 25 \
         --fold_test 1 \

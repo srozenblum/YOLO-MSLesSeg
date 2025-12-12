@@ -47,7 +47,7 @@ Argumentos CLI:
 
 Uso por CLI:
         python -m yolo_mslesseg.scripts.promediar_folds \
-        --plano "coronal" \
+        --plano coronal \
         --num_cortes 40 \
         --epochs 80 \
         --k_folds 5

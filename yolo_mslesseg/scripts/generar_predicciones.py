@@ -55,8 +55,8 @@ Argumentos CLI:
 
 Uso por CLI:
     python -m yolo_mslesseg.scripts.generar_predicciones \
-        --plano "coronal" \
-        --modalidad "FLAIR" \
+        --plano coronal \
+        --modalidad FLAIR \
         --num_cortes 50 \
         --epochs 100 \
         --fold_test 3 \

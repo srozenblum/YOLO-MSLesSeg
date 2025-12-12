@@ -55,8 +55,8 @@ Argumentos CLI:
 
 Uso por CLI:
     python -m yolo_mslesseg.scripts.eval \
-        --plano "axial" \
-        --modalidad "FLAIR" \
+        --plano axial \
+        --modalidad FLAIR \
         --num_cortes P50 \
         --epochs 60 \
         --fold_test 5 \

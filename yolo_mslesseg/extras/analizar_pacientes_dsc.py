@@ -108,31 +108,66 @@ def extraer_dsc_paciente(json_path):
     return data.get("DSC", None)
 
 
+# def imprimir_resultados(dsc_mejoras):
+#     """
+#     Imprime los resultados del análisis:
+#     mejor y peor paciente por mejora (con su plano).
+#     """
+#     for mejora, pacientes_info in dsc_mejoras.items():
+#         if not pacientes_info:
+#             logger.info(f"ℹ️ Mejora {mejora} sin datos.")
+#             continue
+#
+#         # mejor / peor por DSC
+#         mejor = max(pacientes_info, key=lambda px: pacientes_info[px]["dsc"])
+#         peor = min(pacientes_info, key=lambda px: pacientes_info[px]["dsc"])
+#
+#         print(f"\n===== {mejora} =====")
+#         print(
+#             f"  Mejor paciente: {mejor} "
+#             f"(DSC = {pacientes_info[mejor]['dsc']:.4f}, "
+#             f"plano = {pacientes_info[mejor]['plano']})"
+#         )
+#         print(
+#             f"  Peor paciente:  {peor}  "
+#             f"(DSC = {pacientes_info[peor]['dsc']:.4f}, "
+#             f"plano = {pacientes_info[peor]['plano']})"
+#         )
+
+
 def imprimir_resultados(dsc_mejoras):
     """
     Imprime los resultados del análisis:
-    mejor y peor paciente por mejora (con su plano).
+    top 3 mejores y top 3 peores pacientes por mejora (con su plano).
     """
     for mejora, pacientes_info in dsc_mejoras.items():
         if not pacientes_info:
             logger.info(f"ℹ️ Mejora {mejora} sin datos.")
             continue
 
-        # mejor / peor por DSC
-        mejor = max(pacientes_info, key=lambda px: pacientes_info[px]["dsc"])
-        peor = min(pacientes_info, key=lambda px: pacientes_info[px]["dsc"])
+        # Ordenar por DSC
+        ordenados = sorted(
+            pacientes_info.items(), key=lambda px: px[1]["dsc"], reverse=True
+        )
+
+        top3 = ordenados[:3]
+        bottom3 = list(reversed(ordenados))[:3]
 
         print(f"\n===== {mejora} =====")
-        print(
-            f"  Mejor paciente: {mejor} "
-            f"(DSC = {pacientes_info[mejor]['dsc']:.4f}, "
-            f"plano = {pacientes_info[mejor]['plano']})"
-        )
-        print(
-            f"  Peor paciente:  {peor}  "
-            f"(DSC = {pacientes_info[peor]['dsc']:.4f}, "
-            f"plano = {pacientes_info[peor]['plano']})"
-        )
+
+        print("  Top 3 mejores pacientes:")
+        for paciente_id, info in top3:
+            print(
+                f"    - {paciente_id}: DSC = {info['dsc']:.4f}, "
+                f"plano = {info['plano']}"
+            )
+
+        print("  Top 3 peores pacientes:")
+        for paciente_id, info in bottom3:
+            print(
+                f"    - {paciente_id}: DSC = {info['dsc']:.4f}, "
+                f"plano = {info['plano']}"
+            )
 
 
 def analizar_experimento(results_dir, configuracion_global):
