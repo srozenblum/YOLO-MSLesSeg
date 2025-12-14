@@ -22,7 +22,7 @@ autónoma, incluyendo las carpetas de los pacientes del _dataset_ de entrada MSL
 y los modelos preentrenados.
 
 ```
-demo/
+📁 demo/
 ├── ejecutar_demo.py                            # Script principal de ejecución de la demo
 │
 ├── 📁 MSLesSeg-Dataset/                        # Subconjunto del dataset original (solo los pacientes utilizados en la demo)
@@ -53,7 +53,7 @@ Desde la carpeta raíz del repositorio, ejecutar la demo con el siguiente comand
 python -m demo.ejecutar_demo
 ```
 
-> [!IMPORTANTE]
+> [!IMPORTANT]
 > En este caso no hay parámetros CLI, ya que todos los argumentos están predefinidos para la ejecución reducida.
 
 ## 📊 Resultados de ejecución
