@@ -19,9 +19,9 @@ la variabilidad asociada a la segmentación manual.
 
 ## 📑 Índice
 
-- [Ejemplos visuales](#ejemplos-visuales)
+- [Ejemplos visuales](#-ejemplos-visuales)
 - [Descripción general del _pipeline_](#-descripción-general-del-pipeline)
-- [Estructura del repositorio](#estructura-del-repositorio)
+- [Estructura del repositorio](#-estructura-del-repositorio)
 - [Requisitos del sistema](#-requisitos-del-sistema)
 - [Configuración del entorno](#-configuración-del-entorno)
 - [Ejecución del pipeline](#-ejecución-del-pipeline)
