@@ -1,26 +1,70 @@
 > Trabajo de Fin de Grado  
 > Autor: Sebastián Rozenblum  
-> Tutores: Miguel Ángel Molina Cabello, Paula Ariadna Jiménez Partinen  
 > Ingeniería de la Salud · Mención en Bioinformática  
 > Universidad de Málaga · Curso 2025–2026
 
 # 🧠💻 YOLO-MSLesSeg: segmentación automática de lesiones de esclerosis múltiple con YOLO11-seg
 
-Este proyecto implementa un pipeline completo de segmentación y evaluación de lesiones de esclerosis múltiple en
-imágenes de resonancia magnética utilizando modelos
+Este proyecto implementa un pipeline completo para la segmentación y evaluación automática de lesiones de esclerosis
+múltiple en imágenes de resonancia magnética, utilizando modelos
 [**YOLO11-seg**](https://docs.ultralytics.com/es/models/yolo11/).
-El trabajo se basa en el conjunto de datos de la [**MSLesSeg Competition
-**](https://www.nature.com/articles/s41597-025-05250-y) del ICPR 2024, una competición
-internacional
-de referencia en la validación de métodos automáticos para la segmentación de lesiones de esclerosis múltiple.  
-El objetivo es contribuir en esta línea de investigación mediante un enfoque original que combina modelos de
-aprendizaje profundo con distintos algoritmos de mejora de imagen, permitiendo desarrollar una herramienta reproducible
-capaz de:
+El sistema se basa en el conjunto de datos de la
+[**MSLesSeg Competition**](https://www.nature.com/articles/s41597-025-05250-y) (ICPR 2024), un benchmark internacional
+de
+referencia en la validación de métodos automáticos para la segmentación de lesiones de esclerosis múltiple.
 
-- Identificar y cuantificar lesiones de forma consistente.
-- Reducir la variabilidad asociada a la segmentación manual.
+El proyecto introduce un enfoque que combina modelos de aprendizaje profundo con distintas técnicas de mejora de
+imagen como etapa de preprocesado, con el objetivo de cuantificar lesiones de forma consistente y reducir
+la variabilidad asociada a la segmentación manual.
 
-## ⛓️ Descripción general del *pipeline*
+---
+
+## 📑 Índice
+
+- [Ejemplos visuales](#ejemplos-visuales)
+- [Descipción general del _pipeline_](#flujo-general-del-pipeline)
+- [Estructura del repositorio](#estructura-del-repositorio)
+- [Requisitos del sistema](#requisitos-del-sistema)
+- [Configuración del entorno](#configuración-del-entorno)
+- [Ejecución del pipeline](#ejecución-del-pipeline)
+- [Ejecución modular](#ejecución-modular)
+- [Demo del proyecto](#demo-del-proyecto)
+- [Diseño experimental](#diseño-experimental-resumen)
+- [Referencias](#referencias)
+- [Licencia](#licencia)
+- [Contacto](#contacto)
+
+## 🖼️ Ejemplos visuales
+
+A continuación se muestran ejemplos representativos de las salidas generadas por el _pipeline_. Estas visualizaciones
+permiten apreciar de forma directa el tipo de segmentaciones producidas por el modelo y su coherencia anatómica en los
+distintos planos de visualización. También se incluye un GIF que recorre todos los cortes de un paciente,
+mostrando la consistencia de las predicciones a lo largo de todo el volumen.
+
+### Segmentación en los tres planos anatómicos
+
+El siguiente ejemplo corresponde a un paciente de referencia (P1) y muestra la superposición de la segmentación
+automática sobre la imagen FLAIR en los planos axial, coronal y sagital.
+
+<p align="center">
+  <img src="visualizaciones/LT/FLAIR_P50c_5folds_50epochs/fold1/P1/axial/P1_FLAIR_103.png" height="270">
+  <img src="visualizaciones/LT/FLAIR_P50c_5folds_50epochs/fold1/P1/coronal/P1_FLAIR_73.png" height="270">
+  <img src="visualizaciones/LT/FLAIR_P50c_5folds_50epochs/fold1/P1/sagital/P1_FLAIR_119.png" height="270">
+</p>
+
+### Secuencia completa de un paciente
+
+La siguiente animación muestra la segmentación generada para otro paciente de referencia (P42) a lo largo de todos los
+cortes del volumen en el plano axial.
+
+<p align="center">
+  <img src="visualizaciones/GC/FLAIR_P50c_5folds_50epochs/fold4/P42/axial/P42_FLAIR.gif" width="350">
+</p>
+
+
+---
+
+## 🧾 Descripción general del *pipeline*
 
 El proceso completo consta de ocho etapas secuenciales,
 automatizadas mediante el script `ejecutar_pipeline.py`:
@@ -148,14 +192,14 @@ conflictos con otras instalaciones de Python y asegurar una ejecución limpia y 
 
 ```bash
 python3 -m venv venv_mslesseg
-source venv/bin/activate
+source venv_mslesseg/bin/activate
 ```
 
 #### Windows (PowerShell)
 
 ```bash
 python3 -m venv venv_mslesseg
-venv\Scripts\activate
+venv_mslesseg\Scripts\activate
 ```
 
 ### 3. Instalar dependencias
@@ -255,96 +299,20 @@ python -m demo.ejecutar_demo
 
 ---
 
-## 🖼️ Ejemplos visuales
+## 🔬 Diseño experimental
 
-A continuación se muestran ejemplos representativos de las salidas generadas por el _pipeline_. Estas visualizaciones
-permiten observar la calidad de las segmentaciones producidas por el modelo, así como su coherencia anatómica en los
-distintos planos de visualización. También se incluye una secuencia animada (GIF) que recorre todos los cortes de un
-paciente,
-que permite apreciar la consistencia de las predicciones a lo largo de todo volumen.
-
-### Segmentación en los tres planos anatómicos
-
-El siguiente ejemplo corresponde a un paciente de referencia: P1, con transformación logarítmica (LT).
-Muestra la predicción del modelo separando TP en verde, FP en naranja y FN en azul, superpuestos sobre la imagen FLAIR
-en los planos axial, coronal y sagital. Además, en cada corte se muestra el correspondiente valor del Dice Similarity
-Coefficient (DSC).
-
-<p align="center">
-  <img src="visualizaciones/LT/FLAIR_P50c_5folds_50epochs/fold1/P1/axial/P1_FLAIR_103.png" height="270">
-  <img src="visualizaciones/LT/FLAIR_P50c_5folds_50epochs/fold1/P1/coronal/P1_FLAIR_73.png" height="270">
-  <img src="visualizaciones/LT/FLAIR_P50c_5folds_50epochs/fold1/P1/sagital/P1_FLAIR_119.png" height="270">
-</p>
-
-### Secuencia completa de un paciente
-
-La siguiente animación recorre todos los cortes utilizados por el modelo para otro paciente de referencia: P42, con
-corrección gamma (GC), en el plano axial. Muestra la segmentación generada en el plano axial para todos los cortes
-del volumen que
-contienen lesión. En este caso, se incluye el valor del DSC calculado a nivel de volumen.
-
-<p align="center">
-  <img src="visualizaciones/GC/FLAIR_P50c_5folds_50epochs/fold4/P42/axial/P42_FLAIR.gif" width="350">
-</p>
-
----
-
-## 🔬 Metodología y diseño experimental
-
-Para ... , se siguió la siguiente configuración experimental:
-
-### Dataset: MSLesSeg
-
-Patients: 53 multiple sclerosis patients
-Timepoints: Variable per patient (1-4 timepoints)
-Total volumes: 147 3D MRI volumes
-Modality: FLAIR (Fluid Attenuated Inversion Recovery)
-Resolution: Isotropic 1mm³ voxels
-Ground truth: Expert manual segmentations
-
-### Algoritmos de mejora de imagen
-
-Dado que una de las contribuciones originales del trabajo consiste en analizar el efecto del preprocesado sobre el
-desempeño del modelo, se evaluaron cuatro técnicas clásicas de mejora de imagen:
-
-- **HE (Histogram Equalization):** redistribuye las intensidades para aprovechar todo el rango dinámico y resaltar
-  regiones poco contrastadas.
-- **CLAHE (Contrast Limited Adaptive Histogram Equalization):** ecualización adaptativa por bloques, con control del
-  realce para evitar amplificación de ruido.
-- **GC (Gamma Correction):** transforma la luminosidad mediante una función exponencial, permitiendo resaltar regiones
-  brillantes u oscuras según el valor de gamma.
-- **LT (Linear Transformation):** ajuste lineal del rango dinámico, útil para normalizar intensidades y aumentar la
-  homogeneidad antes de la segmentación.
-
-Estas técnicas se aplicaron de forma independiente para analizar su influencia en el rendimiento cuantitativo y la
-coherencia espacial de las predicciones.
-
-### Validación cruzada
-
-- **Esquema:** validación cruzada de 5 folds
-- **Split a nivel paciente:** garantiza ausencia total de *data leakage* entre entrenamiento y prueba
-- **Asignación estratificada:** balanceada según la severidad y distribución de las lesiones
-- **Rotación completa:** cada fold actúa como conjunto de prueba una vez
-
-Esta estrategia permite obtener una estimación robusta del rendimiento general del modelo y estudiar la variabilidad
-inter-paciente bajo diferentes configuraciones experimentales.
-
-### Métricas de rendimiento
-
-La calidad de la segmentación se evalúa cuantitativamente mediante métricas frecuentemente utilizadas en el ámbito
-biomédico:
-
-- **Dice Similarity Coefficient (DSC)**: medida del solapamiento entre la máscara predicha y la de referencia.
-- **Área bajo la curva Roc (AUC)**: medida general la capacidad del modelo para distinguir entre clases.
-- **Precision**: proporción de predicciones positivas correctamente realizadas.
-- **Recall**: proporción de verdaderos positivos correctamente identificados por el modelo.
+El pipeline se evalúa sobre el dataset MSLesSeg mediante validación cruzada a nivel paciente y métricas estándar de
+segmentación biomédica. El diseño experimental completo se documenta en
+[`docs/metodologia_experimental.md`](docs/metodologia_experimental.md).
 
 ---
 
 ## 📚 Referencias
 
-- Documentación de Ultralytics YOLO11: https://docs.ultralytics.com/es/models/yolo11/.
-- Competición MSLesSeg y conjunto de datos: https://www.nature.com/articles/s41597-025-05250-y.
+- Ultralytics (2025). YOLO11 documentation.
+- Guarnera, F., Rondinella, A., Crispino, E., et al. (2025).
+  MSLesSeg: Baseline and benchmarking of a new Multiple Sclerosis lesion segmentation dataset.
+  *Scientific Data*, 12, 920. https://doi.org/10.1038/s41597-025-05250-y.
 
 ---
 
