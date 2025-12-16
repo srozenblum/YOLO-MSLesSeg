@@ -23,7 +23,7 @@ la variabilidad asociada a la segmentación manual.
 - [Descripción general del _pipeline_](#-descripción-general-del-pipeline)
 - [Estructura del repositorio](#-estructura-del-repositorio)
 - [Requisitos del sistema](#-requisitos-del-sistema)
-- [Configuración del entorno](#-configuración-del-entorno)
+- [Configuración del entorno](#-configuracion-del-entorno)
 - [Ejecución del pipeline](#-ejecución-del-pipeline)
 - [Ejecución modular](#-ejecución-modular)
 - [Demo del proyecto](#-demo-del-proyecto)
