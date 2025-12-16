@@ -13,26 +13,26 @@ El sistema se basa en el conjunto de datos de la
 de
 referencia en la validación de métodos automáticos para la segmentación de lesiones de esclerosis múltiple.
 
-El proyecto introduce un enfoque que combina modelos de aprendizaje profundo con distintas técnicas de mejora de
-imagen como etapa de preprocesado, con el objetivo de cuantificar lesiones de forma consistente y reducir
+El proyecto introduce un enfoque que combina **modelos de aprendizaje profundo** con distintas **técnicas de mejora de
+imagen** como etapa de preprocesado, con el objetivo de cuantificar lesiones de forma consistente y reducir
 la variabilidad asociada a la segmentación manual.
-
----
 
 ## 📑 Índice
 
-- [Ejemplos visuales](#ejemplos-visuales)
-- [Descipción general del _pipeline_](#flujo-general-del-pipeline)
-- [Estructura del repositorio](#estructura-del-repositorio)
-- [Requisitos del sistema](#requisitos-del-sistema)
-- [Configuración del entorno](#configuración-del-entorno)
-- [Ejecución del pipeline](#ejecución-del-pipeline)
-- [Ejecución modular](#ejecución-modular)
-- [Demo del proyecto](#demo-del-proyecto)
-- [Diseño experimental](#diseño-experimental-resumen)
-- [Referencias](#referencias)
-- [Licencia](#licencia)
-- [Contacto](#contacto)
+- [Ejemplos visuales](#-ejemplos-visuales)
+- [Descripción general del _pipeline_](#-descripción-general-del-pipeline)
+- [Estructura del repositorio](#-estructura-del-repositorio)
+- [Requisitos del sistema](#-requisitos-del-sistema)
+- [Configuración del entorno](#-configuración-del-entorno)
+- [Ejecución del pipeline](#-ejecución-del-pipeline)
+- [Ejecución modular](#-ejecución-modular)
+- [Demo del proyecto](#-demo-del-proyecto)
+- [Diseño experimental](#-diseño-experimental)
+- [Referencias](#-referencias)
+- [Licencia](#-licencia)
+- [Contacto](#-contacto)
+
+---
 
 ## 🖼️ Ejemplos visuales
 
@@ -64,7 +64,7 @@ cortes del volumen en el plano axial.
 
 ---
 
-## 🧾 Descripción general del *pipeline*
+## 📋 Descripción general del *pipeline*
 
 El proceso completo consta de ocho etapas secuenciales,
 automatizadas mediante el script `ejecutar_pipeline.py`:
@@ -73,8 +73,8 @@ automatizadas mediante el script `ejecutar_pipeline.py`:
 1. Preprocesamiento y extracción de cortes en formato compatible con el modelo YOLO.
 2. Entrenamiento del modelo YOLO11-seg (_opcional_).
 3. Generación de predicciones bidimensionales.
-5. Reconstrucción de volúmenes tridimensionales a partir de cortes predichos.
-4. Combinación de volúmenes predichos en distintos planos (consenso).
+4. Reconstrucción de volúmenes tridimensionales a partir de cortes predichos.
+5. Combinación de volúmenes predichos en distintos planos (consenso).
 6. Evaluación cuantitativa mediante métricas de rendimiento.
 7. Cálculo de resultados globales del experimento.
 
@@ -240,19 +240,19 @@ repositorio.
 Los siguienes argumentos permiten personalizar la ejecución de `ejecutar_pipeline.py`
 y llevar a cabo experimentos para distintas configuraciones:
 
-| Argumento           | Tipo / Valores                             | Descripción                                         | Obligatorio | Valor por defecto |
-|---------------------|--------------------------------------------|-----------------------------------------------------|-------------|-------------------|
-| `--plano`           | `axial`, `coronal`, `sagital`              | Plano anatómico de extracción.                      | ✅           | —                 |
-| `--modalidad`       | `T1`, `T2`, `FLAIR` (múltiples permitidas) | Modalidad(es) de imagen MRI.                        | ❌           | Todas             |
-| `--num_cortes`      | Entero o percentil (`PXX`)                 | Número de cortes a extraer.                         | ✅           | —                 |
-| `--mejora`          | `HE`, `CLAHE`, `GC`, `LT`, `None`          | Algoritmo de mejora de imagen.                      | ❌           | `None`            |
-| `--k_folds`         | Entero                                     | Número de folds para validación cruzada.            | ❌           | `5`               |
-| `--epochs`          | Entero                                     | Número de épocas de entrenamiento.                  | ✅           | —                 |
-| `--umbral_consenso` | `2` o `3`                                  | Umbral para votación mayoritaria del consenso.      | ❌           | `2`               |
-| `--completo`        | Flag                                       | Ejecutar el flujo sobre todos los pacientes.        | ✅           | —                 |
-| `--paciente_id`     | ID (`P#`)                                  | Ejecutar el flujo solo para el paciente indicado.   | ✅           | —                 |
-| `--entrenar`        | Flag                                       | Incluir la etapa de entrenamiento.                  | ❌           | `False`           |
-| `--limpiar`         | Flag                                       | Limpiar todos los resultados generados previamente. | ❌           | `False`           |
+| Argumento           | Requerido | Por defecto | Descripción                                                      |
+|---------------------|-----------|-------------|------------------------------------------------------------------|
+| `--plano`           | ✅ Sí      | —           | Plano anatómico: `axial`, `coronal` o `sagital`                  |
+| `--modalidad`       | No        | Todas       | Modalidad(es) de imagen MRI: `T1`, `T2`, `FLAIR`                 |
+| `--num_cortes`      | ✅ Sí      | —           | Número de cortes (entero o `PXX` para percentil)                 |
+| `--mejora`          | No        | `None`      | Algoritmo de mejora de imagen: `HE`, `CLAHE`, `GC`, `LT`, `None` |
+| `--k_folds`         | No        | `5`         | Número de _folds_ para validación cruzada                        |
+| `--epochs`          | ✅ Sí      | —           | Número de épocas de entrenamiento                                |
+| `--umbral_consenso` | No        | `2`         | Umbral de votación: `2` (mayoría) o `3` (unanimidad)             |
+| `--completo`        | ✅ Sí (❗)  | —           | Procesar todos los pacientes                                     |
+| `--paciente_id`     | ✅ Sí (❗)  | —           | Procesar solo el paciente indicado (ej: `P1`)                    |
+| `--entrenar`        | No        | No activo   | Incluir la etapa de entrenamiento                                |
+| `--limpiar`         | No        | No activo   | Limpiar todos los resultados previos                             |
 
 > [!IMPORTANT]
 > Los argumentos `--completo` y `--paciente_id` son **mutuamente excluyentes**.  
@@ -301,7 +301,7 @@ python -m demo.ejecutar_demo
 
 ## 🔬 Diseño experimental
 
-El pipeline se evalúa sobre el dataset MSLesSeg mediante validación cruzada a nivel paciente y métricas estándar de
+El pipeline se evalúa sobre el _dataset_ MSLesSeg mediante validación cruzada a nivel paciente y métricas estándar de
 segmentación biomédica. El diseño experimental completo se documenta en
 [`docs/metodologia_experimental.md`](docs/metodologia_experimental.md).
 
@@ -317,7 +317,3 @@ segmentación biomédica. El diseño experimental completo se documenta en
 ---
 
 ## 🧾 Licencia
-
----
-
-## 📬 Contacto

@@ -5,8 +5,9 @@ El objetivo es permitir una ejecución rápida, controlada y completamente autó
 necesidad de entrenar modelos, descargar el _dataset_ completo ni configurar experimentos avanzados.
 
 Con el fin de presentar los casos más representativos, la demo incluye una selección de dos pacientes.
-Cada configuración fue elegida tras analizar el rendimiento del diseño experimental propuesto mediante el
-script `analizar_pacientes_dsc.py`. Concretamente, la ejecución se
+Cada configuración fue elegida a partir del análisis de rendimiento del diseño experimental propuesto, realizado
+mediante
+el script `analizar_pacientes_dsc.py`. Concretamente, la ejecución se
 realiza para:
 
 - **Paciente con mayor DSC**: P14, sin algoritmo de mejora, en el plano sagital.
