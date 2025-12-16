@@ -39,7 +39,7 @@ from yolo_mslesseg.extras.generar_gif_predicciones import main as generar_gif
 from yolo_mslesseg.extras.visualizar_prediccion_corte import (
     main as visualizar_prediccion_corte,
 )
-from yolo_mslesseg.utils.configurar_logging import configurar_logging_demo, get_logger
+from yolo_mslesseg.utils.configurar_logging import get_logger, configurar_logging_demo
 
 # Configurar logger
 logger = get_logger(__file__)
@@ -80,14 +80,15 @@ def main():
     """
     Entrada CLI del script.
     """
-    configurar_logging_demo()
-
     # Guardar cwd original
     original_cwd = Path.cwd()
     demo_cwd = Path(__file__).resolve().parent
 
     # Cambiar cwd al demo
     os.chdir(demo_cwd)
+
+    # Configurar el logging de la demo (demo.log)
+    configurar_logging_demo()
 
     try:
         ejecutar_demo_paciente("P14", mejora=None, plano="sagital")
