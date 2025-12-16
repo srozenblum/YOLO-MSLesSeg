@@ -115,7 +115,7 @@ def base_dir_paciente(paciente, modelo):
     Devuelve el directorio base donde se almacenan las imágenes, predicciones
     y máscaras ground truth de un paciente dentro del dataset YOLO.
     """
-    repo_root = Path(__file__).resolve().parents[2]
+    base_root = Path.cwd()
 
     paciente_id = paciente.id
     plano = paciente.plano
@@ -124,7 +124,7 @@ def base_dir_paciente(paciente, modelo):
     fold = calcular_fold(paciente_id, k_folds)
 
     return (
-        repo_root / "datasets" / modelo.base_path / f"fold{fold}" / paciente_id / plano
+        base_root / "datasets" / modelo.base_path / f"fold{fold}" / paciente_id / plano
     )
 
 
@@ -405,8 +405,29 @@ def normalizar_mascara_binaria(mask_path):
     """
     Normaliza y guarda una máscara binaria a valores 0 (fondo) y 1 (objeto).
     """
-    mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
+    mask = cv2.imread(str(mask_path), cv2.IMREAD_GRAYSCALE)
     mask_bin = (mask > 0).astype(np.uint8)
+    cv2.imwrite(mask_path, mask_bin)
+
+
+def normalizar_mascara_binaria(mask_path):
+    """
+    Normaliza y guarda una máscara binaria 2D (escala de grises)
+    con valores {0, 255}.
+    """
+    mask_path = str(mask_path)
+
+    mask = cv2.imread(mask_path, cv2.IMREAD_UNCHANGED)
+    if mask is None:
+        raise OSError(f"No se pudo leer la máscara: {mask_path}")
+
+    # Si viene RGB/RGBA → colapsar a 2D
+    if mask.ndim == 3:
+        mask = mask[:, :, 0]
+
+    # Binarizar estrictamente a 0/255
+    mask_bin = np.where(mask > 0, 255, 0).astype(np.uint8)
+
     cv2.imwrite(mask_path, mask_bin)
 
 

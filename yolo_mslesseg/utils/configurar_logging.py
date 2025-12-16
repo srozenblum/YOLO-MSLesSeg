@@ -23,8 +23,8 @@ Convenciones:
 
 import logging
 import re
+import sys
 from pathlib import Path
-
 
 # ============================================================
 #               NIVELES PERSONALIZADOS
@@ -49,7 +49,6 @@ HEADER_LEVEL = registrar_nivel_personalizado(35, "HEADER")  # Encabezados de eta
 
 # Expresión regular para eliminar códigos ANSI
 ANSI_ESCAPE = re.compile(r"\x1B\[[0-?][ -/][@-~]")
-
 
 # ============================================================
 #                   FORMATTERS
@@ -93,8 +92,8 @@ class NoColorFormatter(logging.Formatter):
 def configurar_logging(level=logging.INFO, log_file=None):
     """
     Configura logging global:
-        - Handler coloreado para consola.
-        - Handler sin colores para archivo.
+        - Handler coloreado para consola con UTF-8.
+        - Handler sin colores para archivo con UTF-8.
         - Niveles personalizados SKIP y HEADER habilitados.
 
     Esta función se llama automáticamente al cargar este módulo.
@@ -103,14 +102,24 @@ def configurar_logging(level=logging.INFO, log_file=None):
     logger.setLevel(level)
     logger.handlers.clear()
 
-    # === 1. Console handler con colores ===
-    ch = logging.StreamHandler()
+    # 1. Console handler con colores y UTF-8
+    # Reconfigurar sys.stdout para usar UTF-8 en Windows
+    if sys.platform == "win32":
+        # Intentar reconfigurar stdout con UTF-8
+        try:
+            sys.stdout.reconfigure(encoding="utf-8")
+        except AttributeError:
+            import codecs
+
+            sys.stdout = codecs.getwriter("utf-8")(sys.stdout.buffer, "strict")
+
+    ch = logging.StreamHandler(sys.stdout)
     ch.setFormatter(ColorFormatter("%(message)s"))
     logger.addHandler(ch)
 
-    # === 2. File handler sin colores ===
+    # 2. File handler sin colores con UTF-8
     if log_file is not None:
-        fh = logging.FileHandler(log_file, mode="w")
+        fh = logging.FileHandler(log_file, mode="w", encoding="utf-8")
         fh.setFormatter(NoColorFormatter("%(message)s"))
         logger.addHandler(fh)
 
@@ -127,18 +136,20 @@ def configurar_logging_demo():
     """
     logger = logging.getLogger()
 
-    # 1. Eliminar SOLO el FileHandler que apunta a pipeline.log
+    # Eliminar SOLO el FileHandler que apunta a pipeline.log
     for h in list(logger.handlers):
         if isinstance(h, logging.FileHandler):
             # Evitar borrar otros handlers futuros por accidente
             if "pipeline.log" in str(getattr(h, "baseFilename", "")):
                 logger.removeHandler(h)
 
-    # 2. Añadir FileHandler para demo.log
-    demo_log_path = Path(__file__).resolve().parent / "demo.log"
-    demo_handler = logging.FileHandler(demo_log_path, mode="w")
-    demo_handler.setLevel(logging.INFO)
+    # demo.log relativo al cwd (demo/)
+    demo_log_path = Path.cwd() / "demo.log"
 
+    # Añadir FileHandler para demo.log con UTF-8
+    demo_handler = logging.FileHandler(demo_log_path, mode="w", encoding="utf-8")
+    demo_handler.setLevel(logging.INFO)
+    demo_handler.setFormatter(NoColorFormatter("%(message)s"))
     logger.addHandler(demo_handler)
 
 
