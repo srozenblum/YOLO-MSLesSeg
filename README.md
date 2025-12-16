@@ -19,7 +19,7 @@ la variabilidad asociada a la segmentación manual.
 
 ## 📑 Índice
 
-- [Ejemplos visuales](#-ejemplos-visuales)
+- [Ejemplos visuales](#ejemplos-visuales)
 - [Descripción general del _pipeline_](#-descripción-general-del-pipeline)
 - [Estructura del repositorio](#-estructura-del-repositorio)
 - [Requisitos del sistema](#-requisitos-del-sistema)
@@ -33,6 +33,7 @@ la variabilidad asociada a la segmentación manual.
 
 ---
 
+<a id="ejemplos-visuales"></a>
 ## 🖼️ Ejemplos visuales
 
 A continuación se muestran ejemplos representativos de las salidas generadas por el _pipeline_. Estas visualizaciones
