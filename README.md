@@ -19,7 +19,7 @@ la variabilidad asociada a la segmentación manual.
 
 ## 📑 Índice
 
-- [Ejemplos visuales](#ejemplos-visuales)
+- [Ejemplos visuales](#-ejemplos-visuales)
 - [Descripción general del _pipeline_](#-descripción-general-del-pipeline)
 - [Estructura del repositorio](#-estructura-del-repositorio)
 - [Requisitos del sistema](#-requisitos-del-sistema)
@@ -33,7 +33,7 @@ la variabilidad asociada a la segmentación manual.
 
 ---
 
-<a id="ejemplos-visuales"></a>
+<a id="-ejemplos-visuales"></a>
 ## 🖼️ Ejemplos visuales
 
 A continuación se muestran ejemplos representativos de las salidas generadas por el _pipeline_. Estas visualizaciones
@@ -83,6 +83,7 @@ lo que garantiza flexibilidad para depuración o experimentación.
 
 ---
 
+<a id="-estructura-del-repositorio"></a>
 ## 🗂️ Estructura del repositorio
 
 El repositorio se organiza de la siguiente manera:
@@ -145,6 +146,7 @@ El repositorio se organiza de la siguiente manera:
 
 ---
 
+<a id="-requisitos-del-sistema"></a>
 ## 🖥️ Requisitos del sistema
 
 Para ejecutar correctamente el proyecto se requiere el siguiente entorno básico:
@@ -174,6 +176,7 @@ Para ejecutar correctamente el proyecto se requiere el siguiente entorno básico
 
 ---
 
+<a id="-configuracion-del-entorno"></a>
 ## ⚙️ Configuración del entorno
 
 ### 1. Clonar el repositorio
