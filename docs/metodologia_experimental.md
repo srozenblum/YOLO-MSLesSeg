@@ -55,7 +55,8 @@ Las técnicas consideradas fueron:
 - **GC (Gamma Correction):** propone un ajuste no lineal del brillo de la imagen, permitiendo enfatizar regiones oscuras
   o
   brillantes según el valor del parámetro $\gamma$. En la implementación utilizada, el valor de $\gamma$ no es
-  parametrizable y se fija en $\gamma = 2$, lo que da lugar a imágenes más oscuras que la original.
+  parametrizable y se fija en $\gamma = 2$. Esto comprime el rango de intensidades, oscureciendo las regiones medias y
+  brillantes
 
 
 - **LT (Linear Transformation):** mejora el contraste principalmente en las regiones oscuras, aplicando una función
@@ -109,12 +110,14 @@ rendimiento del modelo.
 Para garantizar una evaluación robusta, se empleó un esquema de **validación cruzada a nivel de
 paciente**. Las principales características se resumen a continuación:
 
-- **Esquema:** validación cruzada de _$k$ folds_.
+- **Esquema:** validación cruzada de $k$ _folds_.
 - **División a nivel paciente:** asegura que los volúmenes de un mismo paciente no aparezcan simultáneamente en los
   conjuntos de entrenamiento y test.
-- **Asignación estratificada:** distribución balanceada de los pacientes entre _folds_.
-- **Evaluación exhaustiva**: cada _fold_ actúa como conjunto de validación exactamente una vez, mientras que
-  las 4 restantes se utilizan para entrenamiento, proporcionando 5 evaluaciones independientes de cada modelo.
+- **Asignación estratificada y determinista:** la partición en _folds_ se realiza de forma consecutiva y balanceada a
+  partir del identificador de paciente, sin aleatorización, con el objetivo de garantizar reproducibilidad completa
+  entre ejecuciones.
+- **Evaluación exhaustiva:** cada _fold_ actúa como conjunto de test exactamente una vez, mientras que los
+  restantes se utilizan para entrenamiento, proporcionando $k$ evaluaciones independientes por configuración.
 
 ---
 

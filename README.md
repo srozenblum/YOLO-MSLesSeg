@@ -34,6 +34,7 @@ la variabilidad asociada a la segmentación manual.
 ---
 
 <a id="-ejemplos-visuales"></a>
+
 ## 🖼️ Ejemplos visuales
 
 A continuación se muestran ejemplos representativos de las salidas generadas por el _pipeline_. Estas visualizaciones
@@ -84,6 +85,7 @@ lo que garantiza flexibilidad para depuración o experimentación.
 ---
 
 <a id="-estructura-del-repositorio"></a>
+
 ## 🗂️ Estructura del repositorio
 
 El repositorio se organiza de la siguiente manera:
@@ -147,6 +149,7 @@ El repositorio se organiza de la siguiente manera:
 ---
 
 <a id="-requisitos-del-sistema"></a>
+
 ## 🖥️ Requisitos del sistema
 
 Para ejecutar correctamente el proyecto se requiere el siguiente entorno básico:
@@ -177,6 +180,7 @@ Para ejecutar correctamente el proyecto se requiere el siguiente entorno básico
 ---
 
 <a id="-configuracion-del-entorno"></a>
+
 ## ⚙️ Configuración del entorno
 
 ### 1. Clonar el repositorio
@@ -228,8 +232,9 @@ proyecto:
 python -m yolo_mslesseg.ejecutar_pipeline \
     --plano axial \
     --modalidad FLAIR \
-    --mejora CLAHE \
     --num_cortes P50 \
+    --mejora CLAHE \
+    --k_folds 5 \
     --epochs 50 \
     --completo
 ```

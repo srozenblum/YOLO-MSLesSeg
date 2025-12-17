@@ -7,7 +7,7 @@ necesidad de entrenar modelos, descargar el _dataset_ completo ni configurar exp
 Con el fin de presentar los casos más representativos, la demo incluye una selección de dos pacientes.
 Cada configuración fue elegida a partir del análisis de rendimiento del diseño experimental propuesto, realizado
 mediante
-el script `analizar_pacientes_dsc.py`. Concretamente, la ejecución se
+el script `extras/analizar_pacientes_dsc.py`. Concretamente, la ejecución se
 realiza para:
 
 - **Paciente con mayor DSC**: P14, sin algoritmo de mejora, en el plano sagital.
@@ -48,7 +48,7 @@ y los modelos preentrenados.
 
 ## ▶️ Instrucciones de ejecución
 
-Desde la carpeta raíz del repositorio, ejecutar la demo con el siguiente comando:
+Desde la carpeta raíz del repositorio (`YOLO-MSLesSeg/`), ejecutar la demo con el siguiente comando:
 
 ```bash
 python -m demo.ejecutar_demo
