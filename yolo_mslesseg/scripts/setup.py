@@ -259,7 +259,7 @@ def procesar_descarga_y_descompresion(dataset_root, url):
         raise
 
     logger.info(
-        f"✅ Descarga y descompresión completada correctamente en {dataset_root}/."
+        f"🆗 Descarga y descompresión completada correctamente en {dataset_root}/."
     )
 
 
@@ -272,7 +272,7 @@ def procesar_directorio_gt(dataset_root, gt_root):
     logger.info(f"📂 Generando directorio de ground truth (GT/)...")
     try:
         mover_volumenes_gt(dataset_root=dataset_root, gt_root=gt_root)
-        logger.info(f"✅ Directorio GT/ generado correctamente.")
+        logger.info(f"🆗 Directorio GT/ generado correctamente.")
     except:
         raise
 
@@ -309,13 +309,13 @@ def ejecutar_flujo(url, limpiar, verbose=False):
 
     # 2) Dataset: descargar o reutilizar
     if dataset_existe:
-        logger.info("⏩ Dataset de entrada ya existente.")
+        logger.skip("⏩ Dataset de entrada ya existente.")
     else:
         procesar_descarga_y_descompresion(dataset_root=dataset_root, url=url)
 
     # 3) GT: generar o reutilizar
     if gt_existe:
-        logger.info("⏩ Directorio GT/ ya existente.")
+        logger.skip("⏩ Directorio GT/ ya existente.")
     else:
         procesar_directorio_gt(dataset_root=dataset_root, gt_root=gt_root)
 
