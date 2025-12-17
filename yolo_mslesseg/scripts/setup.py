@@ -298,18 +298,25 @@ def ejecutar_flujo(url, limpiar, verbose=False):
             logger.info(f"♻️ Limpiando directorio GT/ previo.")
         eliminar_directorio(gt_root)
 
+    # Estado tras la limpieza
+    dataset_existe = dataset_existente(dataset_root)
+    gt_existe = gt_existente(gt_root)
+
     # 1) Dataset y GT existentes → skip
-    if dataset_existente(dataset_root) and gt_existente(gt_root):
+    if dataset_existe and gt_existe:
         logger.skip("⏩ Dataset de entrada y directorio de ground truth ya existentes.")
         return
 
-    # 2) Dataset no existente → descargar + descomprimir
-    if not dataset_existente(dataset_root):
+    # 2) Dataset: descargar o reutilizar
+    if dataset_existe:
+        logger.info("⏩ Dataset de entrada ya existente.")
+    else:
         procesar_descarga_y_descompresion(dataset_root=dataset_root, url=url)
 
-    # 3) Dataset existente pero no GT → generar solo GT
-    if not gt_existente(gt_root):
-        logger.skip("⏩ Dataset de entrada ya existente.")
+    # 3) GT: generar o reutilizar
+    if gt_existe:
+        logger.info("⏩ Directorio GT/ ya existente.")
+    else:
         procesar_directorio_gt(dataset_root=dataset_root, gt_root=gt_root)
 
 

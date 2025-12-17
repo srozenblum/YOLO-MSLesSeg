@@ -410,27 +410,6 @@ def normalizar_mascara_binaria(mask_path):
     cv2.imwrite(mask_path, mask_bin)
 
 
-def normalizar_mascara_binaria(mask_path):
-    """
-    Normaliza y guarda una máscara binaria 2D (escala de grises)
-    con valores {0, 255}.
-    """
-    mask_path = str(mask_path)
-
-    mask = cv2.imread(mask_path, cv2.IMREAD_UNCHANGED)
-    if mask is None:
-        raise OSError(f"No se pudo leer la máscara: {mask_path}")
-
-    # Si viene RGB/RGBA → colapsar a 2D
-    if mask.ndim == 3:
-        mask = mask[:, :, 0]
-
-    # Binarizar estrictamente a 0/255
-    mask_bin = np.where(mask > 0, 255, 0).astype(np.uint8)
-
-    cv2.imwrite(mask_path, mask_bin)
-
-
 def normalizar_a_uint8(imagen):
     """
     Normaliza una imagen (float32/64) al rango 0–255 y tipo uint8.

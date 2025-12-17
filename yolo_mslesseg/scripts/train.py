@@ -348,9 +348,6 @@ def cargar_yaml(config):
 
 def entrenar_fold(config):
     """Ejecuta el entrenamiento de un fold para un modelo."""
-    if ruta_existente(config.weights_path):
-        return
-
     # Crear conjuntos de train y test
     crear_train_subset(config)
     crear_test_subset(config)
@@ -361,7 +358,7 @@ def entrenar_fold(config):
 
     # Ejecutar entrenamiento
     model_yolo = cargar_modelo(config.weights_path)
-    results = model_yolo.train(
+    model_yolo.train(
         data=config.yaml_path,
         epochs=config.epochs,
         batch=-1,
@@ -386,8 +383,6 @@ def entrenar_fold(config):
     # Eliminar conjuntos de train y test
     eliminar_directorio(Path(config.fold_train_dir).parent)
     eliminar_directorio(Path(config.fold_test_dir).parent)
-
-    return results
 
 
 # =============================
