@@ -93,6 +93,7 @@ from yolo_mslesseg.utils.utils import (
 # Configurar logger
 logger = get_logger(__file__)
 
+
 # Ocultar loggings de ultralytics
 LOGGER.setLevel(logging.ERROR)
 
@@ -101,7 +102,7 @@ LOGGER.setLevel(logging.ERROR)
 # =============================
 
 
-def entrenamiento_exitoso(train_dir):
+def entrenamiento_exitoso(fold_train_dir):
     """
     Comprueba si el entrenamiento fue exitoso a partir de
     los archivos esenciales del entrenamiento YOLO:
@@ -109,14 +110,10 @@ def entrenamiento_exitoso(train_dir):
         - weights/last.pt   → últimos pesos obtenidos
         - results.csv       → resumen de métricas del entrenamiento
     """
-
-    best = train_dir / "weights" / "best.pt"
-    last = train_dir / "weights" / "last.pt"
-    results = train_dir / "results.csv"
-
-    if best.is_file() and last.is_file() and results.is_file():
-        return True
-    return False
+    best = fold_train_dir / "weights" / "best.pt"
+    last = fold_train_dir / "weights" / "last.pt"
+    results = fold_train_dir / "results.csv"
+    return best.is_file() and last.is_file() and results.is_file()
 
 
 # =============================
@@ -365,6 +362,7 @@ def entrenar_fold(config):
         cache=True,
         project=config.train_output_dir,
         name=f"fold{config.fold_test}",
+        verbose=False,
     )
 
     # Copiar YAML al directorio del experimento
@@ -410,7 +408,9 @@ def ejecutar_flujo_train(config, limpiar, verbose=False):
     else:
         entrenar_fold(config)
 
-        if entrenamiento_exitoso(config.train_output_dir):
+        fold_dir = config.train_output_dir / f"fold{config.fold_test}"
+
+        if entrenamiento_exitoso(fold_dir):
             logger.info("✅ Entrenamiento completado correctamente.")
         else:
             logger.warning(
