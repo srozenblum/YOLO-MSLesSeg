@@ -150,8 +150,8 @@ def leer_metricas_json(filepath):
 def construir_fila(plano, mejora, metricas):
     """Arma fila para el DataFrame."""
     return {
-        "Plano": plano,
         "Mejora": mejora,
+        "Plano": plano,
         "DSC (mean ± std)": metricas.get("DSC", ""),
         "AUC (mean ± std)": metricas.get("AUC", ""),
         "Precision (mean ± std)": metricas.get("Precision", ""),
@@ -166,7 +166,7 @@ def ordenar_dataframe(df):
 
     df["Plano"] = pd.Categorical(df["Plano"], categories=orden_plano, ordered=True)
     df["Mejora"] = pd.Categorical(df["Mejora"], categories=orden_mejora, ordered=True)
-    df.sort_values(by=["Plano", "Mejora"], inplace=True)
+    df.sort_values(by=["Mejora", "Plano"], inplace=True)
 
 
 # =============================
