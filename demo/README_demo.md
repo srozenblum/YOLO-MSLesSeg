@@ -10,8 +10,9 @@ mediante
 el script `extras/analizar_pacientes_dsc.py`. Concretamente, la ejecución se
 realiza para:
 
-- **Paciente con mayor DSC**: P14, sin algoritmo de mejora, en el plano sagital.
-- **Paciente con menor DSC**: P18, con ecualización de histograma (HE), en el plano axial.
+- **Paciente con configuración que resulta en el mayor DSC**: P14, sin algoritmo de mejora, en el plano sagital.
+- **Paciente con configuración que resulta en el menor DSC**: P18, con ecualización de histograma (HE), en el plano
+  axial.
 
 La demo es completamente autónoma, pero conserva la misma lógica de funcionamiento que el _pipeline_ completo.
 Para más detalles sobre el sistema general, consultar el [README](../README.md) de la raíz del repositorio.

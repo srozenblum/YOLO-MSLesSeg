@@ -274,10 +274,10 @@ y llevar a cabo experimentos para distintas configuraciones:
 
 ---
 
-## 🔧 Ejecución modular
+## 🔧 Ejecución por etapas
 
 También es posible ejecutar las diferentes etapas de forma individual, utilizando los _scripts_ ubicados en la carpeta
-`scripts/`. Cada módulo (`setup.py`, `train.py`, `generar_predicciones.py`, `generar_consenso.py`,
+`yolo_mslesseg/scripts/`. Cada módulo (`setup.py`, `train.py`, `generar_predicciones.py`, `generar_consenso.py`,
 `reconstruir_volumen.py`, `eval.py`, etc.) puede invocarse directamente desde la línea de comandos.
 
 Los argumentos admitidos por cada script son ligeramente diferentes a los de `ejecutar_pipeline.py`. Cada archivo
