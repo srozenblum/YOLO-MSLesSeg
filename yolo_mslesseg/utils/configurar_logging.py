@@ -64,7 +64,8 @@ class ColorFormatter(logging.Formatter):
         logging.WARNING: "\033[1;93m",  # Amarillo en negrita
         logging.ERROR: "\033[1;91m",  # Rojo en negrita
         logging.CRITICAL: "\033[1;97;41m",  # Blanco en negrita con fondo rojo
-        SKIP_LEVEL: "\033[38;5;25m",  # Azul oscuro
+        # SKIP_LEVEL: "\033[38;5;25m",  # Azul oscuro
+        SKIP_LEVEL: "\033[38;5;33m",
         HEADER_LEVEL: "\033[1;97m",  # Blanco en negrita
     }
 
