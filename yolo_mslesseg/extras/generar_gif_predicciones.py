@@ -51,6 +51,7 @@ Salida:
 """
 
 import argparse
+import logging
 import sys
 from io import BytesIO
 from pathlib import Path
@@ -76,6 +77,7 @@ from yolo_mslesseg.utils.utils import (
 )
 
 logger = get_logger(__file__)
+logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
 
 
 # =============================
