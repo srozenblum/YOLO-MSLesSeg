@@ -67,6 +67,9 @@ Tras la ejecución, las métricas de rendimiento para cada instancia se encuentr
 | **P14**  | Sagital | Ninguna | 0.858 | 0.917 | 0.883     | 0.835    |
 | **P18**  | Axial   | HE      | 0.115 | 0.533 | 0.443     | 0.066    |
 
+> [!NOTE]
+> Dado que la ejecución se realiza para un único plano por paciente, la demo no genera el volumen de consenso.
+
 Además, dentro de la carpeta `visualizaciones/` se generan
 animaciones que permiten inspeccionar la segmentación a lo largo del volumen:
 
