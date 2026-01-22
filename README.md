@@ -257,8 +257,8 @@ y llevar a cabo experimentos para distintas configuraciones:
 | `--k_folds`         | No        | `5`         | Número de _folds_ para validación cruzada                        |
 | `--epochs`          | ✅ Sí      | —           | Número de épocas de entrenamiento                                |
 | `--umbral_consenso` | No        | `2`         | Umbral de votación: `2` (mayoría) o `3` (unanimidad)             |
-| `--completo`        | ✅ Sí (❗)  | —           | Procesar todos los pacientes                                     |
-| `--paciente_id`     | ✅ Sí (❗)  | —           | Procesar solo el paciente indicado (ej: `P1`)                    |
+| `--completo`        | ✅ Sí      | —           | Procesar todos los pacientes                                     |
+| `--paciente_id`     | ✅ Sí      | —           | Procesar solo el paciente indicado (ej: `P1`)                    |
 | `--entrenar`        | No        | No activo   | Incluir la etapa de entrenamiento                                |
 | `--limpiar`         | No        | No activo   | Limpiar todos los resultados previos                             |
 

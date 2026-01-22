@@ -64,7 +64,7 @@ Tras la ejecución, las métricas de rendimiento para cada instancia se encuentr
 
 | Paciente | Plano   | Mejora  | DSC   | AUC   | Precisión | _Recall_ |
 |----------|---------|---------|-------|-------|-----------|----------|
-| **P14**  | Sagital | Ninguna | 0.685 | 0.778 | 0.889     | 0.557    |
+| **P14**  | Sagital | Ninguna | 0.858 | 0.917 | 0.883     | 0.835    |
 | **P18**  | Axial   | HE      | 0.115 | 0.533 | 0.443     | 0.066    |
 
 Además, dentro de la carpeta `visualizaciones/` se generan
