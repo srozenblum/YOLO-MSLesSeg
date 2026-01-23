@@ -11,6 +11,10 @@ Descripción:
         - Paciente con mayor DSC: P14, sin algoritmo de mejora, en el plano sagital.
         - Paciente con menor DSC: P18, con ecualización de histograma (HE), en el plano axial.
 
+    El número de cortes (`num_cortes`) se fija explícitamente para cada
+    ejecución, ya que el dataset incluido en la demo no es representativo
+    para el cálculo de percentiles globales.
+
     Además de ejecutar el pipeline, genera dos visualizaciones por cada paciente:
         - Visualización para el mejor corte: imagen estática que muestra el corte
           que obtuvo el mayor DSC, con la predicción del modelo superpuesta (TP/FP/FN).
@@ -45,7 +49,7 @@ from yolo_mslesseg.utils.configurar_logging import get_logger, configurar_loggin
 logger = get_logger(__file__)
 
 
-def ejecutar_demo_paciente(paciente_id, mejora, plano):
+def ejecutar_demo_paciente(paciente_id, num_cortes, mejora, plano):
     """
     Ejecuta la demo para un paciente específico utilizando el pipeline.
     """
@@ -57,7 +61,7 @@ def ejecutar_demo_paciente(paciente_id, mejora, plano):
         plano,
         "--modalidad",
         "FLAIR",
-        "--num_cortes",
+        num_cortes,
         "P50",
         "--epochs",
         "50",
@@ -91,8 +95,8 @@ def main():
     configurar_logging_demo()
 
     try:
-        ejecutar_demo_paciente("P14", mejora=None, plano="sagital")
-        ejecutar_demo_paciente("P18", mejora="HE", plano="axial")
+        ejecutar_demo_paciente("P14", num_cortes=71, mejora=None, plano="sagital")
+        ejecutar_demo_paciente("P18", num_cortes=70, mejora="HE", plano="axial")
 
     finally:
         # Restaurar cwd original
