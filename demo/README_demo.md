@@ -10,7 +10,7 @@ mediante
 el script `extras/analizar_pacientes_dsc.py`. Concretamente, la ejecución se
 realiza para:
 
-- **Paciente con configuración que resulta en el mayor DSC**: P14, sin algoritmo de mejora, en el plano sagital.
+- **Paciente con configuración que resulta en el mayor DSC**: P39, con corrección gamma (GC), en el plano axial.
 - **Paciente con configuración que resulta en el menor DSC**: P18, con ecualización de histograma (HE), en el plano
   axial.
 
@@ -62,16 +62,16 @@ python -m demo.ejecutar_demo
 
 Tras la ejecución, las métricas de rendimiento para cada instancia se encuentran en la carpeta `results/`:
 
-| Paciente | Plano   | Mejora  | DSC   | AUC   | Precisión | _Recall_ |
-|----------|---------|---------|-------|-------|-----------|----------|
-| **P14**  | Sagital | Ninguna | 0.858 | 0.917 | 0.883     | 0.835    |
-| **P18**  | Axial   | HE      | 0.115 | 0.533 | 0.443     | 0.066    |
+| Paciente | Plano | Mejora | DSC   | AUC   | Precisión | _Recall_ |
+|----------|-------|--------|-------|-------|-----------|----------|
+| **P39**  | Axial | GC     | 0.808 | 0.876 | 0.872     | 0.754    |
+| **P18**  | Axial | HE     | 0.115 | 0.533 | 0.443     | 0.066    |
 
 Además, dentro de la carpeta `visualizaciones/` se generan
 animaciones que permiten inspeccionar la segmentación a lo largo del volumen:
 
 <p align="center">
-<img src="visualizaciones/Control/FLAIR_P50c_5folds_50epochs/fold2/P14/sagital/P14_FLAIR.gif" height="270">
+<img src="visualizaciones/GC/FLAIR_P50c_5folds_50epochs/fold4/P39/axial/P39_FLAIR.gif" height="270">
 <img src="visualizaciones/HE/FLAIR_P50c_5folds_50epochs/fold2/P18/axial/P18_FLAIR.gif" height="270">
 </p>
 

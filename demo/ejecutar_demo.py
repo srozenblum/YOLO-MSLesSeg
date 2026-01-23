@@ -8,12 +8,8 @@ Descripción:
 
     Incluye dos ejecuciones de pacientes individuales, seleccionados a
     partir del análisis de resultados en `analizar_pacientes_dsc.py`:
-        - Paciente con mayor DSC: P14, sin algoritmo de mejora, en el plano sagital.
+        - Paciente con mayor DSC: P39, con corrección gamma (GC), en el plano axial.
         - Paciente con menor DSC: P18, con ecualización de histograma (HE), en el plano axial.
-
-    El número de cortes (`num_cortes`) se fija explícitamente para cada
-    ejecución, ya que el dataset incluido en la demo no es representativo
-    para el cálculo de percentiles globales.
 
     Además de ejecutar el pipeline, genera dos visualizaciones por cada paciente:
         - Visualización para el mejor corte: imagen estática que muestra el corte
@@ -95,7 +91,7 @@ def main():
     configurar_logging_demo()
 
     try:
-        ejecutar_demo_paciente("P14", mejora=None, plano="sagital")
+        ejecutar_demo_paciente("P39", mejora="GC", plano="axial")
         ejecutar_demo_paciente("P18", mejora="HE", plano="axial")
 
     finally:
