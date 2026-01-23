@@ -1,7 +1,6 @@
 from pathlib import Path
 
 from yolo_mslesseg.utils.configurar_logging import get_logger
-from yolo_mslesseg.utils.paths import DATASET_MSLESSEG
 from yolo_mslesseg.utils.utils import (
     ruta_existente,
     eliminar_directorio,
@@ -119,7 +118,7 @@ class ConfigDataset:
 
         # Dataset de entrada
         if dataset_entrada is None:
-            self.dataset_entrada = DATASET_MSLESSEG
+            self.dataset_entrada = Path("MSLesSeg-Dataset") / "train"
         else:
             self.dataset_entrada = Path(dataset_entrada)
 

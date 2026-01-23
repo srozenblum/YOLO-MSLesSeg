@@ -1,8 +1,9 @@
+from pathlib import Path
+
 import nibabel as nib
 import numpy as np
 
 from yolo_mslesseg.utils.mejora_imagen import HE, CLAHE, GC, LT
-from yolo_mslesseg.utils.paths import DATASET_MSLESSEG
 from yolo_mslesseg.utils.utils import ruta_existente
 
 
@@ -61,6 +62,7 @@ class Paciente:
             Diccionario con los volúmenes cargados por modalidad.
     """
 
+    DATASET_DIR = Path("MSLesSeg-Dataset/train")
     MODALIDADES = ("T1", "T2", "FLAIR")
     MEJORAS = ("HE", "CLAHE", "GC", "LT")
     PLANOS = ("axial", "coronal", "sagital", "consenso")
@@ -112,7 +114,7 @@ class Paciente:
         self, id, plano, timepoint, modalidad, mejora, gt_mask
     ):
         self.id = id
-        self.base_dir = DATASET_MSLESSEG / id  # Directorio base en el dataset
+        self.base_dir = self.DATASET_DIR / id  # Directorio base en el dataset
         self.plano = plano
         self.timepoint = timepoint
         self.sin_timepoints = not any(
