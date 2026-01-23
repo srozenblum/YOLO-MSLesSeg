@@ -49,7 +49,7 @@ from yolo_mslesseg.utils.configurar_logging import get_logger, configurar_loggin
 logger = get_logger(__file__)
 
 
-def ejecutar_demo_paciente(paciente_id, num_cortes, mejora, plano):
+def ejecutar_demo_paciente(paciente_id, mejora, plano):
     """
     Ejecuta la demo para un paciente específico utilizando el pipeline.
     """
@@ -61,7 +61,7 @@ def ejecutar_demo_paciente(paciente_id, num_cortes, mejora, plano):
         plano,
         "--modalidad",
         "FLAIR",
-        num_cortes,
+        "--num_cortes",
         "P50",
         "--epochs",
         "50",
@@ -95,8 +95,8 @@ def main():
     configurar_logging_demo()
 
     try:
-        ejecutar_demo_paciente("P14", num_cortes=71, mejora=None, plano="sagital")
-        ejecutar_demo_paciente("P18", num_cortes=70, mejora="HE", plano="axial")
+        ejecutar_demo_paciente("P14", mejora=None, plano="sagital")
+        ejecutar_demo_paciente("P18", mejora="HE", plano="axial")
 
     finally:
         # Restaurar cwd original
