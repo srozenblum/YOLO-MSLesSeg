@@ -356,23 +356,6 @@ def int_o_percentil(valor):
         )
 
 
-def calcular_percentil(json_path, p, verbose=False):
-    """Calcula el percentil deseado en función de la distribución de cortes"""
-    cortes_dict = leer_json(json_path)
-    cortes_por_paciente = [len(indices) for indices in cortes_dict.values()]
-
-    if not cortes_por_paciente:
-        raise ValueError("El archivo JSON no contiene pacientes o está vacío.")
-
-    percentil_valor = int(np.percentile(cortes_por_paciente, p))
-    if verbose:
-        logger.info(
-            f"📊 Se recomienda extraer {percentil_valor} cortes por paciente (percentil {p})."
-        )
-
-    return percentil_valor
-
-
 # ===============================
 #     PROCESAMIENTO DE IMAGEN
 # ===============================
