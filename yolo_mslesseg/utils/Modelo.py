@@ -80,8 +80,8 @@ class Modelo:
 
     @property
     def exp_string(self):
-        """Nombre corto del experimento (Control o tipo de mejora)."""
-        return self.mejora if self.mejora else "Control"
+        """Nombre corto del experimento (Base o tipo de mejora)."""
+        return self.mejora if self.mejora else "Base"
 
     @property
     def base_path(self):

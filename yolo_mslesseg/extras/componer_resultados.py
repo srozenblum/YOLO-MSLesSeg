@@ -162,7 +162,7 @@ def construir_fila(plano, mejora, metricas):
 def ordenar_dataframe(df):
     """Ordena por plano y mejora."""
     orden_plano = ["Axial", "Coronal", "Sagital", "Consenso"]
-    orden_mejora = ["Control", "HE", "CLAHE", "GC", "LT"]
+    orden_mejora = ["Base", "HE", "CLAHE", "GC", "LT"]
 
     df["Plano"] = pd.Categorical(df["Plano"], categories=orden_plano, ordered=True)
     df["Mejora"] = pd.Categorical(df["Mejora"], categories=orden_mejora, ordered=True)
@@ -214,7 +214,7 @@ def componer_resultados(configuracion_global):
 
     df = pd.DataFrame(filas)
     ordenar_dataframe(df)
-    df["Mejora"] = df["Mejora"].replace("CONTROL", "Control").fillna("Control")
+    df["Mejora"] = df["Mejora"].replace("CONTROL", "Base").fillna("Base")
 
     df.to_csv(output_path, index=False)
     logger.info(f"✅ Resumen exportado en {output_path}")

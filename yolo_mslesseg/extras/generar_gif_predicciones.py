@@ -161,7 +161,7 @@ def crear_frame(img_array, pred_array, gt_array, corte, paciente, mejora, vmin, 
         - Intersección (azul)
     sobre la imagen original.
     """
-    str_mejora = mejora if mejora is not None else "Control"
+    str_mejora = mejora if mejora is not None else "Base"
 
     # Normalización global
     norm = (img_array - vmin) / (vmax - vmin + 1e-8)
@@ -333,7 +333,7 @@ def ejecutar_flujo(paciente, modelo, epochs, limpiar):
 
     paciente_id = paciente.id
     plano = paciente.plano
-    mejora = paciente.mejora if paciente.mejora else "Control"
+    mejora = paciente.mejora if paciente.mejora else "Base"
     k_folds = modelo.k_folds
     fold_paciente = calcular_fold(paciente_id, k_folds)
 

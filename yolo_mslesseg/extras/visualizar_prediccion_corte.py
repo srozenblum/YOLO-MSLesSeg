@@ -284,7 +284,7 @@ def visualizar_mejor_corte(paciente, modelo, output_dir, limpiar):
     genera la figura correspondiente en el directorio de salida.
     Si se pasa `limpiar, elimina la figura previa antes de generar una nueva.
     """
-    str_mejora = paciente.mejora if paciente.mejora is not None else "Control"
+    str_mejora = paciente.mejora if paciente.mejora is not None else "Base"
     logger.info(
         f"🔎 Buscando mejor corte para paciente {paciente.id} ({str_mejora}, {paciente.plano})."
     )
@@ -327,7 +327,7 @@ def visualizar_corte_especifico(paciente, modelo, corte, output_dir, limpiar):
     directorio de salida. Si se pasa `limpiar, elimina la figura
     previa antes de generar una nueva.
     """
-    str_mejora = paciente.mejora if paciente.mejora is not None else "Control"
+    str_mejora = paciente.mejora if paciente.mejora is not None else "Base"
 
     img_array, pred_array, gt_array, dsc = cargar_y_procesar_corte(
         paciente=paciente, modelo=modelo, corte=corte
@@ -374,7 +374,7 @@ def ejecutar_flujo(paciente, modelo, epochs, corte, limpiar):
 
     paciente_id = paciente.id
     plano = paciente.plano
-    mejora = paciente.mejora if paciente.mejora else "Control"
+    mejora = paciente.mejora if paciente.mejora else "Base"
     k_folds = modelo.k_folds
     fold_paciente = calcular_fold(paciente_id, k_folds)
 
