@@ -1,5 +1,7 @@
 from yolo_mslesseg.configs.ConfigBase import ConfigBase
 from yolo_mslesseg.utils.logging_config import get_logger
+from yolo_mslesseg.utils.Model import Model
+from yolo_mslesseg.utils.Patient import Patient
 from yolo_mslesseg.utils.constants import (
     GT_DIR,
     PLANES,
@@ -127,13 +129,26 @@ class ConfigEval(ConfigBase):
 
     def __init__(
         self,
-        model,
+        model: Model,
         epochs: int,
         k_folds: int = 5,
-        patient=None,
-        fold_test=None,
-        forced_plane=None,
+        patient: Patient | None = None,
+        fold_test: int | None = None,
+        forced_plane: str | None = None,
     ) -> None:
+        """Initialises a ConfigEval instance for the evaluation stage.
+
+        Args:
+            model: Model instance defining the plane, modalities, and base_path.
+            epochs: Number of training epochs of the YOLO model.
+            k_folds: Number of cross-validation folds (1 for a fixed split).
+            patient: Patient instance for individual execution, or None for fold-level.
+            fold_test: Test fold index when using cross-validation, or None.
+            forced_plane: Plane label overriding the model's plane, or None.
+
+        Raises:
+            ValueError: If forced_plane is not a valid plane identifier.
+        """
         # --- Validate forced_plane ---
         if forced_plane is not None and forced_plane not in PLANES:
             raise ValueError(
@@ -172,19 +187,12 @@ class ConfigEval(ConfigBase):
     #          CONSTRUCTOR HELPERS
     # ======================================
 
-    def _resolve_execution_mode(self):
-        """
-        Resolves the execution mode based on the received parameters.
+    def _resolve_execution_mode(self) -> None:
+        """Resolves the execution mode and sets internal flags for path construction.
 
-        Supported modes:
-            1) k_folds == 1 (fixed train/test split)
-               - Fold mode:    evaluates the full 'test' group.
-               - Patient mode: only patients from 'test'.
-
-            2) k_folds > 1 (cross-validation)
-               - Fold mode:       requires fold_test.
-               - Patient mode:    patient from 'train'; fold is computed automatically.
-               - Experiment mode: fold_test=None; averages all folds.
+        Raises:
+            ValueError: If a patient belongs to an incompatible split for the
+                chosen k_folds value.
         """
         self.is_individual_patient = self.patient is not None
 
@@ -220,13 +228,15 @@ class ConfigEval(ConfigBase):
                 k_folds=self.k_folds,
             )
 
-    def _resolve_pred_vols_paths(self):
+    def _resolve_pred_vols_paths(self) -> None:
+        """Resolves the base and fold-specific predicted volumes directories."""
         self.pred_vols_base_dir = (
             PRED_VOLS_DIR / f"{self.model.base_path}_{self.epochs}epochs"
         )
         self.pred_vols_fold_dir = self.pred_vols_base_dir / self.fold_subdir
 
-    def _resolve_results_paths(self):
+    def _resolve_results_paths(self) -> None:
+        """Resolves the base, fold-specific, and global results directories and JSON paths."""
         self.results_base_dir = (
             RESULTS_DIR / f"{self.model.base_path}_{self.epochs}epochs"
         )
@@ -248,7 +258,11 @@ class ConfigEval(ConfigBase):
             self.results_base_dir / f"{RESULTS_GLOBAL_PREFIX}{self.plane}{RESULTS_SUFFIX}{EXT_JSON}"
         )
 
-    def _resolve_patient_paths(self):
+    def _resolve_patient_paths(self) -> None:
+        """Resolves the predicted volume, GT, and results paths for an individual patient.
+
+        Has no effect when running in fold-level or experiment mode.
+        """
         if not self.is_individual_patient:
             return
 
@@ -275,7 +289,7 @@ class ConfigEval(ConfigBase):
     #               CLEANUP
     # ======================================
 
-    def _clean_fold_results(self):
+    def _clean_fold_results(self) -> None:
         """
         Cleans the fold metrics JSON and the individual JSON files for all patients.
         """
@@ -306,7 +320,7 @@ class ConfigEval(ConfigBase):
                         except Exception as e:
                             logger.warning(f"⚠️ Could not delete {file}: {e}")
 
-    def _clean_experiment_results(self):
+    def _clean_experiment_results(self) -> None:
         """
         Cleans the global experiment metrics JSON.
         """
@@ -319,21 +333,7 @@ class ConfigEval(ConfigBase):
                 )
 
     def clean(self) -> None:
-        """
-        Cleans the metrics JSON files for the model plane and the active
-        execution mode.
-
-        - Fold mode:
-          Cleans the metrics JSON for all patients in the fold and the
-          fold-level JSON.
-
-        - Individual patient mode:
-          Cleans only the metrics JSON for the specified patient, without
-          affecting the rest of the fold.
-
-        - Experiment mode:
-          Cleans only the global experiment metrics JSON.
-        """
+        """Cleans metrics JSON files for the model plane and the active execution mode."""
         if self.is_fold:
             self._clean_fold_results()
 
@@ -348,12 +348,11 @@ class ConfigEval(ConfigBase):
     #            VERIFICATION
     # ======================================
 
-    def _verify_fold_paths(self):
-        """
-        Verifies that the input files and output directory exist for the
-        patients in the fold.
-        - Input:  ground truth and predictions per patient (gt_dir and pred_vol_dir)
-        - Output: root metrics directory per patient (results_root).
+    def _verify_fold_paths(self) -> None:
+        """Verifies input and output paths for all patients in the active fold.
+
+        Raises:
+            FileNotFoundError: If a patient's GT or predicted volume does not exist.
         """
         patients = list_patients(self.pred_vols_fold_dir)
 
@@ -385,11 +384,11 @@ class ConfigEval(ConfigBase):
             # results_root
             create_directory(results_root_patient)  # Ensure output directory exists
 
-    def _verify_patient_paths(self):
-        """
-        Verifies that the input and output directories exist for an individual patient.
-        - Input:  GT and predicted volume (patient_gt_vol and patient_pred_vol).
-        - Output: patient metrics root directory (patient_results_root).
+    def _verify_patient_paths(self) -> None:
+        """Verifies input and output paths for an individual patient.
+
+        Raises:
+            FileNotFoundError: If the patient's GT or predicted volume does not exist.
         """
         # patient_gt_vol
         if not path_exists(self.patient_gt_vol):  # Raises exception if not found
@@ -406,10 +405,11 @@ class ConfigEval(ConfigBase):
         # patient_results_root
         create_directory(self.patient_results_root)  # Ensure output directory exists
 
-    def _verify_experiment_paths(self):
-        """
-        Verifies that the metrics JSON for each fold exists so that the
-        experiment-level average can be computed.
+    def _verify_experiment_paths(self) -> None:
+        """Verifies that per-fold metrics JSON files exist for the experiment-level average.
+
+        Raises:
+            FileNotFoundError: If the results directory or any fold's metrics JSON is missing.
         """
         if not path_exists(self.results_base_dir):
             raise FileNotFoundError(
@@ -437,18 +437,10 @@ class ConfigEval(ConfigBase):
                 f"❌ Results JSON not found for the following folds: {missing}"
             )
 
-    def verify_paths(self):
-        """
-        Verifies that the input and output directories exist for metric computation.
+    def verify_paths(self) -> None:
+        """Verifies that all required paths exist for metric computation.
 
-        - Fold mode:
-            * Verifies paths for all patients in the fold.
-
-        - Individual patient mode:
-            * Verifies paths only for the specified patient.
-
-        - Experiment mode:
-            * Verifies paths for each fold in order to compute the average.
+        Delegates path verification to the appropriate method based on the active mode.
         """
 
         if self.is_fold:

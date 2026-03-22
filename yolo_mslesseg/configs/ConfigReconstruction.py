@@ -1,5 +1,7 @@
 from yolo_mslesseg.configs.ConfigBase import ConfigBase
 from yolo_mslesseg.utils.logging_config import get_logger
+from yolo_mslesseg.utils.Model import Model
+from yolo_mslesseg.utils.Patient import Patient
 from yolo_mslesseg.utils.constants import (
     GT_DIR,
     SPLIT_TEST,
@@ -114,12 +116,24 @@ class ConfigReconstruction(ConfigBase):
 
     def __init__(
         self,
-        model,
+        model: Model,
         epochs: int,
         k_folds: int = 5,
-        patient=None,
-        fold_test=None,
+        patient: Patient | None = None,
+        fold_test: int | None = None,
     ) -> None:
+        """Initialises a ConfigReconstruction instance for the volume reconstruction stage.
+
+        Args:
+            model: Model instance defining the plane, modalities, and base_path.
+            epochs: Number of training epochs of the YOLO model.
+            k_folds: Number of cross-validation folds (1 for a fixed split).
+            patient: Patient instance for individual execution, or None for fold-level.
+            fold_test: Test fold index when using cross-validation, or None.
+
+        Raises:
+            ValueError: If the execution mode cannot be determined from the arguments.
+        """
         # --- Shared base attributes ---
         super().__init__(
             model=model,
@@ -148,7 +162,13 @@ class ConfigReconstruction(ConfigBase):
     #          CONSTRUCTOR HELPERS
     # ======================================
 
-    def _resolve_execution_mode(self):
+    def _resolve_execution_mode(self) -> None:
+        """Resolves the execution mode and configures the ground truth directory.
+
+        Raises:
+            ValueError: If a patient belongs to an incompatible split for the
+                chosen k_folds value, or if no valid mode can be determined.
+        """
         self.is_individual_patient = self.patient is not None
         self.is_fold = not self.is_individual_patient and self.fold_test is not None
 
@@ -194,17 +214,23 @@ class ConfigReconstruction(ConfigBase):
                 "An execution mode must be specified: test fold or individual patient."
             )
 
-    def _resolve_dataset_paths(self):
+    def _resolve_dataset_paths(self) -> None:
+        """Resolves the base dataset directory and the active fold subdirectory."""
         self.dataset_base_dir = DATASETS_DIR / f"{self.model.base_path}"
         self.dataset_fold_dir = self.dataset_base_dir / self.fold_subdir
 
-    def _resolve_pred_vols_paths(self):
+    def _resolve_pred_vols_paths(self) -> None:
+        """Resolves the base and fold-specific predicted volumes directories."""
         self.pred_vols_base_dir = (
             PRED_VOLS_DIR / f"{self.model.base_path}_{self.epochs}epochs"
         )
         self.pred_vols_fold_dir = self.pred_vols_base_dir / self.fold_subdir
 
-    def _resolve_patient_paths(self):
+    def _resolve_patient_paths(self) -> None:
+        """Resolves the predicted masks, volume output, and GT paths for an individual patient.
+
+        Has no effect when running in fold-level mode.
+        """
         if not self.is_individual_patient:
             return
 
@@ -231,11 +257,8 @@ class ConfigReconstruction(ConfigBase):
     #               CLEANUP
     # ======================================
 
-    def _clean_fold_volumes(self):
-        """
-        Cleans the reconstructed volumes for the corresponding plane across
-        all patients in the fold.
-        """
+    def _clean_fold_volumes(self) -> None:
+        """Cleans the reconstructed NIfTI volumes for the current plane across all patients in the fold."""
         if path_exists(self.pred_vols_fold_dir):
             patients = list_patients(self.pred_vols_fold_dir)
 
@@ -254,10 +277,8 @@ class ConfigReconstruction(ConfigBase):
                         except Exception as e:
                             logger.warning(f"⚠️ Could not delete {file}: {e}")
 
-    def _clean_patient_volume(self):
-        """
-        Cleans the reconstructed volume for an individual patient.
-        """
+    def _clean_patient_volume(self) -> None:
+        """Cleans the reconstructed NIfTI volume for an individual patient."""
         if path_exists(self.patient_vol_root):
             try:
                 self.patient_pred_vol.unlink()
@@ -265,16 +286,10 @@ class ConfigReconstruction(ConfigBase):
                 logger.warning(f"⚠️ Could not delete volume: {e}")
 
     def clean(self) -> None:
-        """
-        Cleans the reconstructed volumes for the model plane and the active
-        execution mode.
+        """Cleans reconstructed volumes for the active execution mode.
 
-        - Fold mode:
-          Cleans the reconstructed volumes for all patients in the fold.
-
-        - Individual patient mode:
-          Cleans only the reconstructed volume for the specified patient,
-          without affecting the rest of the fold.
+        Raises:
+            ValueError: If neither a fold nor a patient is specified.
         """
         if self.is_individual_patient:
             self._clean_patient_volume()
@@ -290,12 +305,12 @@ class ConfigReconstruction(ConfigBase):
     #            VERIFICATION
     # ======================================
 
-    def _verify_fold_paths(self):
-        """
-        Verifies that the input files and output directory exist for the
-        patients in the fold.
-        - Input:  predicted 2D masks directory per patient (pred_masks_dir).
-        - Output: reconstructed volumes directory per patient (pred_vols_fold_dir).
+    def _verify_fold_paths(self) -> None:
+        """Verifies input and output paths for all patients in the active fold.
+
+        Raises:
+            FileNotFoundError: If the dataset fold directory or a patient's
+                pred_masks directory does not exist.
         """
         if not path_exists(self.dataset_fold_dir):
             raise FileNotFoundError(
@@ -318,11 +333,11 @@ class ConfigReconstruction(ConfigBase):
             # pred_vols_fold_dir
             create_directory(patient_pred_vols_fold_dir)  # Ensure output exists
 
-    def _verify_patient_paths(self):
-        """
-        Verifies that the input and output directories exist for an individual patient.
-        - Input:  predicted 2D masks directory (patient_pred_masks).
-        - Output: reconstructed volumes directory (patient_vol_root).
+    def _verify_patient_paths(self) -> None:
+        """Verifies input and output paths for an individual patient.
+
+        Raises:
+            FileNotFoundError: If the patient's pred_masks directory does not exist.
         """
         if not path_exists(self.patient_pred_masks):  # Raises exception if not found
             raise FileNotFoundError(
@@ -330,21 +345,20 @@ class ConfigReconstruction(ConfigBase):
             )
         create_directory(self.patient_vol_root)  # Ensure output exists
 
-    def _verify_gt_paths(self):
+    def _verify_gt_paths(self) -> None:
+        """Verifies that the ground truth directory exists.
+
+        Raises:
+            FileNotFoundError: If the GT directory does not exist.
+        """
         if not path_exists(self.gt_dir):
             raise FileNotFoundError(f"GT directory not found: {self.gt_dir}")
 
-    def verify_paths(self):
-        """
-        Verifies that the input and output directories exist for volume reconstruction.
+    def verify_paths(self) -> None:
+        """Verifies that all required paths exist for volume reconstruction.
 
-        - Always verifies the existence of the ground truth volumes directory.
-
-        - Fold mode:
-            * Verifies paths for all patients in the fold.
-
-        - Individual patient mode:
-            * Verifies paths only for the specified patient.
+        Always checks the GT directory. Then delegates path verification to
+        _verify_patient_paths or _verify_fold_paths based on the active mode.
         """
         self._verify_gt_paths()
 

@@ -62,6 +62,7 @@ Outputs:
 
 import argparse
 import sys
+from pathlib import Path
 
 import numpy as np
 
@@ -84,8 +85,13 @@ logger = get_logger(__file__)
 # ======================================
 
 
-def aggregate_fold_metrics(total_dict, file):
-    """Aggregates the metrics read from a fold into the accumulator dictionary."""
+def aggregate_fold_metrics(total_dict: dict[str, list[float]], file: Path) -> None:
+    """Reads metrics from a fold JSON file and appends them to an accumulator dictionary.
+
+    Args:
+        total_dict: Accumulator dictionary mapping metric names to lists of values.
+        file: Path to the fold results JSON file.
+    """
     metrics = read_json(file)
     for k, v in metrics.items():
         # Case 1: fold format {"media": x, "std": y}
@@ -100,10 +106,14 @@ def aggregate_fold_metrics(total_dict, file):
             )
 
 
-def read_fold_metrics(config):
-    """
-    Reads the metrics files for each fold and accumulates their values in a dictionary.
-    Returns a dictionary {metric: [values_per_fold]}.
+def read_fold_metrics(config: ConfigEval) -> dict[str, list[float]]:
+    """Reads per-fold metrics JSON files and accumulates their values.
+
+    Args:
+        config: ConfigEval instance providing the results base directory and plane.
+
+    Returns:
+        Dictionary mapping metric names to lists of per-fold values.
     """
     fold_metrics = {}
 
@@ -128,8 +138,15 @@ def read_fold_metrics(config):
     return fold_metrics
 
 
-def compute_experiment_summary(fold_metrics):
-    """Computes the mean and standard deviation for each metric across folds."""
+def compute_experiment_summary(fold_metrics: dict[str, list[float]]) -> dict[str, dict[str, float]]:
+    """Computes the mean and standard deviation for each metric across folds.
+
+    Args:
+        fold_metrics: Dictionary mapping metric names to lists of per-fold values.
+
+    Returns:
+        Dictionary mapping metric names to dicts with 'media' (mean) and 'std' keys.
+    """
     results = {}
     for metric, values in fold_metrics.items():
         results[metric] = {
@@ -139,8 +156,13 @@ def compute_experiment_summary(fold_metrics):
     return results
 
 
-def export_experiment_results(results, output_path):
-    """Saves the global experiment summary in JSON format."""
+def export_experiment_results(results: dict[str, dict[str, float]], output_path: Path) -> None:
+    """Saves the global experiment summary to a JSON file.
+
+    Args:
+        results: Dictionary of experiment-level metric statistics to serialise.
+        output_path: Path where the JSON file will be written.
+    """
     if not results:
         logger.warning("⚠️ No results to export.")
         return
@@ -152,8 +174,17 @@ def export_experiment_results(results, output_path):
 # ======================================
 
 
-def process_results(config):
-    """Computes the experiment average metrics from the per-fold results."""
+def process_results(config: ConfigEval) -> dict[str, dict[str, float]] | None:
+    """Computes and saves the experiment-level average metrics from per-fold results.
+
+    Skips computation if the global results JSON already exists.
+
+    Args:
+        config: ConfigEval instance providing directory and plane settings.
+
+    Returns:
+        Dictionary of experiment-level metric statistics, or None if already computed.
+    """
     # Output file path for the experiment results
     output_path = config.results_base_dir / f"{RESULTS_GLOBAL_PREFIX}{config.plane}{RESULTS_SUFFIX}{EXT_JSON}"
 
@@ -174,9 +205,13 @@ def process_results(config):
 # ======================================
 
 
-def run_average_folds_flow(config, clean, verbose=False):
-    """
-    Executes the main fold-average metric computation flow.
+def run_average_folds_flow(config: ConfigEval, clean: bool, verbose: bool = False) -> None:
+    """Executes the main fold-average metric computation flow.
+
+    Args:
+        config: ConfigEval instance defining the experiment configuration.
+        clean: If True, deletes existing global results before computing new ones.
+        verbose: If True, logs a header message at the start of execution.
     """
     if verbose:
         logger.header(f"🧮 Computing experiment fold averages.")
@@ -203,10 +238,14 @@ def run_average_folds_flow(config, clean, verbose=False):
 # ======================================
 
 
-def parse_args(argv=None):
-    """
-    Parses the script arguments.
-    If no argument list is provided, reads from the command line.
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    """Parses command-line arguments for the fold-average computation script.
+
+    Args:
+        argv: Argument list to parse. Defaults to sys.argv[1:] if None.
+
+    Returns:
+        Namespace with the parsed CLI arguments.
     """
     if argv is None:
         argv = sys.argv[1:]
@@ -277,10 +316,11 @@ def parse_args(argv=None):
     return args
 
 
-def main(argv=None):
-    """
-    CLI entry point: parses arguments, builds Model/ConfigEval instances,
-    and executes the full flow.
+def main(argv: list[str] | None = None) -> None:
+    """CLI entry point: parses arguments and executes the fold-average computation flow.
+
+    Args:
+        argv: Argument list to parse. Defaults to sys.argv[1:] if None.
     """
     args = parse_args(argv)
 
@@ -298,11 +338,16 @@ def main(argv=None):
 
 
 def run_average_folds_pipeline(
-    model, plane=None, epochs=50, k_folds=5, clean=False
-):
-    """
-    Internal pipeline entry point: receives pre-built objects and executes
-    the flow without using the CLI parser.
+    model: Model, plane: str | None = None, epochs: int = 50, k_folds: int = 5, clean: bool = False
+) -> None:
+    """Internal pipeline entry point: executes the fold-average flow programmatically.
+
+    Args:
+        model: Model instance defining the experiment configuration.
+        plane: Plane label overriding the model's plane, or None.
+        epochs: Number of training epochs of the YOLO model.
+        k_folds: Number of cross-validation folds.
+        clean: If True, deletes existing global results before computing new ones.
     """
     config = ConfigEval(
         model=model,

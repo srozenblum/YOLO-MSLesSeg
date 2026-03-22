@@ -1,5 +1,9 @@
+from pathlib import Path
+
 from yolo_mslesseg.configs.ConfigBase import ConfigBase
 from yolo_mslesseg.utils.logging_config import get_logger
+from yolo_mslesseg.utils.Model import Model
+from yolo_mslesseg.utils.Patient import Patient
 from yolo_mslesseg.utils.constants import DATASETS_DIR, TRAINS_DIR, WEIGHTS_FILE
 from yolo_mslesseg.utils.utils import (
     path_exists,
@@ -88,12 +92,24 @@ class ConfigPred(ConfigBase):
 
     def __init__(
         self,
-        model,
+        model: Model,
         epochs: int,
         k_folds: int = 5,
-        fold_test=None,
-        patient=None,
+        fold_test: int | None = None,
+        patient: Patient | None = None,
     ) -> None:
+        """Initialises a ConfigPred instance for the prediction generation stage.
+
+        Args:
+            model: Model instance defining the plane, modalities, and base_path.
+            epochs: Number of training epochs of the YOLO model.
+            k_folds: Number of cross-validation folds (1 for a fixed split).
+            fold_test: Test fold index when using cross-validation, or None.
+            patient: Patient instance for individual execution, or None for fold-level.
+
+        Raises:
+            ValueError: If the execution mode cannot be determined from the arguments.
+        """
         # --- Shared base attributes ---
         super().__init__(
             model=model,
@@ -119,21 +135,16 @@ class ConfigPred(ConfigBase):
     #          CONSTRUCTOR HELPERS
     # ======================================
 
-    def _resolve_execution_mode(self):
-        """
-        Resolves the execution mode based on the received parameters.
+    def _resolve_execution_mode(self) -> None:
+        """Resolves the execution mode and sets internal flags for path construction.
 
-        Supported modes:
-            1) k_folds > 1 (cross-validation)
-               - Fold mode:    requires fold_test (fold to process).
-               - Patient mode: patient is provided and their fold is computed.
+        Supports four modes: fold-level CV (k_folds > 1), patient-level CV,
+        fixed-split group (k_folds == 1), and fixed-split patient. Sets
+        is_individual_patient, is_fold, fold_test, and group accordingly.
 
-            2) k_folds == 1 (train/test split)
-               - Group mode:   processes the 'test' group (no folds).
-               - Patient mode: patient is provided and must belong to 'test'.
-
-        This method sets internal flags and auxiliary fields used later for
-        path construction and path verification.
+        Raises:
+            ValueError: If a test or train patient is used in an incompatible mode,
+                or if no valid execution mode can be determined.
         """
         self.is_individual_patient = self.patient is not None
         self.is_fold = not self.is_individual_patient and self.fold_test is not None
@@ -178,11 +189,13 @@ class ConfigPred(ConfigBase):
                 "An execution mode must be specified: test fold or individual patient."
             )
 
-    def _resolve_dataset_paths(self):
+    def _resolve_dataset_paths(self) -> None:
+        """Resolves the base dataset directory and the active fold subdirectory."""
         self.dataset_base_dir = DATASETS_DIR / f"{self.model.base_path}"
         self.dataset_fold_dir = self.dataset_base_dir / self.fold_subdir
 
-    def _resolve_training_paths(self):
+    def _resolve_training_paths(self) -> None:
+        """Resolves the training output directory and the YOLO model weights path."""
         # Base training output directory
         if self.single_fold:
             self.train_base_dir = (
@@ -203,7 +216,11 @@ class ConfigPred(ConfigBase):
         # Trained YOLO model weights file
         self.model_path = self.train_base_dir / "weights" / WEIGHTS_FILE
 
-    def _resolve_patient_paths(self):
+    def _resolve_patient_paths(self) -> None:
+        """Resolves the input images and output pred_masks paths for an individual patient.
+
+        Has no effect when running in fold-level mode.
+        """
         if not self.is_individual_patient:
             return
 
@@ -219,11 +236,8 @@ class ConfigPred(ConfigBase):
     #               CLEANUP
     # ======================================
 
-    def _clean_fold_predictions(self):
-        """
-        Cleans the pred_masks/ directory for the corresponding plane
-        across all patients in the fold.
-        """
+    def _clean_fold_predictions(self) -> None:
+        """Cleans the pred_masks/ directory for all patients in the active fold."""
         if path_exists(self.dataset_fold_dir):
             patients = list_patients(self.dataset_fold_dir)
 
@@ -239,11 +253,8 @@ class ConfigPred(ConfigBase):
                             f"⚠️ Could not delete {patient_pred_masks_subdir}: {e}"
                         )
 
-    def _clean_patient_predictions(self):
-        """
-        Cleans the predicted slices for the corresponding plane for an
-        individual patient.
-        """
+    def _clean_patient_predictions(self) -> None:
+        """Cleans the predicted 2D mask slices for an individual patient."""
         if path_exists(self.patient_dir["pred_masks"]):
             try:
                 delete_directory(self.patient_dir["pred_masks"])
@@ -253,9 +264,10 @@ class ConfigPred(ConfigBase):
                 )
 
     def clean(self) -> None:
-        """
-        Cleans the predicted slices for the model plane and the active
-        execution mode.
+        """Cleans predicted 2D mask slices for the active execution mode.
+
+        Raises:
+            ValueError: If neither a fold nor a patient is specified.
         """
         if self.is_individual_patient:
             self._clean_patient_predictions()
@@ -270,12 +282,12 @@ class ConfigPred(ConfigBase):
     #            VERIFICATION
     # ======================================
 
-    def _verify_fold_paths(self):
-        """
-        Verifies that the input files and output directory exist for the
-        patients in the fold.
-        - Input:  images directory per patient (images_dir).
-        - Output: predicted 2D masks directory per patient (pred_masks_dir).
+    def _verify_fold_paths(self) -> None:
+        """Verifies input and output paths for all patients in the active fold.
+
+        Raises:
+            FileNotFoundError: If the dataset fold directory or an images
+                subdirectory does not exist.
         """
         if not path_exists(self.dataset_fold_dir):
             raise FileNotFoundError(
@@ -301,11 +313,11 @@ class ConfigPred(ConfigBase):
                 # pred_masks_dir
                 create_directory(patient_pred_masks_subdir)  # Ensure output exists
 
-    def _verify_patient_paths(self):
-        """
-        Verifies that the input and output directories exist for an individual patient.
-        - Input:  images directory (patient_dir["images"]).
-        - Output: predicted 2D masks directory (patient_dir["pred_masks"]).
+    def _verify_patient_paths(self) -> None:
+        """Verifies input and output paths for an individual patient.
+
+        Raises:
+            FileNotFoundError: If the patient's images directory does not exist.
         """
         # patient_dir["images"]
         if not path_exists(
@@ -318,9 +330,11 @@ class ConfigPred(ConfigBase):
         # patient_dir["pred_masks"]
         create_directory(self.patient_dir["pred_masks"])  # Ensure output exists
 
-    def _verify_model_path(self):
-        """
-        Verifies that the trained YOLO model weights file exists.
+    def _verify_model_path(self) -> None:
+        """Verifies that the trained YOLO model weights file exists.
+
+        Raises:
+            FileNotFoundError: If the model weights file does not exist.
         """
         if self.single_fold:
             if not path_exists(self.model_path):
@@ -336,17 +350,11 @@ class ConfigPred(ConfigBase):
                 f"Trained model not found at {self.model_path}."
             )
 
-    def verify_paths(self):
-        """
-        Verifies that the input and output directories exist for prediction generation.
+    def verify_paths(self) -> None:
+        """Verifies that all required paths exist for prediction generation.
 
-        - Always verifies the existence of the trained model weights file.
-
-        - Fold mode:
-            * Verifies paths for all patients in the fold.
-
-        - Individual patient mode:
-            * Verifies paths only for the specified patient.
+        Always checks the model weights file. Then delegates path verification
+        to _verify_patient_paths or _verify_fold_paths based on the active mode.
         """
         self._verify_model_path()
 

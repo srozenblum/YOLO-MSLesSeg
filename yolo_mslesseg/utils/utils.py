@@ -51,10 +51,12 @@ Conventions:
 
 import argparse
 import json
+import logging
 import os
 import re
 import shutil
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import cv2
 import nibabel as nib
@@ -73,6 +75,10 @@ from yolo_mslesseg.utils.constants import (
     N_TRAIN_PATIENTS,
 )
 
+if TYPE_CHECKING:
+    from yolo_mslesseg.utils.Model import Model
+    from yolo_mslesseg.utils.Patient import Patient
+
 # Configure logger
 logger = get_logger(__file__)
 
@@ -82,25 +88,47 @@ logger = get_logger(__file__)
 # ======================================
 
 
-def path_exists(path):
-    """Returns True if the given path exists."""
+def path_exists(path: str | Path) -> bool:
+    """Returns True if the given path exists.
+
+    Args:
+        path: Filesystem path to check.
+
+    Returns:
+        True if the path exists, False otherwise.
+    """
     return Path(path).exists()
 
 
-def create_directory(path):
-    """Creates the directory if it does not exist."""
+def create_directory(path: str | Path) -> None:
+    """Creates the directory if it does not exist.
+
+    Args:
+        path: Directory path to create, including all intermediate parents.
+    """
     Path(path).mkdir(parents=True, exist_ok=True)
 
 
-def delete_directory(input_dir):
-    """Recursively deletes the given directory."""
+def delete_directory(input_dir: str | Path) -> None:
+    """Recursively deletes the given directory.
+
+    Args:
+        input_dir: Directory to delete. Does nothing if it does not exist.
+    """
     path = Path(input_dir)
     if path.exists() and path.is_dir():
         shutil.rmtree(path)
 
 
-def is_ignorable_file(name):
-    """Returns True if the file appears to be a system or hidden file."""
+def is_ignorable_file(name: str) -> bool:
+    """Returns True if the file appears to be a system or hidden file.
+
+    Args:
+        name: Filename to check.
+
+    Returns:
+        True if the file starts with '.' or '~', or ends with '.tmp'.
+    """
     name_lower = name.lower()
     return (
         name.startswith(".")
@@ -109,23 +137,37 @@ def is_ignorable_file(name):
     )
 
 
-def build_config_name(model, epochs):
-    """
-    Builds the global configuration folder name for the model
-    (modality, slice count, k_folds, and epochs).
+def build_config_name(model: "Model", epochs: int) -> str:
+    """Builds the global configuration folder name for the model.
 
-    - If k_folds == 1 → '1fold'
-    - If k_folds > 1  → '<k>folds'
+    Combines modality, slice count, k_folds, and epochs into a canonical
+    folder name. Uses '1fold' when k_folds == 1 and '<k>folds' otherwise.
+
+    Args:
+        model: Model instance providing modality, num_slices, and folds_string.
+        epochs: Number of training epochs.
+
+    Returns:
+        Configuration folder name string.
     """
     modalities = "".join(model.modality)
 
     return f"{modalities}_{model.num_slices}slices_{model.folds_string}_{epochs}epochs"
 
 
-def patient_base_dir(patient, model):
-    """
-    Returns the base directory where the images, predictions, and ground truth
-    masks of a patient are stored within the YOLO dataset.
+def patient_base_dir(patient: "Patient", model: "Model") -> Path:
+    """Returns the base directory for a patient's images and masks within the YOLO dataset.
+
+    Args:
+        patient: Patient instance providing the ID, plane, and split group.
+        model: Model instance defining k_folds and base path.
+
+    Returns:
+        Absolute path to the patient's dataset directory.
+
+    Raises:
+        ValueError: If k_folds == 1 and the patient does not belong to the
+            test split.
     """
     base_root = Path.cwd()
 
@@ -156,10 +198,17 @@ def patient_base_dir(patient, model):
     return base_root / DATASETS_DIR / model.base_path / group / patient_id / plane
 
 
-def patient_paths(patient, model, slice_idx):
-    """
-    Builds and returns a dictionary of paths to the image, prediction, and
-    ground truth mask for a specific slice of the patient.
+def patient_paths(patient: "Patient", model: "Model", slice_idx: int) -> dict[str, Path]:
+    """Builds a dictionary of paths for a specific slice of the patient.
+
+    Args:
+        patient: Patient instance providing ID and modality string.
+        model: Model instance used to resolve the base directory.
+        slice_idx: Slice index within the anatomical plane.
+
+    Returns:
+        Dictionary with keys 'img', 'pred', and 'gt' mapping to their
+        respective file paths.
     """
     patient_id = patient.id
     modality = patient.modality_str
@@ -178,8 +227,15 @@ def patient_paths(patient, model, slice_idx):
 # ======================================
 
 
-def load_volume(vol_path):
-    """Loads a NIfTI file and returns its data array."""
+def load_volume(vol_path: str | Path) -> np.ndarray:
+    """Loads a NIfTI file and returns its data array.
+
+    Args:
+        vol_path: Path to the NIfTI file.
+
+    Returns:
+        NumPy array containing the volume data.
+    """
     try:
         return nib.load(vol_path).get_fdata()
     except Exception as e:
@@ -187,8 +243,20 @@ def load_volume(vol_path):
         raise
 
 
-def load_nifti_reference(reference_path):
-    """Loads a NIfTI file and returns its shape and affine."""
+def load_nifti_reference(reference_path: str | Path) -> tuple[tuple[int, ...], np.ndarray]:
+    """Loads a NIfTI file and returns its shape and affine transform.
+
+    Args:
+        reference_path: Path to the reference NIfTI file.
+
+    Returns:
+        Tuple of (shape, affine) where shape is the voxel dimensions tuple
+        and affine is the 4x4 transformation matrix.
+
+    Raises:
+        FileNotFoundError: If the file does not exist.
+        ValueError: If the file is not a valid NIfTI image.
+    """
     if not path_exists(reference_path):
         raise FileNotFoundError(f"File not found: {reference_path}")
     try:
@@ -198,8 +266,14 @@ def load_nifti_reference(reference_path):
         raise ValueError(f"Invalid file: {reference_path}") from e
 
 
-def save_volume(volume, affine, output_path):
-    """Saves a NIfTI volume to the given output path."""
+def save_volume(volume: np.ndarray, affine: np.ndarray, output_path: str | Path) -> None:
+    """Saves a NIfTI volume to the given output path.
+
+    Args:
+        volume: Volume data as a NumPy array.
+        affine: 4x4 affine transformation matrix.
+        output_path: Destination path for the NIfTI file.
+    """
     try:
         nifti_out = nib.Nifti1Image(volume, affine)
         nib.save(nifti_out, output_path)
@@ -208,10 +282,17 @@ def save_volume(volume, affine, output_path):
         raise
 
 
-def is_valid_reconstruction(pred_vol_path, gt_vol_path):
-    """
-    Validates that the reconstructed volume is consistent with the ground truth
-    by comparing their shapes.
+def is_valid_reconstruction(pred_vol_path: str | Path, gt_vol_path: str | Path) -> bool:
+    """Validates that the reconstructed volume is consistent with the ground truth.
+
+    Compares the shapes of the predicted and ground truth volumes.
+
+    Args:
+        pred_vol_path: Path to the predicted NIfTI volume.
+        gt_vol_path: Path to the ground truth NIfTI volume.
+
+    Returns:
+        True if the shapes match, False otherwise.
     """
     pred_vol = load_volume(pred_vol_path)
     gt_vol = load_volume(gt_vol_path)
@@ -223,10 +304,17 @@ def is_valid_reconstruction(pred_vol_path, gt_vol_path):
     return True
 
 
-def predicted_volumes_complete(patient_dir):
-    """
-    Checks that all three predicted volumes (axial, coronal, sagital) exist
-    for a patient within their prediction directory.
+def predicted_volumes_complete(patient_dir: str | Path) -> bool:
+    """Checks that all three predicted volumes exist for a patient.
+
+    Verifies that axial, coronal, and sagital volumes are present in the
+    patient's prediction directory.
+
+    Args:
+        patient_dir: Path to the patient's prediction directory.
+
+    Returns:
+        True if all three plane volumes exist, False otherwise.
     """
     patient_id = Path(patient_dir).name
     return all(
@@ -235,10 +323,17 @@ def predicted_volumes_complete(patient_dir):
     )
 
 
-def verify_group_volumes(root_dir):
-    """
-    Verifies that all patients within root_dir have predicted volumes for all
-    three anatomical planes (axial, coronal, and sagital).
+def verify_group_volumes(root_dir: Path) -> bool:
+    """Verifies that all patients in a directory have complete predicted volumes.
+
+    Checks that every patient has predicted volumes for all three anatomical
+    planes: axial, coronal, and sagital.
+
+    Args:
+        root_dir: Directory containing patient subdirectories.
+
+    Returns:
+        True if all patients have complete volumes, False otherwise.
     """
     patients = list_patients(root_dir)
     incomplete_patients = []
@@ -256,20 +351,38 @@ def verify_group_volumes(root_dir):
 # ======================================
 
 
-def load_model(model_path):
-    """Loads a YOLO model from the given path."""
+def load_model(model_path: str | Path) -> YOLO:
+    """Loads a YOLO model from the given path.
+
+    Args:
+        model_path: Path to the YOLO model weights file.
+
+    Returns:
+        Loaded YOLO model instance.
+
+    Raises:
+        RuntimeError: If the model cannot be loaded.
+    """
     try:
         return YOLO(model_path)
     except Exception as e:
         raise RuntimeError(f"Failed to load YOLO model: {e}")
 
 
-def trained_model_exists(model, epochs, fold_test):
-    """
-    Checks whether the trained model weights exist.
+def trained_model_exists(model: "Model", epochs: int, fold_test: int | None) -> bool:
+    """Checks whether the trained model weights file exists and is non-empty.
 
-    - If fold_test is None (k_folds == 1): looks in trains/.../plane/weights/best.pt
-    - If fold_test is a number (k_folds > 1): looks in trains/.../plane/foldN/weights/best.pt
+    With fold_test == None (k_folds == 1), looks in
+    trains/.../plane/weights/best.pt. With fold_test set (k_folds > 1),
+    looks in trains/.../plane/foldN/weights/best.pt.
+
+    Args:
+        model: Model instance providing the base path and plane.
+        epochs: Number of training epochs used to locate the weights directory.
+        fold_test: Fold index for cross-validation, or None for a fixed split.
+
+    Returns:
+        True if the weights file exists and has a non-zero size, False otherwise.
     """
     train_base = Path("trains") / f"{model.base_path}_{epochs}epochs" / model.plane
 
@@ -288,14 +401,29 @@ def trained_model_exists(model, epochs, fold_test):
 # ======================================
 
 
-def write_json(dic, json_path):
-    """Saves a dictionary as a JSON file."""
+def write_json(dic: dict, json_path: str | Path) -> None:
+    """Saves a dictionary as a JSON file.
+
+    Args:
+        dic: Dictionary to serialise.
+        json_path: Destination file path.
+    """
     with open(json_path, "w") as f:
         json.dump(dic, f)
 
 
-def read_json(json_path):
-    """Reads a JSON file and returns its contents as a dictionary."""
+def read_json(json_path: str | Path) -> dict:
+    """Reads a JSON file and returns its contents as a dictionary.
+
+    Args:
+        json_path: Path to the JSON file.
+
+    Returns:
+        Dictionary with the file contents.
+
+    Raises:
+        FileNotFoundError: If the file does not exist.
+    """
     if os.path.exists(json_path):
         with open(json_path, "r") as f:
             return json.load(f)
@@ -307,17 +435,33 @@ def read_json(json_path):
 # ======================================
 
 
-def get_id(patient):
-    """Extracts the numeric ID from a patient name (P12 → 12)."""
+def get_id(patient: str) -> int | float:
+    """Extracts the numeric ID from a patient name string.
+
+    Args:
+        patient: Patient identifier string (e.g. 'P12').
+
+    Returns:
+        Integer ID if a number is found, or infinity if the pattern does
+        not match.
+    """
     match = re.search(r"P(\d+)", patient)
     return (
         int(match.group(1)) if match else float("inf")
     )  # Returns a very large value if no number is found
 
 
-def list_patients(input_dir):
-    """
-    Returns a sorted list of patient IDs in a directory.
+def list_patients(input_dir: str | Path) -> list[str]:
+    """Returns a sorted list of patient IDs found in a directory.
+
+    Args:
+        input_dir: Directory containing patient subdirectories.
+
+    Returns:
+        Sorted list of patient ID strings.
+
+    Raises:
+        FileNotFoundError: If no patients are found in the directory.
     """
     input_path = Path(input_dir)
 
@@ -328,8 +472,19 @@ def list_patients(input_dir):
     return sorted(patients, key=lambda p: int(p[1:]) if p[1:].isdigit() else 1_000_000)
 
 
-def compute_fold(patient_id, k_folds=5):
-    """Assigns a patient to their corresponding cross-validation fold."""
+def compute_fold(patient_id: str, k_folds: int = 5) -> int:
+    """Assigns a patient to their corresponding cross-validation fold.
+
+    Args:
+        patient_id: Patient identifier string (e.g. 'P12').
+        k_folds: Total number of cross-validation folds.
+
+    Returns:
+        1-based fold index for the patient.
+
+    Raises:
+        ValueError: If the patient ID cannot be assigned to any fold.
+    """
 
     # Convert patient ID to number
     numero = int(patient_id[1:])
@@ -348,10 +503,18 @@ def compute_fold(patient_id, k_folds=5):
     raise ValueError(f"Cannot compute fold for patient {patient_id}.")
 
 
-def get_patient_slices(patient, model):
-    """
-    Returns a sorted list of available slice indices for a patient in a given
-    plane, extracted from the images/ subdirectory of the YOLO dataset.
+def get_patient_slices(patient: "Patient", model: "Model") -> list[int]:
+    """Returns a sorted list of available slice indices for a patient.
+
+    Indices are extracted from PNG filenames in the images/ subdirectory of
+    the patient's YOLO dataset directory.
+
+    Args:
+        patient: Patient instance defining the ID and plane.
+        model: Model instance used to resolve the dataset directory.
+
+    Returns:
+        Sorted list of integer slice indices.
     """
     base_dir = patient_base_dir(patient=patient, model=model)
     images_dir = base_dir / "images"
@@ -372,8 +535,22 @@ def get_patient_slices(patient, model):
 # ======================================
 
 
-def int_or_percentile(value):
-    """Accepts integer values or percentile strings ('P<n>')."""
+def int_or_percentile(value: str | int) -> int | str:
+    """Parses a value as an integer or a percentile string.
+
+    Accepts plain integer values or strings of the form 'P<n>'
+    (e.g. 'P50' for the 50th percentile).
+
+    Args:
+        value: Value to parse, either an integer or a 'P<n>' string.
+
+    Returns:
+        Integer if value is a plain number, or the uppercase percentile
+        string if it matches the 'P<n>' pattern.
+
+    Raises:
+        argparse.ArgumentTypeError: If the value matches neither format.
+    """
     try:
         return int(value)
     except ValueError:
@@ -393,17 +570,35 @@ def int_or_percentile(value):
 # ======================================
 
 
-def load_png(path):
-    """
-    Loads a PNG file in greyscale and returns it as a NumPy array.
+def load_png(path: str | Path) -> np.ndarray:
+    """Loads a PNG file in greyscale and returns it as a NumPy array.
+
+    Args:
+        path: Path to the PNG file.
+
+    Returns:
+        2D NumPy array with pixel values.
     """
     return np.array(Image.open(path).convert("L"))
 
 
-def prepare_pred_gt_slices(img_path, pred_path, gt_path):
-    """
-    Loads and prepares the image, prediction mask, and GT mask for the same
-    slice, applying the geometric correction required for the prediction.
+def prepare_pred_gt_slices(
+    img_path: str | Path,
+    pred_path: str | Path,
+    gt_path: str | Path,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Loads and prepares the image, prediction mask, and ground truth for a slice.
+
+    Applies a corrective 90-degree rotation to the prediction mask to align
+    it with NIfTI voxel coordinates.
+
+    Args:
+        img_path: Path to the input image PNG.
+        pred_path: Path to the prediction mask PNG.
+        gt_path: Path to the ground truth mask PNG.
+
+    Returns:
+        Tuple of (img, pred, gt) as float NumPy arrays with binary values.
     """
     img = load_png(img_path)
     pred = (load_png(pred_path) > 0).astype(float)
@@ -414,18 +609,25 @@ def prepare_pred_gt_slices(img_path, pred_path, gt_path):
     return img, pred, gt
 
 
-def normalize_binary_mask(mask_path):
-    """
-    Normalises and saves a binary mask to values 0 (background) and 1 (object).
+def normalize_binary_mask(mask_path: str | Path) -> None:
+    """Normalises and saves a binary mask to values 0 (background) and 1 (object).
+
+    Args:
+        mask_path: Path to the mask file to normalise in place.
     """
     mask = cv2.imread(str(mask_path), cv2.IMREAD_GRAYSCALE)
     mask_bin = (mask > 0).astype(np.uint8)
     cv2.imwrite(mask_path, mask_bin)
 
 
-def normalize_to_uint8(image):
-    """
-    Normalises an image (float32/64) to the range 0–255 and type uint8.
+def normalize_to_uint8(image: np.ndarray) -> np.ndarray:
+    """Normalises an image to the range 0–255 and converts it to uint8.
+
+    Args:
+        image: Input image array of any numeric dtype.
+
+    Returns:
+        Image array with dtype uint8 and values in [0, 255].
     """
     if image.dtype != np.uint8:
         image = image.astype(np.float32)
@@ -436,9 +638,14 @@ def normalize_to_uint8(image):
     return image
 
 
-def convert_to_bgr(image):
-    """
-    Converts a 2D or RGB image to BGR format.
+def convert_to_bgr(image: np.ndarray) -> np.ndarray:
+    """Converts a 2D or RGB image to BGR format.
+
+    Args:
+        image: Input image array (greyscale or RGB).
+
+    Returns:
+        BGR image array with dtype uint8.
     """
     image_uint8 = normalize_to_uint8(image)
     if len(image_uint8.shape) == 2:  # Greyscale image
@@ -448,9 +655,14 @@ def convert_to_bgr(image):
     return img_bgr
 
 
-def ensure_grayscale(image):
-    """
-    Returns the image in greyscale, converting if necessary.
+def ensure_grayscale(image: np.ndarray) -> np.ndarray:
+    """Returns the image in greyscale, converting from BGR if necessary.
+
+    Args:
+        image: Input image array (greyscale or 3-channel BGR).
+
+    Returns:
+        2D greyscale NumPy array.
     """
     if image.ndim == 3 and image.shape[2] == 3:  # Colour image (3 channels)
         return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -462,19 +674,17 @@ def ensure_grayscale(image):
 # ======================================
 
 
-def evaluate_results(results):
-    """
-    Evaluates the global status of a list of partial results from different
-    pipeline stages.
+def evaluate_results(results: list) -> bool | None | str:
+    """Evaluates the combined status of a list of partial pipeline results.
 
-    Each element of the list can be:
-    - True  → the stage executed successfully.
-    - None  → the stage was skipped or produced no result.
+    Each element can be True (stage succeeded) or None (stage was skipped).
+
+    Args:
+        results: List of per-patient or per-fold stage results.
 
     Returns:
-    - True if all stages were successful.
-    - None if no stage produced a result.
-    - 'partial' if there is a mix of states (some successful, some not).
+        True if all results are True, None if all results are None, or
+        'partial' if there is a mix of both.
     """
     if not results:
         return None  # Avoid failure if the list is empty
@@ -492,16 +702,32 @@ def evaluate_results(results):
 # ======================================
 
 
-def DSC(y_true, y_pred):
-    """Computes the Dice Similarity Coefficient (DSC)."""
+def DSC(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    """Computes the Dice Similarity Coefficient (DSC).
+
+    Args:
+        y_true: Ground truth binary mask.
+        y_pred: Predicted binary mask.
+
+    Returns:
+        DSC score rounded to 3 decimal places.
+    """
     intersection = np.sum(y_true * y_pred)
     dsc = (2.0 * intersection) / (np.sum(y_true) + np.sum(y_pred) + 1e-8)
 
     return float(np.round(dsc, 3))
 
 
-def precision(y_true, y_pred):
-    """Computes precision."""
+def precision(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    """Computes precision (positive predictive value).
+
+    Args:
+        y_true: Ground truth binary mask.
+        y_pred: Predicted binary mask.
+
+    Returns:
+        Precision score rounded to 3 decimal places.
+    """
     tp = np.sum((y_true == 1) & (y_pred == 1))
     fp = np.sum((y_true == 0) & (y_pred == 1))
     prec = tp / (tp + fp + 1e-8)
@@ -509,8 +735,16 @@ def precision(y_true, y_pred):
     return float(np.round(prec, 3))
 
 
-def recall(y_true, y_pred):
-    """Computes recall."""
+def recall(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    """Computes recall (sensitivity).
+
+    Args:
+        y_true: Ground truth binary mask.
+        y_pred: Predicted binary mask.
+
+    Returns:
+        Recall score rounded to 3 decimal places.
+    """
     tp = np.sum((y_true == 1) & (y_pred == 1))
     fn = np.sum((y_true == 1) & (y_pred == 0))
     rec = tp / (tp + fn + 1e-8)
@@ -518,8 +752,16 @@ def recall(y_true, y_pred):
     return float(np.round(rec, 3))
 
 
-def AUC(y_true, y_pred):
-    """Computes the Area Under the ROC Curve (AUC)."""
+def AUC(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    """Computes the Area Under the ROC Curve (AUC).
+
+    Args:
+        y_true: Ground truth binary mask.
+        y_pred: Predicted binary mask.
+
+    Returns:
+        AUC score rounded to 3 decimal places, or NaN if undefined.
+    """
     try:
         # Flatten arrays
         y_true = y_true.flatten()
@@ -540,9 +782,14 @@ def AUC(y_true, y_pred):
 # ======================================
 
 
-def log_fold_status(logger, result, fold):
-    """
-    Logs the execution status of a fold for a specific pipeline stage.
+def log_fold_status(logger: logging.Logger, result: bool | None | str, fold: int) -> None:
+    """Logs the execution status of a fold for a specific pipeline stage.
+
+    Args:
+        logger: Logger instance with custom level support (skip, info, warning).
+        result: Stage result — True (completed), None (skipped), 'partial'
+            (partially updated), or any other value (unknown status).
+        fold: Fold index to include in the log message.
     """
     if result is None:
         logger.skip(f"⏩ Fold {fold} already exists.")

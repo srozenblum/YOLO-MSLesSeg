@@ -111,10 +111,15 @@ logger = get_logger(__file__)
 # ======================================
 
 
-def build_metrics_dict(gt_vol, pred_vol):
-    """
-    Computes a dictionary of metrics (DSC, AUC, Precision, Recall)
-    from the predicted volume and the ground truth volume.
+def build_metrics_dict(gt_vol: np.ndarray, pred_vol: np.ndarray) -> dict[str, float]:
+    """Computes segmentation metrics from a predicted volume and its ground truth.
+
+    Args:
+        gt_vol: Ground truth binary volume as a NumPy array.
+        pred_vol: Predicted binary volume as a NumPy array.
+
+    Returns:
+        Dictionary mapping metric names (DSC, AUC, Precision, Recall) to their values.
     """
     metrics = {
         "DSC": DSC(gt_vol, pred_vol),
@@ -126,8 +131,16 @@ def build_metrics_dict(gt_vol, pred_vol):
     return metrics
 
 
-def compute_metrics(gt_vol_path, pred_vol_path):
-    """Loads the volumes, validates them, and computes the metrics."""
+def compute_metrics(gt_vol_path: Path, pred_vol_path: Path) -> dict[str, float]:
+    """Loads and validates both volumes, then computes segmentation metrics.
+
+    Args:
+        gt_vol_path: Path to the ground truth NIfTI volume.
+        pred_vol_path: Path to the predicted NIfTI volume.
+
+    Returns:
+        Dictionary of metric values, or an empty dict if the reconstruction is invalid.
+    """
     # Validate the reconstruction before loading
     if not is_valid_reconstruction(pred_vol_path, gt_vol_path):
         logger.warning(f"⚠️ Invalid reconstruction: {Path(pred_vol_path).name}")
@@ -139,10 +152,17 @@ def compute_metrics(gt_vol_path, pred_vol_path):
     return build_metrics_dict(gt_vol, pred_vol)
 
 
-def compute_averages(metrics_dict):
-    """
-    Computes the mean and standard deviation for all metrics
-    in a dictionary.
+def compute_averages(metrics_dict: dict[str, list[float]]) -> dict[str, dict[str, float]]:
+    """Computes the mean and standard deviation for each metric across a list of values.
+
+    Args:
+        metrics_dict: Dictionary mapping metric names to lists of per-patient values.
+
+    Returns:
+        Dictionary mapping metric names to dicts with 'media' (mean) and 'std' keys.
+
+    Raises:
+        ValueError: If metrics_dict is empty.
     """
     if not metrics_dict:
         raise ValueError("The metrics dictionary is empty.")
@@ -163,8 +183,21 @@ def compute_averages(metrics_dict):
 # ======================================
 
 
-def process_patient_eval(config, paths_dir=None, fold_mode=False):
-    """Executes the metric computation for an individual patient."""
+def process_patient_eval(config: ConfigEval, paths_dir: dict[str, Path] | None = None, fold_mode: bool = False) -> dict | None:
+    """Executes metric computation for an individual patient.
+
+    In fold_mode, returns existing metrics if already computed. Otherwise skips
+    (returns None) if the results JSON already exists.
+
+    Args:
+        config: ConfigEval instance providing model and directory settings.
+        paths_dir: Dictionary of paths (pred_vol, gt_vol, results_json). Defaults to
+            config patient paths if None.
+        fold_mode: If True, returns existing metrics instead of skipping.
+
+    Returns:
+        Dictionary of computed metrics, or None if skipped.
+    """
     # If no directories are provided → patient mode → use config directories
     if paths_dir is None:
         paths_dir = {
@@ -192,10 +225,15 @@ def process_patient_eval(config, paths_dir=None, fold_mode=False):
     return metrics_dict
 
 
-def build_paths(patient_id, config):
-    """
-    Builds a dictionary of paths (pred_vol, gt_vol, results_json)
-    for an individual patient.
+def build_paths(patient_id: str, config: ConfigEval) -> dict[str, Path]:
+    """Builds the predicted volume, GT volume, and results JSON paths for a patient.
+
+    Args:
+        patient_id: Patient identifier string.
+        config: ConfigEval instance providing directory and plane settings.
+
+    Returns:
+        Dictionary with keys 'pred_vol', 'gt_vol', and 'results_json' mapping to Paths.
     """
     root_pred_vols = config.pred_vols_fold_dir / patient_id
     root_gt = config.gt_dir / patient_id
@@ -208,9 +246,17 @@ def build_paths(patient_id, config):
     }
 
 
-def compute_fold_metrics(input_dir, config):
-    """
-    Computes per-patient metrics and the fold average.
+def compute_fold_metrics(input_dir: Path, config: ConfigEval) -> dict[str, dict[str, float]] | None:
+    """Computes per-patient metrics and aggregates them as a fold average.
+
+    Skips computation if the fold results JSON already exists.
+
+    Args:
+        input_dir: Directory containing patient subdirectories to evaluate.
+        config: ConfigEval instance providing directory and plane settings.
+
+    Returns:
+        Dictionary of fold-average metric statistics, or None if already computed.
     """
     output_path = config.results_fold_json
 
@@ -246,10 +292,13 @@ def compute_fold_metrics(input_dir, config):
 # ======================================
 
 
-def run_eval_flow(config, clean, verbose=False):
-    """
-    Executes the main evaluation flow,
-    over a full fold or an individual patient.
+def run_eval_flow(config: ConfigEval, clean: bool, verbose: bool = False) -> None:
+    """Executes the main evaluation flow.
+
+    Args:
+        config: ConfigEval instance defining the evaluation configuration.
+        clean: If True, deletes existing results before computing new ones.
+        verbose: If True, logs a header message at the start of execution.
     """
     if verbose:
         if config.is_individual_patient:
@@ -308,10 +357,14 @@ def run_eval_flow(config, clean, verbose=False):
 # ======================================
 
 
-def parse_args(argv=None):
-    """
-    Parses the script arguments.
-    If no argument list is provided, reads from the command line.
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    """Parses command-line arguments for the evaluation script.
+
+    Args:
+        argv: Argument list to parse. Defaults to sys.argv[1:] if None.
+
+    Returns:
+        Namespace with the parsed CLI arguments.
     """
     if argv is None:
         argv = sys.argv[1:]
@@ -398,10 +451,11 @@ def parse_args(argv=None):
     return args
 
 
-def main(argv=None):
-    """
-    CLI entry point: parses arguments, builds Model/Patient/ConfigEval instances,
-    and executes the full flow.
+def main(argv: list[str] | None = None) -> None:
+    """CLI entry point: parses arguments and executes the evaluation flow.
+
+    Args:
+        argv: Argument list to parse. Defaults to sys.argv[1:] if None.
     """
     args = parse_args(argv)
 
@@ -433,17 +487,24 @@ def main(argv=None):
 
 
 def run_eval_pipeline(
-    model,
-    plane=None,
-    patient=None,
-    fold_test=None,
-    epochs=50,
-    k_folds=5,
-    clean=False,
-):
-    """
-    Internal pipeline entry point: receives pre-built objects and executes
-    the flow without using the CLI parser.
+    model: Model,
+    plane: str | None = None,
+    patient: Patient | None = None,
+    fold_test: int | None = None,
+    epochs: int = 50,
+    k_folds: int = 5,
+    clean: bool = False,
+) -> None:
+    """Internal pipeline entry point: executes the evaluation flow programmatically.
+
+    Args:
+        model: Model instance defining the evaluation configuration.
+        plane: Plane label overriding the model's plane, or None.
+        patient: Patient instance for individual execution, or None for fold mode.
+        fold_test: Test fold index when using cross-validation, or None.
+        epochs: Number of training epochs of the YOLO model.
+        k_folds: Number of cross-validation folds (1 for a fixed split).
+        clean: If True, deletes existing results before computing new ones.
     """
     config = ConfigEval(
         model=model,

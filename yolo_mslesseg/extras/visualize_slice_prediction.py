@@ -92,18 +92,27 @@ logger = get_logger(__file__)
 
 
 def normalize_img(img_array: np.ndarray) -> np.ndarray:
-    """
-    Normalises the image to the [0, 1] range,
-    avoiding division by zero.
+    """Normalises an image to the [0, 1] range, avoiding division by zero.
+
+    Args:
+        img_array: Input image array to normalise.
+
+    Returns:
+        Normalised image array with values in [0, 1].
     """
     img_array = img_array.astype(float)
     return (img_array - img_array.min()) / (img_array.max() - img_array.min() + 1e-8)
 
 
 def validate_shapes(pred_array: np.ndarray, gt_array: np.ndarray) -> None:
-    """
-    Validates that the prediction and ground truth masks
-    have the same shape.
+    """Validates that the prediction and ground truth masks have the same shape.
+
+    Args:
+        pred_array: Predicted binary mask array.
+        gt_array: Ground truth binary mask array.
+
+    Raises:
+        RuntimeError: If the two arrays have different shapes.
     """
     if pred_array.shape != gt_array.shape:
         raise RuntimeError(
@@ -121,14 +130,20 @@ def load_and_process_slice(
     model: Model,
     slice_num: int,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, float]:
-    """
-    Loads and processes the data for a given slice:
-        - normalised image,
-        - rotated prediction mask,
-        - ground truth mask,
-        - DSC between prediction and ground truth.
+    """Loads and processes the image, prediction, and ground truth for a given slice.
 
-    Returns a tuple (img_array, pred_array, gt_array, dsc).
+    Args:
+        patient: Patient instance providing the ID and enhancement configuration.
+        model: Model instance providing the plane and modality settings.
+        slice_num: Index of the slice to load.
+
+    Returns:
+        Tuple of (img_array, pred_array, gt_array, dsc) where img_array is the
+        normalised image, pred_array and gt_array are the binary masks, and dsc
+        is the Dice Similarity Coefficient between them.
+
+    Raises:
+        RuntimeError: If a required file is missing for the given slice.
     """
     paths = patient_paths(patient=patient, model=model, slice_idx=slice_num)
 
@@ -155,13 +170,18 @@ def select_best_slice(
     patient: Patient,
     model: Model,
 ) -> tuple[int, float, np.ndarray, np.ndarray, np.ndarray]:
-    """
-    Evaluates all available slices of the patient and selects
-    the one with the highest DSC between prediction and ground truth.
+    """Evaluates all available slices and selects the one with the highest DSC.
+
+    Args:
+        patient: Patient instance providing the ID and enhancement configuration.
+        model: Model instance providing the plane and modality settings.
 
     Returns:
-        (best_slice, best_dsc, img_array, gt_array, pred_array)
-        corresponding to the best-performing slice.
+        Tuple of (best_slice, best_dsc, img_array, gt_array, pred_array) for the
+        best-performing slice.
+
+    Raises:
+        RuntimeError: If no PNG slices are found for the patient.
     """
     slices = get_patient_slices(patient, model)
 
@@ -202,12 +222,15 @@ def generate_figure(
     slice_num: int,
     title: str | None = None,
 ) -> None:
-    """
-    Generates a figure overlaying:
-        - True positives (green)
-        - False positives (orange)
-        - False negatives (blue)
-    on the original image.
+    """Generates and saves a figure overlaying TP, FP, and FN masks on the base image.
+
+    Args:
+        img_array: Normalised grayscale image array for the slice.
+        gt_array: Binary ground truth mask array.
+        pred_array: Binary prediction mask array.
+        output_path: Path where the output PNG figure will be saved.
+        slice_num: Slice index displayed in the figure label.
+        title: Optional title text to display at the top of the figure.
     """
     # TP / FP / FN masks
     tp = (pred_array == 1) & (gt_array == 1)  # True positives
@@ -297,10 +320,13 @@ def visualize_best_slice(
     output_dir: Path,
     clean: bool,
 ) -> None:
-    """
-    Automatically selects the slice with the best DSC for the patient and
-    generates the corresponding figure in the output directory.
-    If `clean` is True, deletes the previous figure before generating a new one.
+    """Selects the slice with the best DSC and saves the corresponding figure.
+
+    Args:
+        patient: Patient instance defining the patient to visualise.
+        model: Model instance providing the plane and modality settings.
+        output_dir: Directory where the output figure will be saved.
+        clean: If True, deletes the previous figure before generating a new one.
     """
     str_enhancement = patient.enhancement if patient.enhancement is not None else "Base"
     logger.info(
@@ -342,11 +368,14 @@ def visualize_specific_slice(
     output_dir: Path,
     clean: bool,
 ) -> None:
-    """
-    Generates the figure for a specific slice of the patient.
-    Computes the corresponding DSC and saves the visualisation in the
-    output directory. If `clean` is True, deletes the previous figure
-    before generating a new one.
+    """Generates and saves the figure for a specific slice of the patient.
+
+    Args:
+        patient: Patient instance defining the patient to visualise.
+        model: Model instance providing the plane and modality settings.
+        slice_num: Index of the slice to visualise.
+        output_dir: Directory where the output figure will be saved.
+        clean: If True, deletes the previous figure before generating a new one.
     """
     img_array, pred_array, gt_array, dsc = load_and_process_slice(
         patient=patient, model=model, slice_num=slice_num
@@ -386,9 +415,17 @@ def run_flow(
     slice_num: int | None,
     clean: bool,
 ) -> None:
-    """
-    Executes the visualisation flow for the specified slice or, if no slice
-    is indicated, automatically selects the best slice for the patient.
+    """Executes the visualisation flow for a specific or best-performing slice.
+
+    Args:
+        patient: Patient instance defining the patient to visualise.
+        model: Model instance providing the plane and modality settings.
+        epochs: Number of training epochs of the YOLO model.
+        slice_num: Specific slice index to visualise, or None to auto-select the best.
+        clean: If True, deletes the previous figure before generating a new one.
+
+    Raises:
+        ValueError: If the patient belongs to the train split when k_folds == 1.
     """
     logger.header(f"\n🖼️ Generating prediction visualisation")
 
@@ -456,9 +493,13 @@ def run_flow(
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    """
-    Parses the script arguments.
-    If no argument list is provided, reads from the command line.
+    """Parses the script arguments from the command line or a provided argument list.
+
+    Args:
+        argv: Argument list to parse. Defaults to sys.argv[1:] if None.
+
+    Returns:
+        Namespace with the parsed CLI arguments.
     """
     if argv is None:
         argv = sys.argv[1:]
@@ -534,9 +575,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 
 def main(argv: list[str] | None = None) -> None:
-    """
-    CLI entry point: parses arguments, builds the Model and Patient instances,
-    and executes the visualisation.
+    """CLI entry point: parses arguments, builds the Model and Patient instances, and executes the visualisation.
+
+    Args:
+        argv: Argument list to parse. Defaults to sys.argv[1:] if None.
     """
     args = parse_args(argv)
 

@@ -1,5 +1,7 @@
 from yolo_mslesseg.configs.ConfigBase import ConfigBase
 from yolo_mslesseg.utils.logging_config import get_logger
+from yolo_mslesseg.utils.Model import Model
+from yolo_mslesseg.utils.Patient import Patient
 from yolo_mslesseg.utils.constants import (
     GT_DIR,
     SPLIT_TEST,
@@ -89,12 +91,24 @@ class ConfigConsensus(ConfigBase):
 
     def __init__(
         self,
-        model,
+        model: Model,
         epochs: int,
         k_folds: int = 5,
-        patient=None,
-        fold_test=None,
+        patient: Patient | None = None,
+        fold_test: int | None = None,
     ) -> None:
+        """Initialises a ConfigConsensus instance for the consensus generation stage.
+
+        Args:
+            model: Model instance defining the plane, modalities, and base_path.
+            epochs: Number of training epochs of the YOLO model.
+            k_folds: Number of cross-validation folds (1 for a fixed split).
+            patient: Patient instance for individual execution, or None for fold-level.
+            fold_test: Test fold index when using cross-validation, or None.
+
+        Raises:
+            ValueError: If the execution mode cannot be determined from the arguments.
+        """
         # --- Shared base attributes ---
         super().__init__(
             model=model,
@@ -123,21 +137,12 @@ class ConfigConsensus(ConfigBase):
     #          CONSTRUCTOR HELPERS
     # ======================================
 
-    def _resolve_execution_mode(self):
-        """
-        Resolves the consensus execution mode based on the received parameters.
+    def _resolve_execution_mode(self) -> None:
+        """Resolves the execution mode and configures internal flags for path construction.
 
-        Supported modes:
-            1) k_folds > 1 (cross-validation)
-               - Fold mode:    requires fold_test (fold to process).
-               - Patient mode: patient is provided and their fold is computed.
-
-            2) k_folds == 1 (train/test split)
-               - Group mode:   processes the 'test' group (no folds).
-               - Patient mode: patient is provided and must belong to 'test'.
-
-        This method sets internal flags and auxiliary fields used later for
-        path construction and path verification.
+        Raises:
+            ValueError: If a patient belongs to an incompatible split for the
+                chosen k_folds value, or if no valid mode can be determined.
         """
         self.is_individual_patient = self.patient is not None
 
@@ -188,13 +193,18 @@ class ConfigConsensus(ConfigBase):
             "An execution mode must be specified: test fold or individual patient."
         )
 
-    def _resolve_pred_vols_paths(self):
+    def _resolve_pred_vols_paths(self) -> None:
+        """Resolves the base and fold-specific predicted volumes directories."""
         self.pred_vols_base_dir = (
             PRED_VOLS_DIR / f"{self.model.base_path}_{self.epochs}epochs"
         )
         self.pred_vols_fold_dir = self.pred_vols_base_dir / self.fold_subdir
 
-    def _resolve_patient_paths(self):
+    def _resolve_patient_paths(self) -> None:
+        """Resolves the predicted volumes and GT paths for an individual patient.
+
+        Has no effect when running in fold-level mode.
+        """
         if not self.is_individual_patient:
             return
 
@@ -217,11 +227,8 @@ class ConfigConsensus(ConfigBase):
     #               CLEANUP
     # ======================================
 
-    def _clean_fold_consensus_volumes(self):
-        """
-        Cleans the consensus files for the corresponding plane across all
-        patients in the fold.
-        """
+    def _clean_fold_consensus_volumes(self) -> None:
+        """Cleans the consensus NIfTI files for all patients in the active fold."""
         if path_exists(self.pred_vols_fold_dir):
             patients = list_patients(self.pred_vols_fold_dir)
 
@@ -240,10 +247,8 @@ class ConfigConsensus(ConfigBase):
                         except Exception as e:
                             logger.warning(f"⚠️ Could not delete {file}: {e}")
 
-    def _clean_patient_consensus_volume(self):
-        """
-        Cleans the consensus file for an individual patient.
-        """
+    def _clean_patient_consensus_volume(self) -> None:
+        """Cleans the consensus NIfTI file for an individual patient."""
         consensus_path = self.patient_pred_vols["consenso"]
         if path_exists(consensus_path):
             try:
@@ -252,16 +257,10 @@ class ConfigConsensus(ConfigBase):
                 logger.warning(f"⚠️ Could not delete consensus volume: {e}")
 
     def clean(self) -> None:
-        """
-        Cleans the consensus volumes for the model plane and the active
-        execution mode.
+        """Cleans consensus volumes for the active execution mode.
 
-        - Fold mode:
-          Cleans the consensus volumes for all patients in the fold.
-
-        - Individual patient mode:
-          Cleans only the consensus volume for the specified patient,
-          without affecting the rest of the fold.
+        Raises:
+            ValueError: If neither a fold nor a patient is specified.
         """
         if self.is_individual_patient:
             self._clean_patient_consensus_volume()
@@ -277,12 +276,11 @@ class ConfigConsensus(ConfigBase):
     #            VERIFICATION
     # ======================================
 
-    def _verify_fold_paths(self):
-        """
-        Verifies that the input files and output directory exist for the
-        patients in the fold.
-        - Input:  predicted volumes for each of the 3 anatomical planes.
-        - Output: same directory as input (verified implicitly).
+    def _verify_fold_paths(self) -> None:
+        """Verifies that predicted volumes exist for all patients in the active fold.
+
+        Raises:
+            FileNotFoundError: If a patient's predicted volume for any plane is missing.
         """
         patients = list_patients(self.pred_vols_fold_dir)
 
@@ -297,11 +295,11 @@ class ConfigConsensus(ConfigBase):
                         f"Missing {plane} volume for patient {patient_id}: {vol_path}."
                     )
 
-    def _verify_patient_paths(self):
-        """
-        Verifies that the input files and output directory exist for an individual patient.
-        - Input:  predicted volumes for each of the 3 anatomical planes (patient_pred_vols).
-        - Output: same directory as input (verified implicitly).
+    def _verify_patient_paths(self) -> None:
+        """Verifies that predicted volumes exist for an individual patient.
+
+        Raises:
+            FileNotFoundError: If a predicted volume for any plane is missing.
         """
         # patient_pred_vols per anatomical plane
         for plane in ANATOMICAL_PLANES:
@@ -311,24 +309,20 @@ class ConfigConsensus(ConfigBase):
                     f"Missing predicted {plane} volume for patient {self.patient.id}: {vol_path}."
                 )
 
-    def _verify_gt_paths(self):
-        """
-        Verifies that the ground truth volumes directory exists.
+    def _verify_gt_paths(self) -> None:
+        """Verifies that the ground truth directory exists.
+
+        Raises:
+            FileNotFoundError: If the GT directory does not exist.
         """
         if not path_exists(self.gt_dir):  # Raises exception if not found
             raise FileNotFoundError(f"GT directory not found: {self.gt_dir}")
 
-    def verify_paths(self):
-        """
-        Verifies that the input and output directories exist for consensus generation.
+    def verify_paths(self) -> None:
+        """Verifies that all required paths exist for consensus generation.
 
-        - Always verifies the existence of the ground truth volumes directory.
-
-        - Fold mode:
-            * Verifies paths for all patients in the fold.
-
-        - Individual patient mode:
-            * Verifies paths only for the specified patient.
+        Always checks the GT directory. Then delegates path verification to
+        _verify_patient_paths or _verify_fold_paths based on the active mode.
         """
 
         self._verify_gt_paths()

@@ -79,10 +79,12 @@ Outputs:
 
 import argparse
 import sys
+from pathlib import Path
 
 import cv2
 import numpy as np
 from tqdm import tqdm
+from ultralytics import YOLO
 
 from yolo_mslesseg.configs.ConfigPred import ConfigPred
 from yolo_mslesseg.utils.Model import Model
@@ -108,8 +110,19 @@ logger = get_logger(__file__)
 # ======================================
 
 
-def run_prediction(model, img_array):
-    """Runs the YOLO model on an image and returns the raw masks."""
+def run_prediction(model: YOLO, img_array: np.ndarray) -> list[np.ndarray]:
+    """Runs the YOLO model on an image and returns the raw predicted masks.
+
+    Args:
+        model: Loaded YOLO model instance.
+        img_array: Input image as a NumPy array.
+
+    Returns:
+        List of predicted mask arrays. Empty if no masks are detected.
+
+    Raises:
+        RuntimeError: If the model raises an exception during inference.
+    """
     try:
         pred = model(img_array, verbose=False)[0]
     except Exception as e:
@@ -120,8 +133,16 @@ def run_prediction(model, img_array):
     return pred.masks.data.cpu().numpy()
 
 
-def combine_predictions(predictions, shape):
-    """Combines a list of predictions (binary masks) into a single 2D mask."""
+def combine_predictions(predictions: list[np.ndarray], shape: tuple[int, int]) -> np.ndarray:
+    """Combines a list of binary prediction masks into a single 2D mask via element-wise maximum.
+
+    Args:
+        predictions: List of raw prediction mask arrays from YOLO.
+        shape: Target spatial dimensions (height, width) for the output mask.
+
+    Returns:
+        Combined binary mask as a uint8 NumPy array of the given shape.
+    """
     height, width = shape
     combined = np.zeros((height, width), dtype=np.uint8)
 
@@ -133,15 +154,31 @@ def combine_predictions(predictions, shape):
     return combined
 
 
-def normalize_prediction(pred):
-    """Converts the predicted mask from image coordinates to NIfTI voxel coordinates (0-255)."""
+def normalize_prediction(pred: np.ndarray) -> np.ndarray:
+    """Transposes and scales the predicted mask to NIfTI voxel coordinate space (0–255).
+
+    Args:
+        pred: Binary mask array in image coordinates.
+
+    Returns:
+        Transposed mask array scaled to the 0–255 range.
+    """
     pred_normalised = pred.T.copy()
     pred_normalised *= 255
     return pred_normalised
 
 
-def save_prediction(pred, image_filename, output_dir):
-    """Saves the binary prediction in PNG format."""
+def save_prediction(pred: np.ndarray, image_filename: str, output_dir: Path) -> Path | None:
+    """Saves a binary prediction mask to disk as a PNG file.
+
+    Args:
+        pred: Prediction mask array to save.
+        image_filename: Stem of the output filename (without extension).
+        output_dir: Directory where the PNG file will be written.
+
+    Returns:
+        Path to the saved PNG file, or None if the prediction is empty.
+    """
     if pred is None or pred.size == 0:
         logger.warning(f"⚠️ Empty prediction for {image_filename}, nothing saved.")
         return None
@@ -154,9 +191,16 @@ def save_prediction(pred, image_filename, output_dir):
     return output_path
 
 
-def fold_predictions_complete(fold_dir, plane, single_fold=False):
-    """
-    Returns True if all patients in fold_dir have non-empty pred_masks directories.
+def fold_predictions_complete(fold_dir: Path, plane: str, single_fold: bool = False) -> bool:
+    """Checks whether all patients in a fold directory have non-empty pred_masks directories.
+
+    Args:
+        fold_dir: Fold directory containing patient subdirectories.
+        plane: Anatomical plane name used to locate the pred_masks subdirectory.
+        single_fold: Unused parameter kept for API compatibility.
+
+    Returns:
+        True if every patient has a non-empty pred_masks directory, False otherwise.
     """
 
     for patient_id in list_patients(fold_dir):
@@ -174,8 +218,15 @@ def fold_predictions_complete(fold_dir, plane, single_fold=False):
 # ======================================
 
 
-def generate_2d_prediction(model, img_array, image_filename, output_dir):
-    """Applies the YOLO model to an image and saves the resulting binary prediction."""
+def generate_2d_prediction(model: YOLO, img_array: np.ndarray, image_filename: str, output_dir: Path) -> None:
+    """Applies the YOLO model to one image and saves the resulting binary prediction mask.
+
+    Args:
+        model: Loaded YOLO model instance.
+        img_array: Input image as a NumPy array.
+        image_filename: Stem of the output filename (without extension).
+        output_dir: Directory where the predicted mask PNG will be saved.
+    """
     raw_predictions = run_prediction(model=model, img_array=img_array)
     combined = combine_predictions(
         predictions=raw_predictions, shape=img_array.shape[:2]
@@ -188,8 +239,19 @@ def generate_2d_prediction(model, img_array, image_filename, output_dir):
     )
 
 
-def get_patient_images(patient_id, images_dir):
-    """Returns a sorted list of full paths to the patient's PNG images."""
+def get_patient_images(patient_id: str, images_dir: Path) -> list[Path]:
+    """Returns a sorted list of PNG image paths for a patient.
+
+    Args:
+        patient_id: Patient identifier used to filter image filenames.
+        images_dir: Directory containing the patient's PNG images.
+
+    Returns:
+        Sorted list of paths to matching PNG files.
+
+    Raises:
+        FileNotFoundError: If images_dir does not exist or contains no matching images.
+    """
     if not path_exists(images_dir):
         raise FileNotFoundError(f"Directory {images_dir} does not exist.")
 
@@ -204,8 +266,14 @@ def get_patient_images(patient_id, images_dir):
     return images
 
 
-def generate_predictions(model, image_list, output_dir):
-    """Applies a YOLO model to all images of a patient."""
+def generate_predictions(model: YOLO, image_list: list[Path], output_dir: Path) -> None:
+    """Applies a YOLO model to all images in a list and saves the predicted masks.
+
+    Args:
+        model: Loaded YOLO model instance.
+        image_list: List of paths to the input images.
+        output_dir: Directory where the predicted mask PNGs will be saved.
+    """
     for image_path in image_list:
         image_filename = image_path.stem
         img_array = cv2.imread(str(image_path))
@@ -228,12 +296,24 @@ def generate_predictions(model, image_list, output_dir):
 
 
 def process_patient_predictions(
-    patient_id, config, paths_dir=None, yolo_model=None
-):
-    """
-    Executes the full prediction process
-    (model loading → predictions → mask saving)
-    for an individual patient.
+    patient_id: str, config: ConfigPred, paths_dir: dict[str, Path] | None = None, yolo_model: YOLO | None = None
+) -> bool | None:
+    """Executes the full prediction process for an individual patient.
+
+    Loads the model if not provided, skips if pred_masks already exist,
+    retrieves images, and generates predicted masks.
+
+    Args:
+        patient_id: Patient identifier string.
+        config: ConfigPred instance providing paths and model settings.
+        paths_dir: Dictionary of paths (images, pred_masks). Defaults to config.patient_dir.
+        yolo_model: Pre-loaded YOLO model instance. Loaded from config if None.
+
+    Returns:
+        True if predictions were generated, None if skipped (already exists).
+
+    Raises:
+        RuntimeError: If no valid images are found for the patient.
     """
     # If no model is provided → load it
     if yolo_model is None:
@@ -268,9 +348,15 @@ def process_patient_predictions(
     return True
 
 
-def build_paths(patient_id, config):
-    """
-    Builds a dictionary of paths (images, pred_masks) for an individual patient.
+def build_paths(patient_id: str, config: ConfigPred) -> dict[str, Path]:
+    """Builds the images and pred_masks directory paths for a patient.
+
+    Args:
+        patient_id: Patient identifier string.
+        config: ConfigPred instance providing the dataset fold directory and plane.
+
+    Returns:
+        Dictionary with keys 'images' and 'pred_masks' mapping to Path objects.
     """
     root = config.dataset_fold_dir / patient_id / config.plane
     return {
@@ -279,9 +365,16 @@ def build_paths(patient_id, config):
     }
 
 
-def generate_predictions_for_patients(input_dir, config):
-    """
-    Executes the prediction generation process for all patients in input_dir.
+def generate_predictions_for_patients(input_dir: Path, config: ConfigPred) -> bool | None | str:
+    """Executes the prediction generation process for all patients in a directory.
+
+    Args:
+        input_dir: Directory containing patient subdirectories to process.
+        config: ConfigPred instance providing model and directory settings.
+
+    Returns:
+        True if all patients were processed, None if all were skipped, or
+        'partial' if there was a mix of processed and skipped patients.
     """
     patients = list_patients(input_dir)
     yolo_model = load_model(config.model_path)
@@ -311,8 +404,14 @@ def generate_predictions_for_patients(input_dir, config):
 # ======================================
 
 
-def run_prediction_flow(config, clean, verbose=False):
-    """Executes the main prediction flow, over a fold or an individual patient."""
+def run_prediction_flow(config: ConfigPred, clean: bool, verbose: bool = False) -> None:
+    """Executes the main prediction generation flow.
+
+    Args:
+        config: ConfigPred instance defining the prediction configuration.
+        clean: If True, deletes existing predictions before generating new ones.
+        verbose: If True, logs a header message at the start of execution.
+    """
     if verbose:
         if config.is_individual_patient:
             str_header = f"patient {config.patient}"
@@ -382,10 +481,14 @@ def run_prediction_flow(config, clean, verbose=False):
 # ======================================
 
 
-def parse_args(argv=None):
-    """
-    Parses the script arguments.
-    If no argument list is provided, reads from the command line.
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    """Parses command-line arguments for the prediction generation script.
+
+    Args:
+        argv: Argument list to parse. Defaults to sys.argv[1:] if None.
+
+    Returns:
+        Namespace with the parsed CLI arguments.
     """
     if argv is None:
         argv = sys.argv[1:]
@@ -472,10 +575,11 @@ def parse_args(argv=None):
     return args
 
 
-def main(argv=None):
-    """
-    CLI entry point: parses arguments, builds Model/Patient/ConfigPred instances,
-    and executes the full flow.
+def main(argv: list[str] | None = None) -> None:
+    """CLI entry point: parses arguments and executes the prediction generation flow.
+
+    Args:
+        argv: Argument list to parse. Defaults to sys.argv[1:] if None.
     """
     args = parse_args(argv)
 
@@ -506,11 +610,17 @@ def main(argv=None):
 
 
 def run_predictions_pipeline(
-    model, patient=None, fold_test=None, epochs=50, k_folds=5, clean=False
-):
-    """
-    Internal pipeline entry point: receives pre-built objects and executes
-    the flow without using the CLI parser.
+    model: Model, patient: Patient | None = None, fold_test: int | None = None, epochs: int = 50, k_folds: int = 5, clean: bool = False
+) -> None:
+    """Internal pipeline entry point: executes the prediction generation flow programmatically.
+
+    Args:
+        model: Model instance defining the prediction configuration.
+        patient: Patient instance for individual execution, or None for fold mode.
+        fold_test: Test fold index when using cross-validation, or None.
+        epochs: Number of training epochs of the YOLO model.
+        k_folds: Number of cross-validation folds (1 for a fixed split).
+        clean: If True, deletes existing predictions before generating new ones.
     """
     config = ConfigPred(
         model=model,

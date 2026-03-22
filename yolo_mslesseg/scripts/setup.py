@@ -40,6 +40,7 @@ Outputs:
 import argparse
 import shutil
 import zipfile
+from pathlib import Path
 
 import requests
 from tqdm import tqdm
@@ -64,20 +65,28 @@ logger = get_logger(__file__)
 # ======================================
 
 
-def dataset_exists(dataset_root):
-    """
-    Checks whether the MSLesSeg dataset already exists
-    (i.e. whether the train/ or test/ directories are present).
+def dataset_exists(dataset_root: Path) -> bool:
+    """Checks whether the MSLesSeg dataset already exists.
+
+    Args:
+        dataset_root: Root directory of the MSLesSeg dataset.
+
+    Returns:
+        True if the train/ or test/ subdirectory is present, False otherwise.
     """
     train_dir = dataset_root / SPLIT_TRAIN
     test_dir = dataset_root / SPLIT_TEST
     return train_dir.exists() or test_dir.exists()
 
 
-def gt_exists(gt_root):
-    """
-    Checks whether the ground truth directory already exists
-    (i.e. whether both the train/ and test/ subdirectories are present).
+def gt_exists(gt_root: Path) -> bool:
+    """Checks whether the ground truth directory already exists.
+
+    Args:
+        gt_root: Root directory of the GT structure.
+
+    Returns:
+        True if both train/ and test/ subdirectories are present, False otherwise.
     """
     gt_train = gt_root / SPLIT_TRAIN
     gt_test = gt_root / SPLIT_TEST
@@ -89,14 +98,15 @@ def gt_exists(gt_root):
 # ======================================
 
 
-def download_stream(response, destination):
-    """
-    Downloads the content of an HTTP response in streaming mode and writes
-    it to disk, showing a progress bar if the server reports the total size.
+def download_stream(response: requests.Response, destination: Path) -> None:
+    """Downloads an HTTP response in streaming mode and writes it to disk.
 
-    Notes:
-        - Assumes `response` is a valid response returning the file.
-        - Does not validate the downloaded file type (done later with is_zipfile).
+    Displays a progress bar if the server reports the total content length.
+    Does not validate the downloaded file type.
+
+    Args:
+        response: A valid streaming HTTP response object.
+        destination: Path where the downloaded content will be written.
     """
     response.raise_for_status()
 
@@ -116,18 +126,21 @@ def download_stream(response, destination):
                 bar.update(len(block))
 
 
-def resolve_figshare_download_url(file_id):
-    """
-    Resolves a direct download URL for a Figshare file.
+def resolve_figshare_download_url(file_id: str) -> str:
+    """Resolves a direct download URL for a Figshare file via the API.
 
-    Context:
-        - In some cases, the `ndownloader` endpoint returns 202 (Accepted)
-          with HTML and 0 bytes (does not deliver the ZIP).
-        - The Figshare API allows obtaining a direct URL (Location) for
-          downloading the actual file.
+    The ndownloader endpoint can return 202 with HTML and zero bytes instead of
+    the actual file. This function queries the Figshare API to obtain the
+    real storage URL from the redirect Location header.
+
+    Args:
+        file_id: Figshare file identifier (last path segment of the download URL).
 
     Returns:
-        - Direct URL (string) to make a GET request to download the file.
+        Direct URL string pointing to the actual file download endpoint.
+
+    Raises:
+        ValueError: If the API response does not include a redirect Location header.
     """
     api_url = f"https://api.figshare.com/v2/file/download/{file_id}"
 
@@ -147,22 +160,20 @@ def resolve_figshare_download_url(file_id):
     )
 
 
-def download_file(url, destination):
-    """
-    Downloads a file from a URL and saves it to `destination`.
+def download_file(url: str, destination: Path) -> None:
+    """Downloads a file from a URL and saves it to disk.
 
-    Strategy:
-        1) Attempts to download directly from the provided URL.
-        2) If Figshare responds with 202 + HTML + 0 bytes (common for the
-           `ndownloader` endpoint), obtains a direct URL via the API and retries.
+    First attempts a direct download. If Figshare returns 202 with HTML and
+    zero bytes (common for the ndownloader endpoint), resolves a direct URL
+    via the API and retries.
 
     Args:
-        - url: download link (by default, Figshare `ndownloader`).
-        - destination: path of the file to write.
+        url: Download link (typically the Figshare ndownloader endpoint).
+        destination: Path where the downloaded file will be written.
 
     Raises:
-        - HTTP exceptions (raise_for_status) if the download fails.
-        - ValueError if the direct URL cannot be resolved via the API.
+        requests.HTTPError: If the download request fails.
+        ValueError: If the direct Figshare URL cannot be resolved via the API.
     """
     headers = {"User-Agent": "Mozilla/5.0"}
 
@@ -210,8 +221,15 @@ def download_file(url, destination):
 # ======================================
 
 
-def extract_zip(zip_file, destination):
+def extract_zip(zip_file: Path, destination: Path) -> None:
+    """Extracts a ZIP archive to a destination directory, stripping the common root folder.
 
+    Skips the info_dataset/ folder and any entries contained within it.
+
+    Args:
+        zip_file: Path to the ZIP archive to extract.
+        destination: Directory where the contents will be extracted.
+    """
     with zipfile.ZipFile(zip_file, "r") as zip_ref:
         names = zip_ref.namelist()
 
@@ -255,11 +273,17 @@ def extract_zip(zip_file, destination):
 # ======================================
 
 
-def get_mask_path(patient_dir, split):
-    """
-    Returns the path to the patient's mask according to the split.
-    - train → PX/T1/PX_T1_MASK.nii.gz
-    - test  → PX/PX_MASK.nii.gz
+def get_mask_path(patient_dir: Path, split: str) -> Path:
+    """Returns the path to the patient's ground truth mask for the given split.
+
+    Train masks are located at PX/T1/PX_T1_MASK.nii.gz; test masks at PX/PX_MASK.nii.gz.
+
+    Args:
+        patient_dir: Directory of the patient within the MSLesSeg dataset.
+        split: Dataset split, either 'train' or 'test'.
+
+    Returns:
+        Path to the patient's ground truth mask file.
     """
     patient_id = patient_dir.name
 
@@ -269,10 +293,16 @@ def get_mask_path(patient_dir, split):
         return patient_dir / f"{patient_id}{MASK_SUFFIX}{EXT_NIFTI}"
 
 
-def copy_mask(mask_path, gt_root, split, patient_id):
-    """
-    Copies the ground truth mask to the GT/ directory,
-    unifying filenames to PX_MASK.nii.gz.
+def copy_mask(mask_path: Path, gt_root: Path, split: str, patient_id: str) -> None:
+    """Copies a ground truth mask to the GT/ directory with a unified filename.
+
+    The destination filename is always PX_MASK.nii.gz regardless of the source name.
+
+    Args:
+        mask_path: Source path of the ground truth mask file.
+        gt_root: Root directory of the GT/ structure.
+        split: Dataset split ('train' or 'test').
+        patient_id: Patient identifier string (e.g. 'P1').
     """
     gt_patient_dir = gt_root / split / patient_id
     create_directory(gt_patient_dir)
@@ -281,10 +311,13 @@ def copy_mask(mask_path, gt_root, split, patient_id):
     shutil.copy2(mask_path, gt_patient_dir / new_name)
 
 
-def process_split(dataset_root, gt_root, split):
-    """
-    Iterates over the patients in a split (train/test), locates their masks,
-    and copies them.
+def process_split(dataset_root: Path, gt_root: Path, split: str) -> None:
+    """Copies ground truth masks for all patients in a dataset split.
+
+    Args:
+        dataset_root: Root directory of the MSLesSeg dataset.
+        gt_root: Root directory of the GT/ structure.
+        split: Dataset split to process ('train' or 'test').
     """
     split_root = dataset_root / split
     if not split_root.exists():
@@ -303,10 +336,12 @@ def process_split(dataset_root, gt_root, split):
         copy_mask(mask_path, gt_root, split, patient_id)
 
 
-def copy_gt_volumes(dataset_root, gt_root):
-    """
-    Generates the GT/train/ and GT/test/ structure by copying the original
-    dataset masks with unified filenames.
+def copy_gt_volumes(dataset_root: Path, gt_root: Path) -> None:
+    """Generates the GT/train/ and GT/test/ structure from the original dataset masks.
+
+    Args:
+        dataset_root: Root directory of the MSLesSeg dataset.
+        gt_root: Root directory where the GT/ structure will be created.
     """
     create_directory(gt_root)
     create_directory(gt_root / SPLIT_TRAIN)
@@ -321,7 +356,16 @@ def copy_gt_volumes(dataset_root, gt_root):
 # ======================================
 
 
-def process_download_and_extraction(dataset_root, url):
+def process_download_and_extraction(dataset_root: Path, url: str) -> None:
+    """Downloads and extracts the MSLesSeg dataset ZIP archive.
+
+    Args:
+        dataset_root: Directory where the dataset will be extracted.
+        url: Direct download URL of the ZIP archive.
+
+    Raises:
+        ValueError: If the downloaded file is not a valid ZIP archive.
+    """
     create_directory(dataset_root)
     zip_path = dataset_root / "MSLesSeg_dataset.zip"
 
@@ -340,11 +384,12 @@ def process_download_and_extraction(dataset_root, url):
     logger.info(f"🆗 Download and extraction completed successfully.")
 
 
-def process_gt_directory(dataset_root, gt_root):
-    """
-    Executes the GT/ directory construction process,
-    copying and unifying the original dataset masks
-    into the required final structure.
+def process_gt_directory(dataset_root: Path, gt_root: Path) -> None:
+    """Generates the GT/ directory by copying and unifying the original dataset masks.
+
+    Args:
+        dataset_root: Root directory of the MSLesSeg dataset.
+        gt_root: Root directory where the GT/ structure will be created.
     """
     logger.info(f"📂 Generating ground truth directory (GT/)...")
     try:
@@ -359,9 +404,13 @@ def process_gt_directory(dataset_root, gt_root):
 # ======================================
 
 
-def run_flow(url, clean, verbose=False):
-    """
-    Executes the main setup flow.
+def run_flow(url: str, clean: bool, verbose: bool = False) -> None:
+    """Executes the main setup flow: downloads the dataset and generates the GT/ directory.
+
+    Args:
+        url: Download URL of the MSLesSeg dataset ZIP archive.
+        clean: If True, deletes the existing GT/ directory before running.
+        verbose: If True, logs a header message at the start of execution.
     """
     if verbose:
         logger.header(f"📦 Downloading MSLesSeg dataset")
@@ -402,9 +451,11 @@ def run_flow(url, clean, verbose=False):
 # ======================================
 
 
-def parse_args():
-    """
-    Parses the script arguments from the command line (CLI).
+def parse_args() -> argparse.Namespace:
+    """Parses command-line arguments for the setup script.
+
+    Returns:
+        Namespace with the parsed CLI arguments.
     """
 
     parser = argparse.ArgumentParser(
@@ -419,10 +470,8 @@ def parse_args():
     return parser.parse_args()
 
 
-def main():
-    """
-    CLI entry point: parses arguments and executes the full flow.
-    """
+def main() -> None:
+    """CLI entry point: parses arguments and executes the full setup flow."""
     args = parse_args()
 
     run_flow(
@@ -432,9 +481,11 @@ def main():
     )
 
 
-def run_setup_pipeline(clean=False):
-    """
-    Internal pipeline entry point: executes the flow without using the CLI parser.
+def run_setup_pipeline(clean: bool = False) -> None:
+    """Internal pipeline entry point: executes the setup flow programmatically.
+
+    Args:
+        clean: If True, deletes the existing GT/ directory before running.
     """
     run_flow(
         url="https://springernature.figshare.com/ndownloader/files/52771814",

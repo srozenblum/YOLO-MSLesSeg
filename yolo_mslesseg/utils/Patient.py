@@ -74,8 +74,28 @@ class Patient:
     """
 
     def __init__(
-        self, id, plane, timepoint="T1", modality=None, enhancement=None, gt_mask=None
-    ):
+        self,
+        id: str,
+        plane: str,
+        timepoint: str = "T1",
+        modality: list[str] | None = None,
+        enhancement: str | None = None,
+        gt_mask: np.ndarray | None = None,
+    ) -> None:
+        """Initialises a Patient instance for the given MRI configuration.
+
+        Args:
+            id: Patient identifier string (e.g. 'P12').
+            plane: Anatomical plane ('axial', 'coronal', 'sagital', or 'consenso').
+            timepoint: MRI acquisition timepoint. Defaults to 'T1'.
+            modality: List of MRI modalities to use. Defaults to all modalities.
+            enhancement: Enhancement algorithm name, or None for no enhancement.
+            gt_mask: Pre-loaded ground truth mask array. Loaded lazily if None.
+
+        Raises:
+            ValueError: If any argument is outside the set of accepted values.
+            FileNotFoundError: If the patient directory does not exist in the dataset.
+        """
         modality = modality or list(MODALITIES)
 
         # --- Argument validation ---
@@ -90,7 +110,26 @@ class Patient:
     #        CONSTRUCTOR HELPERS
     # ======================================
 
-    def _validate_args(self, id, plane, timepoint, enhancement, modality):
+    def _validate_args(
+        self,
+        id: str,
+        plane: str,
+        timepoint: str,
+        enhancement: str | None,
+        modality: list[str] | None,
+    ) -> None:
+        """Validates the constructor arguments before setting any attributes.
+
+        Args:
+            id: Patient identifier to validate.
+            plane: Anatomical plane string to validate.
+            timepoint: Timepoint string to validate.
+            enhancement: Enhancement algorithm name to validate, or None.
+            modality: List of modality strings to validate.
+
+        Raises:
+            ValueError: If any argument is outside the set of accepted values.
+        """
         if not id.startswith("P"):
             raise ValueError(
                 f"Invalid patient ID: '{id}'. "
@@ -115,7 +154,16 @@ class Patient:
         if invalid:
             raise ValueError(f"Unrecognised modalities: {invalid}")
 
-    def _resolve_split(self):
+    def _resolve_split(self) -> tuple[str, Path]:
+        """Resolves which dataset split (train or test) the patient belongs to.
+
+        Returns:
+            Tuple of (split_name, base_dir) where split_name is 'train' or 'test'
+            and base_dir is the absolute path to the patient's directory.
+
+        Raises:
+            FileNotFoundError: If the patient does not exist in either split.
+        """
         train_dir = DATASET_DIR / SPLIT_TRAIN / self.id
         test_dir = DATASET_DIR / SPLIT_TEST / self.id
 
@@ -130,8 +178,24 @@ class Patient:
         )
 
     def _set_core_attributes(
-        self, id, plane, timepoint, modality, enhancement, gt_mask
-    ):
+        self,
+        id: str,
+        plane: str,
+        timepoint: str,
+        modality: list[str],
+        enhancement: str | None,
+        gt_mask: np.ndarray | None,
+    ) -> None:
+        """Sets the core attributes of the patient after validation.
+
+        Args:
+            id: Patient identifier string.
+            plane: Anatomical plane string.
+            timepoint: MRI acquisition timepoint string.
+            modality: List of MRI modality strings.
+            enhancement: Enhancement algorithm name (stored in uppercase), or None.
+            gt_mask: Pre-loaded ground truth mask array, or None for lazy loading.
+        """
         self.id = id
         self.split, self.base_dir = self._resolve_split()
         self.plane = plane
@@ -154,14 +218,24 @@ class Patient:
     # ======================================
 
     @property
-    def is_train(self):
+    def is_train(self) -> bool:
+        """Returns True if the patient belongs to the training split."""
         return self.split == SPLIT_TRAIN
 
     @property
-    def is_test(self):
+    def is_test(self) -> bool:
+        """Returns True if the patient belongs to the test split."""
         return self.split == SPLIT_TEST
 
-    def volume_path(self, modality):
+    def volume_path(self, modality: str) -> Path:
+        """Returns the path to the NIfTI volume file for the given modality.
+
+        Args:
+            modality: MRI modality string (e.g. 'T1', 'T2', 'FLAIR').
+
+        Returns:
+            Path to the corresponding NIfTI volume file.
+        """
         if self.no_timepoints:
             return self.base_dir / f"{self.id}_{modality}{EXT_NIFTI}"
         return (
@@ -171,7 +245,7 @@ class Patient:
         )
 
     @property
-    def gt_mask_path(self):
+    def gt_mask_path(self) -> Path:
         """Returns the path to the ground truth mask."""
         if self.no_timepoints:
             return self.base_dir / f"{self.id}{MASK_SUFFIX}{EXT_NIFTI}"
@@ -185,10 +259,17 @@ class Patient:
     #            DATA LOADING
     # ======================================
 
-    def load_volume(self, modality):
-        """
-        Returns the 3D volume for the given modality and caches it in the
-        internal _volumes dictionary if not already loaded.
+    def load_volume(self, modality: str) -> np.ndarray:
+        """Returns the 3D volume for the given modality, loading and caching it if needed.
+
+        Args:
+            modality: MRI modality string (e.g. 'T1', 'T2', 'FLAIR').
+
+        Returns:
+            3D NumPy array with the volume data.
+
+        Raises:
+            FileNotFoundError: If the volume file does not exist on disk.
         """
         if modality not in self._volumes:
             vol_path = self.volume_path(modality)
@@ -198,7 +279,7 @@ class Patient:
         return self._volumes[modality]
 
     @property
-    def gt_mask(self):
+    def gt_mask(self) -> np.ndarray:
         """Returns the binary ground truth mask."""
         if self._gt_mask is None:
             if not path_exists(self.gt_mask_path):
@@ -209,7 +290,7 @@ class Patient:
         return self._gt_mask
 
     @property
-    def num_slices(self):
+    def num_slices(self) -> int:
         """Returns the total number of slices in the mask for the current plane."""
         mapping = {"axial": 2, "coronal": 1, "sagital": 0}
         if self.plane not in mapping:
@@ -220,8 +301,15 @@ class Patient:
     #             PROCESSING
     # ======================================
 
-    def apply_enhancement(self, image):
-        """Applies the configured enhancement algorithm, if any."""
+    def apply_enhancement(self, image: np.ndarray) -> np.ndarray:
+        """Applies the configured enhancement algorithm to an image slice.
+
+        Args:
+            image: 2D image array to enhance.
+
+        Returns:
+            Enhanced image array, or the original image if no enhancement is set.
+        """
         if self.enhancement is None:
             return image
         return get_algorithm(self.enhancement).apply(image)
@@ -230,22 +318,31 @@ class Patient:
     #             EXTRACTION
     # ======================================
 
-    def get_image_slice(self, i, modality):
-        """
-        Extracts the i-th slice of the volume for the patient's plane and modality,
-        and applies the corresponding enhancement algorithm.
+    def get_image_slice(self, i: int, modality: str) -> np.ndarray:
+        """Extracts the i-th slice of the volume and applies the configured enhancement.
+
+        Args:
+            i: Slice index within the current anatomical plane.
+            modality: MRI modality string (e.g. 'T1', 'T2', 'FLAIR').
+
+        Returns:
+            2D image array after enhancement (if any).
         """
         img_slice = self.load_volume(modality)[self.plane_index(i)]
         return self.apply_enhancement(image=img_slice)
 
-    def get_multichannel_slice(self, i):
-        """
-        Returns a 3-channel uint8 image for slice i by stacking one channel
-        per modality. If fewer than 3 modalities are configured, the last
-        channel is repeated to fill all 3 slots.
+    def get_multichannel_slice(self, i: int) -> np.ndarray:
+        """Returns a 3-channel uint8 image for slice i by stacking one channel per modality.
 
-        This format is directly compatible with YOLO's 3-channel (RGB) input,
-        allowing the model to jointly learn from all available modalities.
+        If fewer than 3 modalities are configured, the last channel is repeated
+        to fill all 3 slots. This format is directly compatible with YOLO's
+        3-channel (RGB) input, allowing the model to learn from all modalities.
+
+        Args:
+            i: Slice index within the current anatomical plane.
+
+        Returns:
+            HxWx3 uint8 NumPy array suitable for YOLO input.
         """
         channels = []
         for m in self.modality:
@@ -258,22 +355,42 @@ class Patient:
 
         return np.stack(channels[:3], axis=-1)  # HxWx3 uint8
 
-    def lesion_slices_multichannel(self, num_slices=None):
-        """
-        Returns lesion-containing slices as multi-channel images.
-        Each entry is a tuple (slice_index, image) where image is HxWx3 uint8.
+    def lesion_slices_multichannel(self, num_slices: int | None = None) -> list[tuple[int, np.ndarray]]:
+        """Returns lesion-containing slices as multi-channel images.
+
+        Args:
+            num_slices: Maximum number of slices to return. If None or fewer
+                lesion slices exist, all lesion slices are returned.
+
+        Returns:
+            List of (slice_index, image) tuples where image is HxWx3 uint8.
         """
         indices = self.slices_to_use(num_slices)
         return [(i, self.get_multichannel_slice(i)) for i in indices]
 
-    def get_mask_slice(self, i):
-        """Extracts the i-th slice of the mask for the patient's plane."""
+    def get_mask_slice(self, i: int) -> np.ndarray:
+        """Extracts the i-th slice of the ground truth mask for the patient's plane.
+
+        Args:
+            i: Slice index within the current anatomical plane.
+
+        Returns:
+            2D binary mask array for the given slice.
+        """
         return self.gt_mask[self.plane_index(i)]
 
-    def plane_index(self, i):
-        """
-        Returns a tuple of slicing indices corresponding to the current plane
-        and the given position index.
+    def plane_index(self, i: int) -> tuple[slice | int, slice | int, slice | int]:
+        """Returns NumPy slicing indices for the current plane at position i.
+
+        Args:
+            i: Slice index within the current anatomical plane.
+
+        Returns:
+            3-tuple of slice or int objects for indexing a 3D volume array.
+
+        Raises:
+            ValueError: If the current plane is 'consenso', which does not
+                support index extraction.
         """
         if self.plane == "consenso":
             raise ValueError(
@@ -292,8 +409,12 @@ class Patient:
     #          LESION DETECTION
     # ======================================
 
-    def lesion_slice_indices(self):
-        """Returns the indices of slices that contain lesion in the mask."""
+    def lesion_slice_indices(self) -> list[int]:
+        """Returns the indices of all slices that contain at least one lesion voxel.
+
+        Returns:
+            Sorted list of slice indices where the ground truth mask is non-zero.
+        """
         indices = [
             i
             for i in range(self.num_slices)
@@ -301,12 +422,18 @@ class Patient:
         ]
         return indices
 
-    def slices_to_use(self, num_slices=None):
-        """
-        Returns the lesion slice indices to use.
-        - If num_slices is None or there are fewer lesion slices than num_slices,
-          all lesion slices are returned.
-        - If there are more lesion slices than num_slices, the central ones are returned.
+    def slices_to_use(self, num_slices: int | None = None) -> list[int]:
+        """Returns the lesion slice indices to extract, respecting the slice budget.
+
+        If num_slices is None or fewer lesion slices exist than num_slices,
+        all lesion slices are returned. Otherwise, the central num_slices
+        slices are selected.
+
+        Args:
+            num_slices: Maximum number of slices to return. None means no limit.
+
+        Returns:
+            List of selected lesion slice indices.
         """
         valid_indices = self.lesion_slice_indices()
         if num_slices is None or len(valid_indices) <= num_slices:
@@ -322,15 +449,16 @@ class Patient:
     #        LESION-BASED EXTRACTION
     # ======================================
 
-    def lesion_slices_by_modality(self, num_slices=None):
-        """
-        Returns all lesion-containing volume slices organised by modality as a
-        dictionary. Each key is a modality (T1, T2, FLAIR) and the value is a
-        list of tuples (volume_index, slice):
+    def lesion_slices_by_modality(self, num_slices: int | None = None) -> dict[str, list[tuple[int, np.ndarray]]]:
+        """Returns lesion-containing slices organised by modality.
 
-        {"T1": [(i0, slice0), (i1, slice1), ...],
-         "T2": [(i0, slice0), ...],
-         "FLAIR": [...]}
+        Args:
+            num_slices: Maximum number of slices to return per modality.
+                None means no limit.
+
+        Returns:
+            Dictionary mapping each modality string to a list of
+            (slice_index, slice_array) tuples.
         """
         slices_dict = {}
         indices = self.slices_to_use(num_slices)
@@ -342,18 +470,22 @@ class Patient:
             slices_dict[m] = slice_list
         return slices_dict
 
-    def lesion_mask_slices(self, num_slices=None):
-        """
-        Returns all lesion-containing mask slices as a list of tuples
-        [(index, slice), ...].
+    def lesion_mask_slices(self, num_slices: int | None = None) -> list[tuple[int, np.ndarray]]:
+        """Returns lesion-containing ground truth mask slices.
+
+        Args:
+            num_slices: Maximum number of slices to return. None means no limit.
+
+        Returns:
+            List of (slice_index, mask_array) tuples for selected lesion slices.
         """
         indices = self.slices_to_use(num_slices)
         return [(i, self.get_mask_slice(i)) for i in indices]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Internal representation of the Patient instance."""
         return f"Patient({self.id})"
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Human-readable representation of the Patient instance."""
         return self.id

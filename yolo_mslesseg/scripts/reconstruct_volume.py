@@ -105,10 +105,17 @@ logger = get_logger(__file__)
 # ======================================
 
 
-def extract_png_indices(input_dir):
-    """
-    Extracts the numeric indices from PNG files in input_dir,
-    returning a sorted list of (filename, index) tuples.
+def extract_png_indices(input_dir: Path) -> list[tuple[str, int]]:
+    """Extracts numeric slice indices from PNG filenames in a directory.
+
+    Args:
+        input_dir: Directory containing the predicted mask PNG files.
+
+    Returns:
+        Sorted list of (filename, index) tuples ordered by slice index.
+
+    Raises:
+        FileNotFoundError: If input_dir does not exist or contains no matching PNG files.
     """
     if not path_exists(input_dir):
         raise FileNotFoundError(
@@ -133,8 +140,18 @@ def extract_png_indices(input_dir):
     return tuples
 
 
-def load_and_preprocess_image(img_path):
-    """Loads a PNG image, converts it to greyscale, and binarises it if necessary."""
+def load_and_preprocess_image(img_path: Path) -> np.ndarray:
+    """Loads a PNG image, converts it to greyscale, and binarises it if necessary.
+
+    Args:
+        img_path: Path to the PNG image file.
+
+    Returns:
+        2D float32 array with binary values (0 or 1).
+
+    Raises:
+        FileNotFoundError: If the image file does not exist.
+    """
     if not path_exists(img_path):
         raise FileNotFoundError(f"Image not found: {img_path}")
 
@@ -150,9 +167,17 @@ def load_and_preprocess_image(img_path):
     return img_array
 
 
-def validate_slice(idx, img_array, shape_original, plane):
-    """
-    Checks that the slice index and dimensions are consistent with the original volume.
+def validate_slice(idx: int, img_array: np.ndarray, shape_original: tuple[int, ...], plane: str) -> None:
+    """Validates that a slice index and its dimensions are consistent with the reference volume.
+
+    Args:
+        idx: Slice index within the volume.
+        img_array: 2D slice array to validate.
+        shape_original: Shape of the reference NIfTI volume (x, y, z).
+        plane: Anatomical plane ('axial', 'coronal', 'sagital').
+
+    Raises:
+        ValueError: If the index is out of range or the slice dimensions are incorrect.
     """
     # 1. Validate index is within range
     max_indices = {
@@ -176,8 +201,15 @@ def validate_slice(idx, img_array, shape_original, plane):
         )
 
 
-def insert_slice(volume, img_array, idx, plane):
-    """Inserts a 2D slice into the volume at the appropriate position for the given plane."""
+def insert_slice(volume: np.ndarray, img_array: np.ndarray, idx: int, plane: str) -> None:
+    """Inserts a 2D slice into the correct position of a 3D volume for the given plane.
+
+    Args:
+        volume: 3D NumPy array to insert the slice into (modified in-place).
+        img_array: 2D slice array to insert.
+        idx: Slice index along the axis corresponding to the plane.
+        plane: Anatomical plane ('axial', 'coronal', 'sagital').
+    """
     if plane == "axial":
         volume[:, :, idx] = img_array
     elif plane == "coronal":
@@ -191,13 +223,30 @@ def insert_slice(volume, img_array, idx, plane):
 # ======================================
 
 
-def needs_reconstruction(pred_path):
-    """Returns True if the reconstructed volume does not exist or is empty."""
+def needs_reconstruction(pred_path: Path) -> bool:
+    """Checks whether a reconstructed volume needs to be (re)generated.
+
+    Args:
+        pred_path: Path to the predicted NIfTI volume file.
+
+    Returns:
+        True if the file does not exist or has zero size, False otherwise.
+    """
     return not path_exists(pred_path) or pred_path.stat().st_size == 0
 
 
-def reconstruct_volume(pred_masks_dir, reference_volume, output_path, plane):
-    """Reconstructs a 3D volume from 2D predicted masks."""
+def reconstruct_volume(pred_masks_dir: Path, reference_volume: Path, output_path: Path, plane: str) -> np.ndarray:
+    """Reconstructs a 3D NIfTI volume from 2D predicted mask slices.
+
+    Args:
+        pred_masks_dir: Directory containing the predicted mask PNG files.
+        reference_volume: Path to the ground truth NIfTI file used as shape/affine reference.
+        output_path: Path where the reconstructed NIfTI volume will be saved.
+        plane: Anatomical plane ('axial', 'coronal', 'sagital').
+
+    Returns:
+        Reconstructed 3D volume as a float32 NumPy array.
+    """
     shape_original, affine = load_nifti_reference(reference_volume)
     volume = np.zeros(shape_original, dtype=np.float32)
     indices = extract_png_indices(pred_masks_dir)
@@ -218,11 +267,23 @@ def reconstruct_volume(pred_masks_dir, reference_volume, output_path, plane):
 # ======================================
 
 
-def process_patient_volume(patient_id, config, paths_dir=None):
-    """
-    Executes the volume reconstruction process
-    (verification → reconstruction → validation)
-    for an individual patient.
+def process_patient_volume(patient_id: str, config: ConfigReconstruction, paths_dir: dict[str, Path] | None = None) -> bool | None:
+    """Executes the volume reconstruction process for an individual patient.
+
+    Checks whether the volume already exists and is valid, then reconstructs and
+    validates it if needed.
+
+    Args:
+        patient_id: Patient identifier string.
+        config: ConfigReconstruction instance providing model and directory settings.
+        paths_dir: Dictionary of paths (pred_vol, gt_vol, pred_masks). Defaults to
+            config patient paths if None.
+
+    Returns:
+        True if the volume was reconstructed, None if skipped (already valid).
+
+    Raises:
+        RuntimeError: If the reconstructed volume fails validation.
     """
     # If no directories are provided → patient mode → use config directories
     if paths_dir is None:
@@ -271,10 +332,15 @@ def process_patient_volume(patient_id, config, paths_dir=None):
         return True
 
 
-def build_paths(patient_id, config):
-    """
-    Builds a dictionary of paths (pred_vol, gt_vol, pred_masks)
-    for an individual patient.
+def build_paths(patient_id: str, config: ConfigReconstruction) -> dict[str, Path]:
+    """Builds the predicted volume, GT volume, and pred_masks paths for a patient.
+
+    Args:
+        patient_id: Patient identifier string.
+        config: ConfigReconstruction instance providing directory and plane settings.
+
+    Returns:
+        Dictionary with keys 'pred_vol', 'gt_vol', and 'pred_masks' mapping to Path objects.
     """
     root_pred_vols = config.pred_vols_fold_dir / patient_id
     root_gt = config.gt_dir / patient_id
@@ -288,8 +354,17 @@ def build_paths(patient_id, config):
     }
 
 
-def reconstruct_volumes_for_patients(input_dir, config):
-    """Executes the volume reconstruction process for all patients in input_dir."""
+def reconstruct_volumes_for_patients(input_dir: Path, config: ConfigReconstruction) -> bool | None | str:
+    """Executes the volume reconstruction process for all patients in a directory.
+
+    Args:
+        input_dir: Directory containing patient subdirectories to process.
+        config: ConfigReconstruction instance providing model and directory settings.
+
+    Returns:
+        True if all patients were processed, None if all were skipped, or
+        'partial' if there was a mix of processed and skipped patients.
+    """
     patients = list_patients(input_dir)
 
     results = []
@@ -314,10 +389,13 @@ def reconstruct_volumes_for_patients(input_dir, config):
 # ======================================
 
 
-def run_volume_flow(config, clean, verbose=False):
-    """
-    Executes the main reconstruction flow,
-    over a fold or an individual patient.
+def run_volume_flow(config: ConfigReconstruction, clean: bool, verbose: bool = False) -> None:
+    """Executes the main volume reconstruction flow.
+
+    Args:
+        config: ConfigReconstruction instance defining the reconstruction configuration.
+        clean: If True, deletes existing reconstructed volumes before regenerating.
+        verbose: If True, logs a header message at the start of execution.
     """
 
     if verbose:
@@ -382,10 +460,14 @@ def run_volume_flow(config, clean, verbose=False):
 # ======================================
 
 
-def parse_args(argv=None):
-    """
-    Parses the script arguments.
-    If no argument list is provided, reads from the command line.
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    """Parses command-line arguments for the volume reconstruction script.
+
+    Args:
+        argv: Argument list to parse. Defaults to sys.argv[1:] if None.
+
+    Returns:
+        Namespace with the parsed CLI arguments.
     """
     if argv is None:
         argv = sys.argv[1:]
@@ -471,10 +553,11 @@ def parse_args(argv=None):
     return args
 
 
-def main(argv=None):
-    """
-    CLI entry point: parses arguments, builds Model/Patient/ConfigReconstruction
-    instances, and executes the full flow.
+def main(argv: list[str] | None = None) -> None:
+    """CLI entry point: parses arguments and executes the volume reconstruction flow.
+
+    Args:
+        argv: Argument list to parse. Defaults to sys.argv[1:] if None.
     """
     args = parse_args(argv)
 
@@ -505,11 +588,17 @@ def main(argv=None):
 
 
 def run_reconstruction_pipeline(
-    model, patient=None, fold_test=None, epochs=50, k_folds=5, clean=False
-):
-    """
-    Internal pipeline entry point: receives pre-built objects and executes
-    the flow without using the CLI parser.
+    model: Model, patient: Patient | None = None, fold_test: int | None = None, epochs: int = 50, k_folds: int = 5, clean: bool = False
+) -> None:
+    """Internal pipeline entry point: executes the volume reconstruction flow programmatically.
+
+    Args:
+        model: Model instance defining the reconstruction configuration.
+        patient: Patient instance for individual execution, or None for fold mode.
+        fold_test: Test fold index when using cross-validation, or None.
+        epochs: Number of training epochs of the YOLO model.
+        k_folds: Number of cross-validation folds (1 for a fixed split).
+        clean: If True, deletes existing reconstructed volumes before regenerating.
     """
     config = ConfigReconstruction(
         model=model,

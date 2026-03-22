@@ -76,6 +76,7 @@ Outputs:
 
 import argparse
 import sys
+from pathlib import Path
 
 import numpy as np
 
@@ -105,14 +106,32 @@ logger = get_logger(__file__)
 # ======================================
 
 
-def combine_volumes(axial_vol, coronal_vol, sagital_vol, umbral=2):
-    """Returns a binary consensus volume by combining three volumes using the given threshold."""
+def combine_volumes(axial_vol: np.ndarray, coronal_vol: np.ndarray, sagital_vol: np.ndarray, umbral: int = 2) -> np.ndarray:
+    """Combines three plane volumes into a binary consensus volume using majority voting.
+
+    Args:
+        axial_vol: Predicted volume from the axial plane.
+        coronal_vol: Predicted volume from the coronal plane.
+        sagital_vol: Predicted volume from the sagital plane.
+        umbral: Voting threshold (2 for majority, 3 for unanimity).
+
+    Returns:
+        Binary consensus volume as a uint8 NumPy array.
+    """
     consensus = ((axial_vol + coronal_vol + sagital_vol) >= umbral).astype(np.uint8)
     return consensus
 
 
-def generate_consensus(axial_path, coronal_path, sagital_path, output_path, umbral=2):
-    """Generates and saves the consensus volume from the three plane NIfTI files."""
+def generate_consensus(axial_path: Path, coronal_path: Path, sagital_path: Path, output_path: Path, umbral: int = 2) -> None:
+    """Generates and saves a consensus NIfTI volume from three anatomical plane predictions.
+
+    Args:
+        axial_path: Path to the axial plane predicted NIfTI volume.
+        coronal_path: Path to the coronal plane predicted NIfTI volume.
+        sagital_path: Path to the sagital plane predicted NIfTI volume.
+        output_path: Path where the consensus NIfTI volume will be saved.
+        umbral: Voting threshold (2 for majority, 3 for unanimity).
+    """
     axial_vol = load_volume(axial_path)
     coronal_vol = load_volume(coronal_path)
     sagital_vol = load_volume(sagital_path)
@@ -135,11 +154,27 @@ def generate_consensus(axial_path, coronal_path, sagital_path, output_path, umbr
 
 
 def process_patient_consensus(
-    config,
-    paths_dir=None,
-    umbral=2,
-):
-    """Executes the consensus generation process for an individual patient."""
+    config: ConfigConsensus,
+    paths_dir: dict[str, Path] | None = None,
+    umbral: int = 2,
+) -> bool | None:
+    """Executes the consensus generation process for an individual patient.
+
+    Skips if the consensus volume already exists. Generates and validates the
+    consensus from the three plane predicted volumes.
+
+    Args:
+        config: ConfigConsensus instance providing model and directory settings.
+        paths_dir: Dictionary of paths per plane plus 'gt'. Defaults to config
+            patient paths if None.
+        umbral: Voting threshold (2 for majority, 3 for unanimity).
+
+    Returns:
+        True if the consensus was generated, None if skipped (already exists).
+
+    Raises:
+        RuntimeError: If the generated consensus volume fails validation.
+    """
     # If no directories are provided → patient mode → use config directories
     if paths_dir is None:
         paths_dir = config.patient_pred_vols
@@ -165,10 +200,15 @@ def process_patient_consensus(
     return True
 
 
-def build_paths(patient_id, config):
-    """
-    Builds a dictionary of paths (axial, coronal, sagital, ground truth)
-    for an individual patient.
+def build_paths(patient_id: str, config: ConfigConsensus) -> dict[str, Path]:
+    """Builds the per-plane predicted volume and GT paths for a patient.
+
+    Args:
+        patient_id: Patient identifier string.
+        config: ConfigConsensus instance providing directory settings.
+
+    Returns:
+        Dictionary mapping plane names and 'gt' to their respective Path objects.
     """
     paths = {
         plane: config.pred_vols_fold_dir
@@ -181,8 +221,18 @@ def build_paths(patient_id, config):
     return paths
 
 
-def generate_consensus_for_patients(input_dir, config, umbral=2):
-    """Executes the consensus generation process for all patients in input_dir."""
+def generate_consensus_for_patients(input_dir: Path, config: ConfigConsensus, umbral: int = 2) -> bool | None | str:
+    """Executes the consensus generation process for all patients in a directory.
+
+    Args:
+        input_dir: Directory containing patient subdirectories to process.
+        config: ConfigConsensus instance providing model and directory settings.
+        umbral: Voting threshold (2 for majority, 3 for unanimity).
+
+    Returns:
+        True if all patients were processed, None if all were skipped, or
+        'partial' if there was a mix of processed and skipped patients.
+    """
     patients = list_patients(input_dir)
     results = []
 
@@ -209,10 +259,14 @@ def generate_consensus_for_patients(input_dir, config, umbral=2):
 # ======================================
 
 
-def run_consensus_flow(config, clean, umbral=2, verbose=False):
-    """
-    Executes the main consensus generation flow,
-    over a fold or an individual patient.
+def run_consensus_flow(config: ConfigConsensus, clean: bool, umbral: int = 2, verbose: bool = False) -> None:
+    """Executes the main consensus generation flow.
+
+    Args:
+        config: ConfigConsensus instance defining the consensus configuration.
+        clean: If True, deletes existing consensus volumes before regenerating.
+        umbral: Voting threshold (2 for majority, 3 for unanimity).
+        verbose: If True, logs a header message at the start of execution.
     """
     if verbose:
         if config.is_individual_patient:
@@ -271,10 +325,14 @@ def run_consensus_flow(config, clean, umbral=2, verbose=False):
 # ======================================
 
 
-def parse_args(argv=None):
-    """
-    Parses the script arguments.
-    If no argument list is provided, reads from the command line.
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    """Parses command-line arguments for the consensus generation script.
+
+    Args:
+        argv: Argument list to parse. Defaults to sys.argv[1:] if None.
+
+    Returns:
+        Namespace with the parsed CLI arguments.
     """
     if argv is None:
         argv = sys.argv[1:]
@@ -360,10 +418,11 @@ def parse_args(argv=None):
     return args
 
 
-def main(argv=None):
-    """
-    CLI entry point: parses arguments, builds Model/Patient/ConfigConsensus
-    instances, and executes the full flow.
+def main(argv: list[str] | None = None) -> None:
+    """CLI entry point: parses arguments and executes the consensus generation flow.
+
+    Args:
+        argv: Argument list to parse. Defaults to sys.argv[1:] if None.
     """
     args = parse_args(argv)
 
@@ -396,11 +455,18 @@ def main(argv=None):
 
 
 def run_consensus_pipeline(
-    model, patient=None, fold_test=None, epochs=50, k_folds=5, umbral=2, clean=False
-):
-    """
-    Internal pipeline entry point: receives pre-built objects and executes
-    the flow without using the CLI parser.
+    model: Model, patient: Patient | None = None, fold_test: int | None = None, epochs: int = 50, k_folds: int = 5, umbral: int = 2, clean: bool = False
+) -> None:
+    """Internal pipeline entry point: executes the consensus generation flow programmatically.
+
+    Args:
+        model: Model instance defining the consensus configuration.
+        patient: Patient instance for individual execution, or None for fold mode.
+        fold_test: Test fold index when using cross-validation, or None.
+        epochs: Number of training epochs of the YOLO model.
+        k_folds: Number of cross-validation folds (1 for a fixed split).
+        umbral: Voting threshold (2 for majority, 3 for unanimity).
+        clean: If True, deletes existing consensus volumes before regenerating.
     """
     config = ConfigConsensus(
         model=model,

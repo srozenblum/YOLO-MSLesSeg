@@ -70,6 +70,7 @@ Outputs:
 """
 
 import argparse
+from pathlib import Path
 
 import pandas as pd
 
@@ -90,8 +91,15 @@ logger = get_logger(__file__)
 # ======================================
 
 
-def list_jsons(directory) -> list:
-    """Returns a list of global_*.json files in the given directory."""
+def list_jsons(directory: Path) -> list[Path]:
+    """Returns a list of global_*.json files in the given directory.
+
+    Args:
+        directory: Directory to search for global results JSON files.
+
+    Returns:
+        List of matching file paths, or an empty list if the directory does not exist.
+    """
     if not directory.exists():
         return []
     return [
@@ -101,10 +109,17 @@ def list_jsons(directory) -> list:
     ]
 
 
-def parse_experiment(filepath) -> tuple[str, str]:
-    """
-    Extracts (plane, enhancement) from the file path.
-    Raises ValueError if the enhancement cannot be inferred.
+def parse_experiment(filepath: Path) -> tuple[str, str]:
+    """Extracts the plane and enhancement labels from a results file path.
+
+    Args:
+        filepath: Path to a global results JSON file.
+
+    Returns:
+        Tuple of (plane, enhancement) derived from the path components.
+
+    Raises:
+        ValueError: If the enhancement cannot be inferred from the path.
     """
     parts = filepath.stem.split("_")
     plane = next(
@@ -120,15 +135,29 @@ def parse_experiment(filepath) -> tuple[str, str]:
     raise ValueError(f"Could not infer enhancement from path: {filepath}")
 
 
-def format_json_value(value) -> str:
-    """Converts a dict with media/std → 'mean ± std'."""
+def format_json_value(value: dict | float | int) -> str:
+    """Formats a metric value as a 'mean ± std' string.
+
+    Args:
+        value: Dictionary with 'media' and 'std' keys, or a scalar value.
+
+    Returns:
+        Formatted string 'X.XXX ± Y.YYY', or an empty string if the format is unexpected.
+    """
     if isinstance(value, dict) and "media" in value and "std" in value:
         return f"{float(value['media']):.3f} ± {float(value['std']):.3f}"
     return ""
 
 
-def read_metrics_json(filepath) -> dict:
-    """Reads a JSON file and returns {metric: 'X ± Y'}."""
+def read_metrics_json(filepath: Path) -> dict[str, str]:
+    """Reads a global results JSON file and formats its metric values.
+
+    Args:
+        filepath: Path to the JSON file to read.
+
+    Returns:
+        Dictionary mapping metric names to formatted 'mean ± std' strings.
+    """
     metrics = {}
 
     try:
@@ -144,7 +173,16 @@ def read_metrics_json(filepath) -> dict:
 
 
 def build_row(plane: str, enhancement: str, metrics: dict) -> dict:
-    """Builds a row dict for the DataFrame."""
+    """Builds a row dictionary for the results DataFrame.
+
+    Args:
+        plane: Anatomical plane label (e.g. 'Axial').
+        enhancement: Enhancement algorithm label (e.g. 'HE').
+        metrics: Dictionary mapping metric names to formatted value strings.
+
+    Returns:
+        Row dictionary with keys for Enhancement, Plane, and all metric columns.
+    """
     return {
         "Enhancement": enhancement,
         "Plane": plane,
@@ -156,7 +194,11 @@ def build_row(plane: str, enhancement: str, metrics: dict) -> dict:
 
 
 def sort_dataframe(df: pd.DataFrame) -> None:
-    """Sorts the DataFrame by plane and enhancement."""
+    """Sorts the DataFrame in-place by plane and enhancement using a predefined order.
+
+    Args:
+        df: DataFrame to sort; must contain 'Plane' and 'Enhancement' columns.
+    """
     plane_order = ["Axial", "Coronal", "Sagital", "Consenso"]
     enhancement_order = ["Base", "HE", "CLAHE", "GC", "LT"]
 
@@ -170,8 +212,15 @@ def sort_dataframe(df: pd.DataFrame) -> None:
 # ======================================
 
 
-def compose_results(global_config: str):
-    """Searches for the JSON files of the requested experiment and creates the final CSV."""
+def compose_results(global_config: str) -> pd.DataFrame | None:
+    """Searches for global results JSON files and composes a summary CSV.
+
+    Args:
+        global_config: Configuration string used to locate experiment result directories.
+
+    Returns:
+        DataFrame with the composed results, or None if no JSON files were found.
+    """
 
     rows = []
     json_list = []
@@ -223,7 +272,13 @@ def compose_results(global_config: str):
 
 
 def run_flow(model: Model, epochs: int, clean: bool) -> None:
-    """Executes the results composition flow."""
+    """Executes the results composition flow.
+
+    Args:
+        model: Model instance used to derive the experiment configuration string.
+        epochs: Number of training epochs of the YOLO model.
+        clean: If True, deletes the existing CSV before generating a new one.
+    """
     logger.header(f"📊️ Generating results table")
 
     global_config = build_config_name(model, epochs)
@@ -244,7 +299,11 @@ def run_flow(model: Model, epochs: int, clean: bool) -> None:
 
 
 def parse_args() -> argparse.Namespace:
-    """Parses the script arguments from the command line (CLI)."""
+    """Parses the script arguments from the command line.
+
+    Returns:
+        Namespace with the parsed CLI arguments.
+    """
     parser = argparse.ArgumentParser(
         description="Compose global experiment results for the selected configuration."
     )
@@ -304,10 +363,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
-    """
-    CLI entry point: parses arguments, builds the Model instance,
-    and executes the full flow.
-    """
+    """CLI entry point: parses arguments, builds the Model instance, and executes the full flow."""
     args = parse_args()
 
     model = Model(

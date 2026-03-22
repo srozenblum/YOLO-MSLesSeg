@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from yolo_mslesseg.utils.logging_config import get_logger
+from yolo_mslesseg.utils.Model import Model
 from yolo_mslesseg.utils.constants import (
     DATASETS_DIR,
     SPLIT_TRAIN,
@@ -111,7 +112,18 @@ class ConfigTrain:
             Path to the base YOLO model weights.
     """
 
-    def __init__(self, model, epochs, fold_test=None):
+    def __init__(self, model: Model, epochs: int, fold_test: int | None = None) -> None:
+        """Initialises a ConfigTrain instance for the model training stage.
+
+        Args:
+            model: Model instance defining the plane, modalities, and base_path.
+            epochs: Number of training epochs.
+            fold_test: Test fold index when using cross-validation, or None for
+                k_folds == 1.
+
+        Raises:
+            ValueError: If fold_test is inconsistent with k_folds.
+        """
         self._set_main_attributes(model, epochs, fold_test)
         self._resolve_dataset_paths()
         self._resolve_output_paths()
@@ -120,7 +132,17 @@ class ConfigTrain:
     #         CONSTRUCTOR HELPERS
     # ======================================
 
-    def _set_main_attributes(self, model, epochs, fold_test):
+    def _set_main_attributes(self, model: Model, epochs: int, fold_test: int | None) -> None:
+        """Sets the core attributes and validates fold_test against k_folds.
+
+        Args:
+            model: Model instance.
+            epochs: Number of training epochs.
+            fold_test: Test fold index, or None when k_folds == 1.
+
+        Raises:
+            ValueError: If fold_test and k_folds are inconsistent.
+        """
         self.model = model
         self.plane = model.plane
         self.epochs = epochs
@@ -135,7 +157,8 @@ class ConfigTrain:
             if self.fold_test is None:
                 raise ValueError("fold_test must be specified when k_folds > 1.")
 
-    def _resolve_dataset_paths(self):
+    def _resolve_dataset_paths(self) -> None:
+        """Resolves all input dataset directory paths based on k_folds and fold_test."""
         # Base directory
         self.dataset_base_dir = DATASETS_DIR / f"{self.model.base_path}"
 
@@ -160,7 +183,8 @@ class ConfigTrain:
             self.dataset_base_dir / f"test_fold{self.fold_test}" / self.plane
         )
 
-    def _resolve_output_paths(self):
+    def _resolve_output_paths(self) -> None:
+        """Resolves the training output, YAML, model weights, and base weights paths."""
         self.train_output_dir = (
             TRAINS_DIR / f"{self.model.base_path}_{self.epochs}epochs" / self.plane
         )
@@ -191,12 +215,11 @@ class ConfigTrain:
     #              CLEANUP
     # ======================================
 
-    def clean_training(self):
-        """
-        Cleans the training results.
+    def clean_training(self) -> None:
+        """Cleans the training results for the current configuration.
 
-        - k_folds > 1: removes only the current fold's directory.
-        - k_folds == 1: removes the full experiment directory for the plane.
+        When k_folds > 1, removes only the current fold's subdirectory.
+        When k_folds == 1, removes the full experiment directory for the plane.
         """
         if not path_exists(self.train_output_dir):
             return
@@ -213,15 +236,14 @@ class ConfigTrain:
     #            VERIFICATION
     # ======================================
 
-    def verify_paths(self):
-        """
-        Verifies that the input and output directories exist for YOLO model training.
+    def verify_paths(self) -> None:
+        """Verifies that input and output directories exist for YOLO model training.
 
-        - Verifies that the dataset base directory (dataset_base_dir) exists with
-          images, annotations, and ground truth.
+        Checks that the dataset base directory exists, and creates the YAML and
+        training output directories if they do not.
 
-        - Verifies that the training output directory (train_output_dir) and the
-          YAML directory exist, creating them if they do not.
+        Raises:
+            FileNotFoundError: If the dataset base directory does not exist.
         """
         # dataset_base_dir
         if not path_exists(self.dataset_base_dir):  # Raises exception if not found
@@ -240,7 +262,8 @@ class ConfigTrain:
     #            REPRESENTATION
     # ======================================
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """String representation of this ConfigTrain instance."""
         if self.single_fold:
             return f"{self.__class__.__name__}(model={self.model.model_string}, epochs={self.epochs}, k_folds=1)"
         return f"{self.__class__.__name__}(model={self.model.model_string}, fold={self.fold_test}, epochs={self.epochs})"

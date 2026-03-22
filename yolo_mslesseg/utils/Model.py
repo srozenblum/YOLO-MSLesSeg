@@ -36,7 +36,26 @@ class Model:
             Defaults to None.
     """
 
-    def __init__(self, plane, num_slices, modality, k_folds, enhancement=None):
+    def __init__(
+        self,
+        plane: str,
+        num_slices: int | str,
+        modality: list[str],
+        k_folds: int,
+        enhancement: str | None = None,
+    ) -> None:
+        """Initialises a Model instance with the given experimental configuration.
+
+        Args:
+            plane: Anatomical plane ('axial', 'coronal', 'sagital', or 'consenso').
+            num_slices: Number of slices as an integer or percentile string (e.g. 'P50').
+            modality: List of MRI modalities to include (e.g. ['T1', 'FLAIR']).
+            k_folds: Number of cross-validation folds (1 for fixed split).
+            enhancement: Image enhancement algorithm name, or None for no enhancement.
+
+        Raises:
+            ValueError: If plane, num_slices, or enhancement values are invalid.
+        """
         # --- Argument validation ---
         self._validate_args(plane, num_slices, enhancement)
 
@@ -53,7 +72,17 @@ class Model:
     #        CONSTRUCTOR HELPERS
     # ======================================
 
-    def _validate_args(self, plane, num_slices, enhancement):
+    def _validate_args(self, plane: str, num_slices: int | str, enhancement: str | None) -> None:
+        """Validates the constructor arguments before setting any attributes.
+
+        Args:
+            plane: Anatomical plane string to validate.
+            num_slices: Slice count to validate (must be a positive integer if numeric).
+            enhancement: Enhancement algorithm name to validate, or None.
+
+        Raises:
+            ValueError: If any argument is outside the set of accepted values.
+        """
         if plane.lower() not in PLANES:
             raise ValueError(f"Invalid plane '{plane}'. Must be one of {PLANES}.")
         if isinstance(num_slices, int) and num_slices <= 0:
@@ -63,7 +92,23 @@ class Model:
                 f"Invalid enhancement '{enhancement}'. Must be one of {ENHANCEMENTS} or None."
             )
 
-    def _set_core_attributes(self, plane, num_slices, modality, k_folds, enhancement):
+    def _set_core_attributes(
+        self,
+        plane: str,
+        num_slices: int | str,
+        modality: list[str],
+        k_folds: int,
+        enhancement: str | None,
+    ) -> None:
+        """Sets the core attributes of the model after validation.
+
+        Args:
+            plane: Anatomical plane string (stored in lowercase).
+            num_slices: Slice count as an integer or percentile string.
+            modality: List of MRI modality strings.
+            k_folds: Number of cross-validation folds.
+            enhancement: Enhancement algorithm name (stored in uppercase), or None.
+        """
         self.plane = plane.lower()
         self.num_slices = num_slices
         self.modality = modality
@@ -75,24 +120,24 @@ class Model:
     # ======================================
 
     @property
-    def modality_str(self):
+    def modality_str(self) -> str:
         """Concatenated representation of the image modalities (e.g. 'T1T2FLAIR')."""
         return "".join(self.modality)
 
     @property
-    def exp_string(self):
+    def exp_string(self) -> str:
         """Short experiment name ('Base' or enhancement type)."""
         return self.enhancement if self.enhancement else "Base"
 
     @property
-    def folds_string(self):
+    def folds_string(self) -> str:
         """String representation of the number of folds ('1fold' or '<k>folds')."""
         if self.k_folds == 1:
             return "1fold"
         return f"{self.k_folds}folds"
 
     @property
-    def base_path(self):
+    def base_path(self) -> Path:
         """Base path for the model."""
         return (
             Path(self.exp_string)
@@ -100,7 +145,7 @@ class Model:
         )
 
     @property
-    def model_string(self):
+    def model_string(self) -> str:
         """Unique, human-readable model identifier based on plane, modality, and slice count."""
         if not self.enhancement:
             return f"{self.plane}_{self.modality_str}_{self.num_slices}slices_{self.folds_string}"
@@ -111,10 +156,10 @@ class Model:
     #           REPRESENTATION
     # ======================================
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Internal representation of the Model instance."""
         return f"Model({self.model_string})"
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Human-readable representation of the Model instance."""
         return f"{self.model_string}"

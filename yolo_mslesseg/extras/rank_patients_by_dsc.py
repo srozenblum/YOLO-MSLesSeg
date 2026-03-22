@@ -56,6 +56,7 @@ Outputs:
 """
 
 import argparse
+from pathlib import Path
 
 from yolo_mslesseg.utils.Model import Model
 from yolo_mslesseg.utils.logging_config import get_logger
@@ -74,10 +75,15 @@ logger = get_logger(__file__)
 # ======================================
 
 
-def extract_plane_from_json(json_path) -> str | None:
-    """
-    Given a file: PX_<plane>_results.json, extracts the <plane>,
-    ignoring any plane not in the allowed set.
+def extract_plane_from_json(json_path: Path) -> str | None:
+    """Extracts the anatomical plane label from a per-patient results JSON filename.
+
+    Args:
+        json_path: Path to a patient results JSON file named PX_<plane>_results.json.
+
+    Returns:
+        Plane string if found in the filename, or None if the plane is unknown or
+        corresponds to the consensus.
     """
     stem = json_path.stem  # e.g. "P1_axial_results"
 
@@ -96,8 +102,15 @@ def extract_plane_from_json(json_path) -> str | None:
     return None
 
 
-def extract_patient_dsc(json_path) -> float | None:
-    """Extracts the DSC value from an individual patient JSON file."""
+def extract_patient_dsc(json_path: Path) -> float | None:
+    """Extracts the DSC value from an individual patient JSON file.
+
+    Args:
+        json_path: Path to the patient results JSON file.
+
+    Returns:
+        DSC value as a float, or None if the file could not be read or DSC is absent.
+    """
     try:
         data = read_json(json_path)
     except Exception as e:
@@ -107,10 +120,12 @@ def extract_patient_dsc(json_path) -> float | None:
     return data.get("DSC", None)
 
 
-def print_results(dsc_per_enhancement: dict) -> None:
-    """
-    Prints the analysis results: best and worst patient
-    per enhancement algorithm (with their respective plane).
+def print_results(dsc_per_enhancement: dict[str, dict]) -> None:
+    """Prints the best and worst patient per enhancement algorithm to the console.
+
+    Args:
+        dsc_per_enhancement: Nested dictionary mapping enhancement labels to
+            patient dictionaries with 'dsc' and 'plane' values.
     """
     for enhancement, patients_info in dsc_per_enhancement.items():
         if not patients_info:
@@ -134,11 +149,12 @@ def print_results(dsc_per_enhancement: dict) -> None:
         )
 
 
-def analyze_experiment(results_dir, global_config: str) -> None:
-    """
-    Traverses results/<enhancement>/<config>/(foldX|test)/PX/*.json
-    and builds:
-        enhancement → patient → { dsc, plane }
+def analyze_experiment(results_dir: Path, global_config: str) -> None:
+    """Traverses the results directory tree and ranks patients by DSC per enhancement.
+
+    Args:
+        results_dir: Root results directory to scan.
+        global_config: Configuration string used to locate experiment subdirectories.
     """
     if not path_exists(results_dir):
         logger.error(f"❌ Results directory does not exist: {results_dir}")
@@ -206,7 +222,12 @@ def analyze_experiment(results_dir, global_config: str) -> None:
 
 
 def run_flow(model: Model, epochs: int) -> None:
-    """Executes the full patient analysis flow."""
+    """Executes the full patient analysis flow.
+
+    Args:
+        model: Model instance used to derive the experiment configuration string.
+        epochs: Number of training epochs of the YOLO model.
+    """
     global_config = build_config_name(model, epochs)
 
     logger.header(f"🔍 Analysing patients for {global_config}")
@@ -222,7 +243,11 @@ def run_flow(model: Model, epochs: int) -> None:
 
 
 def parse_args() -> argparse.Namespace:
-    """Parses the CLI arguments."""
+    """Parses the CLI arguments.
+
+    Returns:
+        Namespace with the parsed CLI arguments.
+    """
     parser = argparse.ArgumentParser(
         description="Analyse best and worst patients per enhancement algorithm based on DSC."
     )
@@ -275,10 +300,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
-    """
-    CLI entry point: parses arguments, builds the Model instance,
-    and executes the full flow.
-    """
+    """CLI entry point: parses arguments, builds the Model instance, and executes the full flow."""
     args = parse_args()
 
     model = Model(

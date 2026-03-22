@@ -82,6 +82,7 @@ import argparse
 import logging
 import shutil
 import sys
+from pathlib import Path
 
 import yaml
 from ultralytics.utils import LOGGER
@@ -107,13 +108,16 @@ LOGGER.setLevel(logging.ERROR)
 # ======================================
 
 
-def training_successful(root_dir):
-    """
-    Checks whether training was successful by verifying the essential
-    YOLO training output files:
-        - weights/best.pt   → best weights obtained
-        - weights/last.pt   → last weights obtained
-        - results.csv       → training metrics summary
+def training_successful(root_dir: Path) -> bool:
+    """Checks whether training produced the expected YOLO output files.
+
+    Verifies the presence of weights/best.pt, weights/last.pt, and results.csv.
+
+    Args:
+        root_dir: Root directory of the YOLO training run.
+
+    Returns:
+        True if all expected output files exist, False otherwise.
     """
     best = root_dir / "weights" / WEIGHTS_FILE
     last = root_dir / "weights" / "last.pt"
@@ -121,10 +125,12 @@ def training_successful(root_dir):
     return best.is_file() and last.is_file() and results.is_file()
 
 
-def copy_directory_contents(input_dir, output_dir):
-    """
-    Copies the contents of input_dir to output_dir,
-    skipping hidden or system files.
+def copy_directory_contents(input_dir: Path, output_dir: Path) -> None:
+    """Copies the contents of a directory to another, skipping hidden or system files.
+
+    Args:
+        input_dir: Source directory whose contents will be copied.
+        output_dir: Destination directory where contents will be placed.
     """
     if not path_exists(input_dir):
         return
@@ -145,11 +151,15 @@ def copy_directory_contents(input_dir, output_dir):
             raise
 
 
-def duplicate_modality_labels(images_dir, labels_dir):
-    """
-    For each image PX_<modality>_<slice>.png, creates a label
-    PX_<modality>_<slice>.txt by copying the content of PX_<slice>.txt,
-    which is then deleted.
+def duplicate_modality_labels(images_dir: Path, labels_dir: Path) -> None:
+    """Creates modality-specific label files from base slice labels and removes the originals.
+
+    For each image named PX_<modality>_<slice>.png, copies PX_<slice>.txt to
+    PX_<modality>_<slice>.txt and then deletes the original PX_<slice>.txt.
+
+    Args:
+        images_dir: Directory containing the modality-specific image PNG files.
+        labels_dir: Directory containing the base label TXT files to duplicate.
     """
     labels_base = set()
 
@@ -174,10 +184,14 @@ def duplicate_modality_labels(images_dir, labels_dir):
             logger.warning(f"⚠️ Could not delete {lb}: {e}.")
 
 
-def prepare_yolo_flat(root_dir):
-    """
-    Organises the contents of a flat directory into the format required by YOLO.
-    Moves all images (.png) to 'images/' and all labels (.txt) to 'labels/'.
+def prepare_yolo_flat(root_dir: Path) -> None:
+    """Organises a flat directory into the images/ and labels/ structure required by YOLO.
+
+    Moves all PNG files to images/ and all TXT files to labels/, then deduplicates
+    modality-specific labels.
+
+    Args:
+        root_dir: Directory whose contents will be reorganised in-place.
     """
     images_output_dir = root_dir / "images"
     labels_output_dir = root_dir / "labels"
@@ -193,17 +207,16 @@ def prepare_yolo_flat(root_dir):
     duplicate_modality_labels(images_output_dir, labels_output_dir)
 
 
-def copy_group_patients_to_flat(group_dir, plane, output_dir):
-    """
-    Copies all images and labels for the given plane from a group directory
-    (train/ or test/) to a flat output directory.
+def copy_group_patients_to_flat(group_dir: Path, plane: str, output_dir: Path) -> None:
+    """Copies images and labels for the given plane from a group directory to a flat directory.
 
-    Expected input structure:
-        group_dir/PX/<plane>/images/*.png
-        group_dir/PX/<plane>/labels/*.txt
+    Expects group_dir/PX/<plane>/images/*.png and group_dir/PX/<plane>/labels/*.txt.
+    All files are placed flat in output_dir without subdirectories.
 
-    Output structure:
-        output_dir/  (all .png and .txt files together)
+    Args:
+        group_dir: Root group directory (e.g. train/ or test/) containing patient subdirs.
+        plane: Anatomical plane name used to locate the plane subdirectory.
+        output_dir: Flat destination directory where all files will be copied.
     """
     for patient_dir in group_dir.iterdir():
         if not patient_dir.is_dir():
@@ -222,8 +235,15 @@ def copy_group_patients_to_flat(group_dir, plane, output_dir):
             copy_directory_contents(labels_dir, output_dir)
 
 
-def get_existing_folds(dataset_dir):
-    """Returns the list of existing folds in the dataset."""
+def get_existing_folds(dataset_dir: Path) -> list[int]:
+    """Returns a sorted list of fold indices present in the dataset directory.
+
+    Args:
+        dataset_dir: Base dataset directory containing fold subdirectories.
+
+    Returns:
+        Sorted list of fold indices found (e.g. [1, 2, 3, 4, 5]).
+    """
     folds = []
     for d in dataset_dir.iterdir():
         if d.is_dir() and d.name.startswith("fold"):
@@ -235,13 +255,15 @@ def get_existing_folds(dataset_dir):
     return sorted(folds)
 
 
-def copy_fold_patients(fold_dir, plane, output_dir):
-    """
-    Copies images and labels for the given plane from a fold to a flat directory.
+def copy_fold_patients(fold_dir: Path, plane: str, output_dir: Path) -> None:
+    """Copies images and labels for the given plane from a fold directory to a flat directory.
 
-    Expected input structure:
-        fold_dir/PX/<plane>/images/*.png
-        fold_dir/PX/<plane>/labels/*.txt
+    Expects fold_dir/PX/<plane>/images/*.png and fold_dir/PX/<plane>/labels/*.txt.
+
+    Args:
+        fold_dir: Fold directory containing patient subdirectories.
+        plane: Anatomical plane name used to locate the plane subdirectory.
+        output_dir: Flat destination directory where all files will be copied.
     """
     for patient_dir in fold_dir.iterdir():
         if not patient_dir.is_dir():
@@ -258,9 +280,14 @@ def copy_fold_patients(fold_dir, plane, output_dir):
             copy_directory_contents(labels_dir, output_dir)
 
 
-def is_valid_yolo_subset(root_dir):
-    """
-    Checks that images and labels exist in the temporary training directories.
+def is_valid_yolo_subset(root_dir: Path) -> bool:
+    """Checks that a YOLO subset directory contains at least one image and one label.
+
+    Args:
+        root_dir: Root directory expected to contain images/ and labels/ subdirectories.
+
+    Returns:
+        True if both images/ and labels/ exist and are non-empty, False otherwise.
     """
     images = root_dir / "images"
     labels = root_dir / "labels"
@@ -277,8 +304,12 @@ def is_valid_yolo_subset(root_dir):
 # ======================================
 
 
-def create_train_subset_cv(config):
-    """Builds the training subset for the current fold by combining all other folds."""
+def create_train_subset_cv(config: ConfigTrain) -> None:
+    """Builds the flat training subset for the current fold by combining all other folds.
+
+    Args:
+        config: ConfigTrain instance providing fold and directory settings.
+    """
     current_fold = config.fold_test
     existing_folds = get_existing_folds(config.dataset_base_dir)
     train_output_dir = config.fold_train_dir
@@ -307,8 +338,12 @@ def create_train_subset_cv(config):
     prepare_yolo_flat(train_output_dir)
 
 
-def create_test_subset_cv(config):
-    """Creates the test subset from the current fold."""
+def create_test_subset_cv(config: ConfigTrain) -> None:
+    """Creates the flat test subset from the current fold directory.
+
+    Args:
+        config: ConfigTrain instance providing fold and directory settings.
+    """
     fold_input_dir = config.fold_dir
     test_output_dir = config.fold_test_dir
 
@@ -325,10 +360,11 @@ def create_test_subset_cv(config):
     prepare_yolo_flat(test_output_dir)
 
 
-def create_single_fold_train_test(config):
-    """
-    Creates flat train_yolo/ and test_yolo/ directories for k_folds == 1,
-    from train/<plane>/ and test/<plane>/.
+def create_single_fold_train_test(config: ConfigTrain) -> None:
+    """Creates flat train_yolo/ and test_yolo/ directories for the k_folds == 1 scheme.
+
+    Args:
+        config: ConfigTrain instance providing the train/test directory settings.
     """
     train_output_dir = config.fold_train_dir
     test_output_dir = config.fold_test_dir
@@ -350,10 +386,14 @@ def create_single_fold_train_test(config):
     prepare_yolo_flat(test_output_dir)
 
 
-def build_training_subsets(config):
-    """
-    Prepares temporary flat directories for YOLO and returns (train_dir, val_dir).
-    Both returned paths are roots containing images/ and labels/.
+def build_training_subsets(config: ConfigTrain) -> tuple[Path, Path]:
+    """Prepares the flat train and validation directories required by YOLO.
+
+    Args:
+        config: ConfigTrain instance providing directory and fold settings.
+
+    Returns:
+        Tuple of (train_dir, val_dir), each containing images/ and labels/ subdirectories.
     """
     if config.single_fold:
         create_single_fold_train_test(config)
@@ -368,8 +408,17 @@ def build_training_subsets(config):
 # ======================================
 
 
-def generate_yaml(config, train_dir, val_dir):
-    """Generates a YOLO configuration dictionary."""
+def generate_yaml(config: ConfigTrain, train_dir: Path, val_dir: Path) -> dict:
+    """Generates the YOLO configuration dictionary for the training run.
+
+    Args:
+        config: ConfigTrain instance providing dataset and model settings.
+        train_dir: Directory containing the training images/ subdirectory.
+        val_dir: Directory containing the validation images/ subdirectory.
+
+    Returns:
+        Dictionary with YOLO YAML configuration fields.
+    """
     return {
         "path": str(config.dataset_base_dir.parent.resolve()),
         "train": str((train_dir / "images").resolve()),
@@ -379,14 +428,23 @@ def generate_yaml(config, train_dir, val_dir):
     }
 
 
-def save_yaml(yolo_dict, config):
-    """Saves the YOLO configuration dictionary to the YAML file."""
+def save_yaml(yolo_dict: dict, config: ConfigTrain) -> None:
+    """Saves the YOLO configuration dictionary to the YAML file path in config.
+
+    Args:
+        yolo_dict: YOLO configuration dictionary to serialise.
+        config: ConfigTrain instance providing the yaml_path.
+    """
     with open(config.yaml_path, "w") as f:
         yaml.dump(yolo_dict, f, default_flow_style=False, sort_keys=False)
 
 
-def copy_yaml(config):
-    """Copies the YAML file to the training output directory."""
+def copy_yaml(config: ConfigTrain) -> None:
+    """Copies the YAML file to the training output directory for reference.
+
+    Args:
+        config: ConfigTrain instance providing yaml_path and train_output_dir.
+    """
     yaml_dest = config.train_output_dir / f"{config.model.model_string}{EXT_YAML}"
     try:
         shutil.copy2(config.yaml_path, yaml_dest)
@@ -401,8 +459,12 @@ def copy_yaml(config):
 # ======================================
 
 
-def train_fold(config):
-    """Runs the YOLO training (without preparing subsets or generating YAML)."""
+def train_fold(config: ConfigTrain) -> None:
+    """Runs YOLO training using the configuration and YAML already prepared.
+
+    Args:
+        config: ConfigTrain instance providing training parameters and paths.
+    """
     model_yolo = load_model(config.weights_path)
 
     common_kwargs = dict(
@@ -428,10 +490,12 @@ def train_fold(config):
         )
 
 
-def delete_temp_files(train_dir, val_dir):
-    """
-    Deletes the temporary directories containing images/ and labels/.
-    Expected paths of the form .../train_yolo/<plane> and .../test_yolo/<plane>.
+def delete_temp_files(train_dir: Path | None, val_dir: Path | None) -> None:
+    """Deletes temporary flat directories used for YOLO training.
+
+    Args:
+        train_dir: Temporary training directory to delete, or None to skip.
+        val_dir: Temporary validation directory to delete, or None to skip.
     """
     for d in (train_dir, val_dir):
         if d is None:
@@ -440,15 +504,17 @@ def delete_temp_files(train_dir, val_dir):
             delete_directory(d)
 
 
-def train(config):
-    """
-    Orchestrates the training:
-    1) prepares temporary subsets
-    2) validates that they are non-empty
-    3) generates and saves the YAML
-    4) trains the model
-    5) copies the YAML
-    6) cleans up temporary files
+def train(config: ConfigTrain) -> None:
+    """Orchestrates the full training process for a single fold.
+
+    Prepares temporary subsets, validates them, generates and saves the YAML,
+    runs training, copies the YAML, and cleans up temporary files.
+
+    Args:
+        config: ConfigTrain instance providing all training configuration.
+
+    Raises:
+        RuntimeError: If the train or validation YOLO subset is empty or invalid.
     """
     train_dir, val_dir = build_training_subsets(config)
 
@@ -474,8 +540,14 @@ def train(config):
 # ======================================
 
 
-def run_train_flow(config, clean, verbose=False):
-    """Executes the main training flow."""
+def run_train_flow(config: ConfigTrain, clean: bool, verbose: bool = False) -> None:
+    """Executes the main training flow.
+
+    Args:
+        config: ConfigTrain instance defining the training configuration.
+        clean: If True, deletes existing training outputs before starting.
+        verbose: If True, logs a header message at the start of execution.
+    """
     if verbose:
         if config.single_fold:
             logger.header("🧠️ Training model (single fold)")
@@ -516,9 +588,14 @@ def run_train_flow(config, clean, verbose=False):
 # ======================================
 
 
-def parse_args(argv=None):
-    """
-    Parses the script arguments.
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    """Parses command-line arguments for the training script.
+
+    Args:
+        argv: Argument list to parse. Defaults to sys.argv[1:] if None.
+
+    Returns:
+        Namespace with the parsed CLI arguments.
     """
     if argv is None:
         argv = sys.argv[1:]
@@ -587,10 +664,11 @@ def parse_args(argv=None):
     return parser.parse_args(argv)
 
 
-def main(argv=None):
-    """
-    CLI entry point: parses arguments, builds Model/ConfigTrain instances,
-    and executes the full flow.
+def main(argv: list[str] | None = None) -> None:
+    """CLI entry point: parses arguments and executes the training flow.
+
+    Args:
+        argv: Argument list to parse. Defaults to sys.argv[1:] if None.
     """
     args = parse_args(argv)
 
@@ -616,10 +694,14 @@ def main(argv=None):
     run_train_flow(config=config, clean=args.clean, verbose=True)
 
 
-def run_train_pipeline(model, fold_test=None, epochs=50, clean=False):
-    """
-    Internal pipeline entry point: receives pre-built objects and executes
-    the flow without using the CLI parser.
+def run_train_pipeline(model: Model, fold_test: int | None = None, epochs: int = 50, clean: bool = False) -> None:
+    """Internal pipeline entry point: executes the training flow programmatically.
+
+    Args:
+        model: Model instance defining the training configuration.
+        fold_test: Test fold index when using cross-validation, or None for k_folds == 1.
+        epochs: Number of training epochs.
+        clean: If True, deletes existing training outputs before starting.
     """
     config = ConfigTrain(
         model=model,

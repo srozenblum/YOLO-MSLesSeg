@@ -84,6 +84,7 @@ Outputs:
 import argparse
 import logging
 import sys
+from pathlib import Path
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -115,10 +116,20 @@ LOGGER.setLevel(logging.WARNING)
 # ======================================
 
 
-def compute_percentile_slice_count(input_dir, plane, modality, percentil=50):
-    """
-    Computes the number of slices to use based on the global percentile
-    of the distribution of lesion-containing slices across all patients.
+def compute_percentile_slice_count(input_dir: Path, plane: str, modality: list[str], percentil: int = 50) -> int:
+    """Computes the number of slices based on the global percentile of lesion-containing slices.
+
+    Args:
+        input_dir: Directory containing patient subdirectories.
+        plane: Anatomical plane to use ('axial', 'coronal', 'sagital').
+        modality: List of MRI modalities to include.
+        percentil: Percentile to compute over the distribution of slice counts.
+
+    Returns:
+        Number of slices corresponding to the given percentile across all patients.
+
+    Raises:
+        ValueError: If no valid lesion slices are found or the percentile is invalid.
     """
     patients = list_patients(input_dir)
     slice_counts = []
@@ -141,10 +152,20 @@ def compute_percentile_slice_count(input_dir, plane, modality, percentil=50):
     return num_slices
 
 
-def resolve_num_slices(num_slices, input_dir, plane, modality):
-    """
-    Resolves the number of slices to use based on a fixed value or a percentile,
-    returning a tuple (num_slices, percentile).
+def resolve_num_slices(num_slices: int | str | None, input_dir: Path, plane: str, modality: list[str]) -> tuple[int | None, int | None]:
+    """Resolves the number of slices to extract from a fixed value or a percentile string.
+
+    Args:
+        num_slices: Fixed integer count, a percentile string (e.g. 'P50'), or None.
+        input_dir: Directory containing patient subdirectories (used for percentile computation).
+        plane: Anatomical plane ('axial', 'coronal', 'sagital').
+        modality: List of MRI modalities to include.
+
+    Returns:
+        Tuple of (num_slices, percentile) where percentile is None for fixed values.
+
+    Raises:
+        ValueError: If num_slices has an unrecognised format.
     """
     if isinstance(num_slices, int) or num_slices is None:
         return num_slices, None
@@ -162,15 +183,20 @@ def resolve_num_slices(num_slices, input_dir, plane, modality):
     raise ValueError(f"Invalid num_slices format: {num_slices}.")
 
 
-def build_paths(patient, config, group=None):
-    """
-    Builds a dictionary of paths (images, GT_masks, labels) for a patient.
+def build_paths(patient: Patient, config: ConfigDataset, group: str | None = None) -> dict[str, Path]:
+    """Builds the output directory paths for a patient's images, GT masks, and labels.
 
-    - k_folds > 1:
-        datasets/<base_path>/fold{fold}/PX/<plane>/(images|GT_masks|labels)
-    - k_folds == 1:
-        datasets/<base_path>/{train|test}/PX/<plane>/(images|GT_masks|labels)
-        * group is inferred from config.dataset_entrada if not passed explicitly.
+    For k_folds > 1, paths follow datasets/<base_path>/fold{fold}/PX/<plane>/...
+    For k_folds == 1, paths follow datasets/<base_path>/{train|test}/PX/<plane>/...
+    The group is inferred from config.dataset_entrada if not provided.
+
+    Args:
+        patient: Patient instance whose paths are being resolved.
+        config: ConfigDataset instance providing output directory and fold settings.
+        group: Dataset group ('train' or 'test'). Inferred if None (k_folds == 1 only).
+
+    Returns:
+        Dictionary with keys 'images', 'GT_masks', and 'labels' mapping to Path objects.
     """
     if config.k_folds > 1:
         fold = compute_fold(patient_id=patient.id, k_folds=config.k_folds)
@@ -188,13 +214,21 @@ def build_paths(patient, config, group=None):
     }
 
 
-def save_slices(patient, images_dir, gt_masks_dir, num_slices):
-    """
-    Saves image and mask slices for a patient to the given directories.
+def save_slices(patient: Patient, images_dir: Path, gt_masks_dir: Path, num_slices: int | None) -> None:
+    """Saves image and mask slices for a patient to the output directories.
 
-    Each image is saved as a 3-channel (RGB) PNG with one channel per modality,
-    allowing YOLO to jointly process all modalities. If fewer than 3 modalities
-    are configured, the last channel is repeated. Filename: {patient_id}_{i}.png.
+    Each image is saved as a 3-channel (RGB) PNG with one channel per modality.
+    If fewer than 3 modalities are configured, the last channel is repeated.
+    Filenames follow the pattern {patient_id}_{i}.png.
+
+    Args:
+        patient: Patient instance providing the slice data.
+        images_dir: Directory where image PNGs will be saved.
+        gt_masks_dir: Directory where ground truth mask PNGs will be saved.
+        num_slices: Maximum number of slices to extract, or None for all lesion slices.
+
+    Raises:
+        ValueError: If no valid slices are found for the patient.
     """
     slice_images = patient.lesion_slices_multichannel(num_slices=num_slices)
     slice_masks = patient.lesion_mask_slices(num_slices=num_slices)
@@ -213,9 +247,15 @@ def save_slices(patient, images_dir, gt_masks_dir, num_slices):
         plt.imsave(gt_mask_path, mask.T, cmap="gray")
 
 
-def normalize_masks(gt_masks_dir):
-    """
-    Normalises all masks in gt_masks_dir to binary values (0 and 1).
+def normalize_masks(gt_masks_dir: Path) -> None:
+    """Normalises all PNG masks in a directory to binary values (0 and 1).
+
+    Args:
+        gt_masks_dir: Directory containing the PNG mask files to normalise.
+
+    Raises:
+        FileNotFoundError: If no PNG masks are found in gt_masks_dir.
+        OSError: If a mask file cannot be normalised.
     """
     files = list(gt_masks_dir.glob(f"*{EXT_PNG}"))
     if not files:
@@ -230,9 +270,14 @@ def normalize_masks(gt_masks_dir):
             raise OSError(f"Error normalising {path.name}: {e}")
 
 
-def annotate_masks(gt_masks_dir, labels_dir):
-    """
-    Converts a patient's GT masks to YOLO annotation format.
+def annotate_masks(gt_masks_dir: Path, labels_dir: Path) -> None:
+    """Converts ground truth masks to YOLO segmentation annotation format.
+
+    Normalises the masks before conversion.
+
+    Args:
+        gt_masks_dir: Directory containing the PNG ground truth masks.
+        labels_dir: Directory where the YOLO .txt annotation files will be written.
     """
     normalize_masks(gt_masks_dir)
 
@@ -248,9 +293,20 @@ def annotate_masks(gt_masks_dir, labels_dir):
 # ======================================
 
 
-def process_patient_dataset(patient, config, paths_dir=None, num_slices="P50"):
-    """
-    Executes the slice extraction process for an individual patient.
+def process_patient_dataset(patient: Patient, config: ConfigDataset, paths_dir: dict[str, Path] | None = None, num_slices: int | None = None) -> bool | None:
+    """Executes the slice extraction and annotation process for an individual patient.
+
+    Skips extraction if all output directories already exist and are non-empty.
+
+    Args:
+        patient: Patient instance to process.
+        config: ConfigDataset instance providing the patient output paths.
+        paths_dir: Dictionary of output paths (images, GT_masks, labels). Defaults to
+            config.patient_dir if None.
+        num_slices: Maximum number of slices to extract, or None for all lesion slices.
+
+    Returns:
+        True if extraction was performed, None if skipped (already exists).
     """
     if paths_dir is None:
         paths_dir = config.patient_dir
@@ -269,9 +325,18 @@ def process_patient_dataset(patient, config, paths_dir=None, num_slices="P50"):
     return True
 
 
-def save_patient_slices(input_dir, config, num_slices, group=None):
-    """
-    Executes the slice extraction process for all patients in input_dir.
+def save_patient_slices(input_dir: Path, config: ConfigDataset, num_slices: int | None, group: str | None = None) -> bool | None | str:
+    """Executes the slice extraction process for all patients in a directory.
+
+    Args:
+        input_dir: Directory containing patient subdirectories to process.
+        config: ConfigDataset instance providing output paths and model settings.
+        num_slices: Maximum number of slices to extract per patient, or None for all.
+        group: Dataset group ('train' or 'test'). Inferred from config if None.
+
+    Returns:
+        True if all patients were processed, None if all were skipped, or
+        'partial' if there was a mix of processed and skipped patients.
     """
     patients = list_patients(input_dir)
 
@@ -308,9 +373,13 @@ def save_patient_slices(input_dir, config, num_slices, group=None):
 # ======================================
 
 
-def run_dataset_flow(config, clean, verbose=False):
-    """
-    Executes the main YOLO dataset extraction flow.
+def run_dataset_flow(config: ConfigDataset, clean: bool, verbose: bool = False) -> None:
+    """Executes the main YOLO dataset extraction flow.
+
+    Args:
+        config: ConfigDataset instance defining the extraction configuration.
+        clean: If True, deletes existing dataset outputs before extracting.
+        verbose: If True, logs a header message at the start of execution.
     """
     if verbose:
         str_full = "full patient set"
@@ -408,9 +477,14 @@ def run_dataset_flow(config, clean, verbose=False):
 # ======================================
 
 
-def parse_args(argv=None):
-    """
-    Parses the script arguments.
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    """Parses command-line arguments for the dataset extraction script.
+
+    Args:
+        argv: Argument list to parse. Defaults to sys.argv[1:] if None.
+
+    Returns:
+        Namespace with the parsed CLI arguments.
     """
     if argv is None:
         argv = sys.argv[1:]
@@ -486,10 +560,11 @@ def parse_args(argv=None):
     return parser.parse_args(argv)
 
 
-def main(argv=None):
-    """
-    CLI entry point: parses arguments, builds Model/Patient/ConfigDataset
-    instances, and executes the full flow.
+def main(argv: list[str] | None = None) -> None:
+    """CLI entry point: parses arguments and executes the dataset extraction flow.
+
+    Args:
+        argv: Argument list to parse. Defaults to sys.argv[1:] if None.
     """
     args = parse_args(argv)
 
@@ -529,10 +604,14 @@ def main(argv=None):
     )
 
 
-def run_dataset_pipeline(model, patient=None, k_folds=5, clean=False):
-    """
-    Internal pipeline entry point: receives pre-built objects and executes
-    the flow without using the CLI parser.
+def run_dataset_pipeline(model: Model, patient: Patient | None = None, k_folds: int = 5, clean: bool = False) -> None:
+    """Internal pipeline entry point: executes the dataset extraction flow programmatically.
+
+    Args:
+        model: Model instance defining the extraction configuration.
+        patient: Patient instance for individual execution, or None for full mode.
+        k_folds: Number of cross-validation folds (1 for a fixed split).
+        clean: If True, deletes existing dataset outputs before extracting.
     """
     if patient is not None:
         config = ConfigDataset(

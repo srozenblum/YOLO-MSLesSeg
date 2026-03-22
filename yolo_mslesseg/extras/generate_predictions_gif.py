@@ -86,9 +86,15 @@ logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
 
 
 def normalize_img_global(img_array: np.ndarray, vmin: float, vmax: float) -> np.ndarray:
-    """
-    Normalises an image to the [0, 1] range using global minimum and maximum
-    values (shared across slices), avoiding division by zero.
+    """Normalises an image to the [0, 1] range using global minimum and maximum values.
+
+    Args:
+        img_array: Input image array to normalise.
+        vmin: Global minimum intensity value shared across all slices.
+        vmax: Global maximum intensity value shared across all slices.
+
+    Returns:
+        Normalised image array with values in [0, 1], with division-by-zero protection.
     """
     img_array = img_array.astype(float)
     denom = vmax - vmin
@@ -97,13 +103,20 @@ def normalize_img_global(img_array: np.ndarray, vmin: float, vmax: float) -> np.
     return (img_array - vmin) / (denom + 1e-8)
 
 
-def load_slice_series(patient: Patient, model: Model) -> tuple[list, list, list]:
-    """
-    Loads and validates all available slices of the patient for the given model.
-    Returns three parallel lists:
-        - images: list of (slice_num, img_array) tuples
-        - preds:  list of prediction masks
-        - gts:    list of ground truth masks
+def load_slice_series(patient: Patient, model: Model) -> tuple[list[tuple[int, np.ndarray]], list[np.ndarray], list[np.ndarray]]:
+    """Loads and validates all available slices of a patient for the given model.
+
+    Args:
+        patient: Patient instance providing the ID and enhancement configuration.
+        model: Model instance providing the plane and modality settings.
+
+    Returns:
+        Tuple of three parallel lists: (images, preds, gts), where images is a list
+        of (slice_num, img_array) tuples, preds is a list of prediction masks, and
+        gts is a list of ground truth masks.
+
+    Raises:
+        RuntimeError: If no PNG slices are found or a required file is missing.
     """
     slices = get_patient_slices(patient, model)
 
@@ -138,10 +151,14 @@ def load_slice_series(patient: Patient, model: Model) -> tuple[list, list, list]
     return images, preds, gts
 
 
-def compute_global_range(images: list) -> tuple[float, float]:
-    """
-    Computes the global minimum and maximum intensity from
-    the list of images [(slice_num, img_array), ...].
+def compute_global_range(images: list[tuple[int, np.ndarray]]) -> tuple[float, float]:
+    """Computes the global minimum and maximum intensity across all image slices.
+
+    Args:
+        images: List of (slice_num, img_array) tuples from which to compute the range.
+
+    Returns:
+        Tuple of (global_min, global_max) intensity values.
     """
     global_min = min(img.min() for _, img in images)
     global_max = max(img.max() for _, img in images)
@@ -163,12 +180,20 @@ def create_frame(
     vmin: float,
     vmax: float,
 ) -> Image.Image:
-    """
-    Generates a GIF frame overlaying:
-        - Ground Truth (blue)
-        - False Positives (orange)
-        - True Positives (green)
-    on the original image.
+    """Generates a single GIF frame overlaying TP, FP, and FN masks on the base image.
+
+    Args:
+        img_array: Grayscale image array for the slice.
+        pred_array: Binary prediction mask array.
+        gt_array: Binary ground truth mask array.
+        slice_num: Slice index displayed in the frame label.
+        patient: Patient instance used for the title text.
+        enhancement: Enhancement algorithm label, or None for baseline.
+        vmin: Global minimum intensity for normalisation.
+        vmax: Global maximum intensity for normalisation.
+
+    Returns:
+        PIL Image of the rendered frame.
     """
     str_enhancement = enhancement if enhancement is not None else "Base"
 
@@ -259,15 +284,24 @@ def create_frame(
 
 def build_gif_frames(
     patient: Patient,
-    images: list,
-    preds: list,
-    gts: list,
+    images: list[tuple[int, np.ndarray]],
+    preds: list[np.ndarray],
+    gts: list[np.ndarray],
     vmin: float,
     vmax: float,
-) -> list:
-    """
-    Builds the list of frames for the GIF from the globally normalised
-    images and their associated masks.
+) -> list[Image.Image]:
+    """Builds the list of PIL frames for the GIF from globally normalised slices.
+
+    Args:
+        patient: Patient instance used for frame labelling.
+        images: List of (slice_num, img_array) tuples.
+        preds: List of prediction mask arrays aligned with images.
+        gts: List of ground truth mask arrays aligned with images.
+        vmin: Global minimum intensity for normalisation.
+        vmax: Global maximum intensity for normalisation.
+
+    Returns:
+        List of PIL Image frames in slice order.
     """
     frames = []
 
@@ -293,10 +327,15 @@ def build_gif_frames(
 
 
 def generate_gif(patient: Patient, model: Model, output_path: Path) -> None:
-    """
-    Generates a GIF iterating over all slices of the patient, overlaying
-    the prediction and ground truth, with global intensity normalisation
-    and FPS adjusted to the number of slices.
+    """Generates and saves an animated GIF iterating over all slices of a patient.
+
+    Args:
+        patient: Patient instance providing the ID and enhancement configuration.
+        model: Model instance providing the plane and modality settings.
+        output_path: Path where the output GIF will be saved.
+
+    Raises:
+        RuntimeError: If no frames could be generated for the patient.
     """
     # Load and validate all slices
     images, preds, gts = load_slice_series(patient, model)
@@ -338,7 +377,17 @@ def generate_gif(patient: Patient, model: Model, output_path: Path) -> None:
 
 
 def run_flow(patient: Patient, model: Model, epochs: int, clean: bool) -> None:
-    """Generates the full GIF combining all slices of the patient."""
+    """Generates the full GIF combining all slices of the patient.
+
+    Args:
+        patient: Patient instance defining the patient to visualise.
+        model: Model instance providing the plane and modality settings.
+        epochs: Number of training epochs of the YOLO model.
+        clean: If True, deletes the previous GIF before generating a new one.
+
+    Raises:
+        ValueError: If the patient belongs to the train split when k_folds == 1.
+    """
     logger.header("\n🎥️ Generating predictions GIF")
 
     root = Path.cwd()  # respects demo/ if called from a demo script
@@ -400,9 +449,13 @@ def run_flow(patient: Patient, model: Model, epochs: int, clean: bool) -> None:
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    """
-    Parses the script arguments.
-    If no argument list is provided, reads from the command line.
+    """Parses the script arguments from the command line or a provided argument list.
+
+    Args:
+        argv: Argument list to parse. Defaults to sys.argv[1:] if None.
+
+    Returns:
+        Namespace with the parsed CLI arguments.
     """
     if argv is None:
         argv = sys.argv[1:]
@@ -477,9 +530,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 
 def main(argv: list[str] | None = None) -> None:
-    """
-    CLI entry point: parses arguments, builds the Model and Patient instances,
-    and executes the GIF generation.
+    """CLI entry point: parses arguments, builds the Model and Patient instances, and executes the GIF generation.
+
+    Args:
+        argv: Argument list to parse. Defaults to sys.argv[1:] if None.
     """
     args = parse_args(argv)
 

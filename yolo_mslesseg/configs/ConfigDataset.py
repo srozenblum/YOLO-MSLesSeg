@@ -1,6 +1,8 @@
 from pathlib import Path
 
 from yolo_mslesseg.utils.logging_config import get_logger
+from yolo_mslesseg.utils.Model import Model
+from yolo_mslesseg.utils.Patient import Patient
 from yolo_mslesseg.utils.constants import (
     DATASET_DIR,
     SPLIT_TRAIN,
@@ -105,12 +107,25 @@ class ConfigDataset:
 
     def __init__(
         self,
-        model,
-        dataset_entrada=None,
-        k_folds=5,
-        full=False,
-        patient=None,
-    ):
+        model: Model,
+        dataset_entrada: str | Path | None = None,
+        k_folds: int = 5,
+        full: bool = False,
+        patient: Patient | None = None,
+    ) -> None:
+        """Initialises a ConfigDataset instance for the dataset extraction stage.
+
+        Args:
+            model: Model instance defining the plane, modalities, and base_path.
+            dataset_entrada: Override for the input dataset directory. Defaults
+                to the MSLesSeg train directory if None.
+            k_folds: Number of cross-validation folds (1 for a fixed split).
+            full: If True, processes all patients (ignored in patient mode).
+            patient: Patient instance for individual execution, or None for full mode.
+
+        Raises:
+            ValueError: If neither full mode nor a patient instance is specified.
+        """
         # --- Main attributes ---
         self._set_main_attributes(
             model=model,
@@ -132,12 +147,21 @@ class ConfigDataset:
 
     def _set_main_attributes(
         self,
-        model,
-        dataset_entrada,
-        k_folds,
-        full,
-        patient,
-    ):
+        model: Model,
+        dataset_entrada: str | Path | None,
+        k_folds: int,
+        full: bool,
+        patient: Patient | None,
+    ) -> None:
+        """Sets the core attributes and resolves the input/output directories.
+
+        Args:
+            model: Model instance defining the plane, modalities, and base_path.
+            dataset_entrada: Override for the input directory, or None for default.
+            k_folds: Number of cross-validation folds.
+            full: Whether to process the full dataset.
+            patient: Patient instance for individual execution, or None.
+        """
         self.model = model
         self.plane = model.plane
         self.k_folds = k_folds
@@ -158,7 +182,15 @@ class ConfigDataset:
         # Output directory
         self.output_dir = DATASETS_DIR / f"{self.model.base_path}"
 
-    def _resolve_execution_mode(self):
+    def _resolve_execution_mode(self) -> None:
+        """Resolves the execution mode and configures patient-related attributes.
+
+        Determines whether this is an individual patient run or a full dataset
+        run, and sets the input directory and fold/group accordingly.
+
+        Raises:
+            ValueError: If neither full mode nor patient mode is specified.
+        """
         self.is_individual_patient = self.patient is not None
         self.is_full = (not self.is_individual_patient) and self.full
 
@@ -191,7 +223,11 @@ class ConfigDataset:
                 "An execution mode must be specified: full dataset or individual patient."
             )
 
-    def _resolve_patient_paths(self):
+    def _resolve_patient_paths(self) -> None:
+        """Resolves and stores the output paths for an individual patient.
+
+        Has no effect when running in full dataset mode.
+        """
         if not self.is_individual_patient:
             return
 
@@ -230,16 +266,21 @@ class ConfigDataset:
     #               INPUTS
     # ======================================
 
-    def input_dir(self, group="train"):
-        """
-        Returns the MSLesSeg input directory for the given group.
+    def input_dir(self, group: str = "train") -> Path:
+        """Returns the MSLesSeg input directory for the given group.
 
-        - If k_folds > 1: always returns MSLesSeg-Dataset/train.
-          (the `group` parameter is ignored, as in CV mode test patients
-          come from the same train set).
-        - If k_folds == 1:
-            * group='train' → MSLesSeg-Dataset/train
-            * group='test'  → MSLesSeg-Dataset/test
+        When k_folds > 1, always returns the train directory (the group
+        argument is ignored, as CV test patients come from the train set).
+        When k_folds == 1, returns the train or test directory based on group.
+
+        Args:
+            group: Dataset group — either 'train' or 'test'.
+
+        Returns:
+            Path to the corresponding MSLesSeg input directory.
+
+        Raises:
+            ValueError: If group is not 'train' or 'test'.
         """
         if self.k_folds > 1:
             return self.mslesseg_train_dir
@@ -255,10 +296,14 @@ class ConfigDataset:
     #               CLEANUP
     # ======================================
 
-    def _clean_patients_root(self, root_dir):
-        """
-        Cleans the images/, GT_masks/, and labels/ subdirectories for the
-        current plane across all patients under root_dir (foldX/ or train/test).
+    def _clean_patients_root(self, root_dir: Path) -> None:
+        """Cleans the plane subdirectories for all patients under a root directory.
+
+        Removes images/, GT_masks/, and labels/ for the current plane across
+        all patients under root_dir (e.g. a foldX/ or train/test directory).
+
+        Args:
+            root_dir: Root directory containing patient subdirectories.
         """
         if not path_exists(root_dir):
             return
@@ -283,11 +328,8 @@ class ConfigDataset:
                         except Exception as e:
                             logger.warning(f"⚠️ Could not delete {subdir}: {e}")
 
-    def _clean_full_dataset(self):
-        """
-        Cleans patient subdirectories for the current plane across the entire
-        output structure.
-        """
+    def _clean_full_dataset(self) -> None:
+        """Cleans patient subdirectories for the current plane across the entire output structure."""
         if not path_exists(self.output_dir):
             return
 
@@ -301,10 +343,8 @@ class ConfigDataset:
                 if path_exists(group_dir):
                     self._clean_patients_root(group_dir)
 
-    def _clean_patient_dataset(self):
-        """
-        Cleans the plane subdirectories for a single patient.
-        """
+    def _clean_patient_dataset(self) -> None:
+        """Cleans the plane subdirectories for a single patient."""
         if not path_exists(self.patient_root):
             return
 
@@ -318,12 +358,11 @@ class ConfigDataset:
                     f"⚠️ Could not delete {name} for {self.patient.id}: {e}"
                 )
 
-    def clean_dataset(self):
-        """
-        Cleans files and directories in the output directory according to
-        the execution mode.
-        - Full dataset: cleans all patients.
-        - Individual patient: cleans only that patient.
+    def clean_dataset(self) -> None:
+        """Cleans output files according to the active execution mode.
+
+        Delegates to _clean_full_dataset for full mode, or to
+        _clean_patient_dataset for individual patient mode.
         """
         if self.is_full:
             self._clean_full_dataset()
@@ -334,10 +373,15 @@ class ConfigDataset:
     #            VERIFICATION
     # ======================================
 
-    def _create_output_structure(self, patients, root_output):
-        """
-        Creates the images/, GT_masks/, and labels/ structure for a list of
-        patients under root_output (foldX/ or train/test).
+    def _create_output_structure(self, patients: list[str], root_output: Path) -> None:
+        """Creates the YOLO output directory structure for a list of patients.
+
+        Creates images/, GT_masks/, and labels/ subdirectories for each
+        patient under root_output.
+
+        Args:
+            patients: List of patient ID strings to create directories for.
+            root_output: Root directory under which patient directories are created.
         """
         create_directory(root_output)
 
@@ -347,11 +391,14 @@ class ConfigDataset:
             for subdir in ["images", "GT_masks", "labels"]:
                 create_directory(patient_dir / subdir)
 
-    def _verify_full_paths(self):
-        """
-        Verifies that the input dataset exists and builds the output structure.
-        - k_folds > 1: creates fold1..foldK using patients from MSLesSeg-Dataset/train.
-        - k_folds == 1: creates train/ and test/.
+    def _verify_full_paths(self) -> None:
+        """Verifies that the input dataset exists and builds the output directory structure.
+
+        When k_folds > 1, creates fold1..foldK using patients from the train split.
+        When k_folds == 1, creates train/ and test/ directories.
+
+        Raises:
+            FileNotFoundError: If the MSLesSeg train directory does not exist.
         """
         if not self.mslesseg_train_dir.is_dir():
             raise FileNotFoundError(
@@ -387,12 +434,14 @@ class ConfigDataset:
                 test_patients = list_patients(self.mslesseg_test_dir)
                 self._create_output_structure(test_patients, self.output_dir / "test")
 
-    def _verify_patient_paths(self):
-        """
-        Verifies input and output paths for an individual patient.
-        - Input:  <dataset_entrada>/<patient_id>
-        - Output: images/, GT_masks/, labels/ inside the patient's destination
-                  (foldX/ or train/test).
+    def _verify_patient_paths(self) -> None:
+        """Verifies input and output paths for an individual patient.
+
+        Checks that the patient's input directory exists, and creates the
+        images/, GT_masks/, and labels/ output subdirectories.
+
+        Raises:
+            FileNotFoundError: If the patient's input directory does not exist.
         """
         patient_input_dir = self.dataset_entrada / self.patient.id
         if not patient_input_dir.is_dir():
@@ -403,11 +452,11 @@ class ConfigDataset:
         for subdir in self.patient_dir.values():
             create_directory(subdir)
 
-    def verify_paths(self):
-        """
-        Verifies that the input and output directories exist for dataset extraction.
-        - Full dataset mode: builds the global structure.
-        - Individual patient mode: builds the structure only for that patient.
+    def verify_paths(self) -> None:
+        """Verifies that the input and output directories exist for dataset extraction.
+
+        Delegates to _verify_full_paths for full mode, or to
+        _verify_patient_paths for individual patient mode.
         """
         if self.is_full:
             self._verify_full_paths()
@@ -418,7 +467,8 @@ class ConfigDataset:
     #            REPRESENTATION
     # ======================================
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """String representation of this ConfigDataset instance."""
         if self.is_full:
             return f"{self.__class__.__name__}(model={self.model.model_string}, full={self.full}, k_folds={self.k_folds})"
         return f"{self.__class__.__name__}(model={self.model.model_string}, patient={self.patient.id}, k_folds={self.k_folds})"

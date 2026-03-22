@@ -12,6 +12,8 @@ Description:
 from abc import ABC, abstractmethod
 
 from yolo_mslesseg.utils.logging_config import get_logger
+from yolo_mslesseg.utils.Model import Model
+from yolo_mslesseg.utils.Patient import Patient
 
 logger = get_logger(__file__)
 
@@ -57,12 +59,21 @@ class ConfigBase(ABC):
 
     def __init__(
         self,
-        model,
+        model: Model,
         epochs: int,
         k_folds: int = 5,
-        patient=None,
-        fold_test=None,
+        patient: Patient | None = None,
+        fold_test: int | None = None,
     ) -> None:
+        """Initialises the shared attributes for all stage configurations.
+
+        Args:
+            model: Model instance defining the plane, modalities, and base_path.
+            epochs: Number of training epochs of the YOLO model.
+            k_folds: Number of cross-validation folds (1 for a fixed split).
+            patient: Patient instance for individual execution, or None for fold-level.
+            fold_test: Test fold index when using cross-validation, or None.
+        """
         self.model = model
         self.plane: str = model.plane
         self.epochs: int = epochs
@@ -78,11 +89,10 @@ class ConfigBase(ABC):
 
     @property
     def fold_subdir(self) -> str:
-        """
-        Returns the fold subdirectory name for path construction.
+        """Returns the fold subdirectory name for path construction.
 
-        - k_folds == 1: returns self.group ('test').
-        - k_folds > 1:  returns 'fold<fold_test>'.
+        Returns:
+            'test' when k_folds == 1, or 'fold<fold_test>' when k_folds > 1.
         """
         return self.group if self.single_fold else f"fold{self.fold_test}"
 
