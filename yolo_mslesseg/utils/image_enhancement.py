@@ -1,0 +1,209 @@
+"""
+Module: image_enhancement.py
+
+Description:
+    Defines an object-oriented structure for applying different 2D image
+    enhancement techniques. Includes an abstract base class 'Algorithm' and
+    four concrete implementations: HE, CLAHE, GC, and LT. Each class
+    implements its own 'apply' method, which executes the corresponding
+    technique on an input image.
+"""
+
+from abc import ABC, abstractmethod
+
+import cv2
+import numpy as np
+
+from yolo_mslesseg.utils.utils import convert_to_bgr
+
+
+# ======================================
+#             BASE CLASS
+# ======================================
+
+
+class Algorithm(ABC):
+    """
+    Class: Algorithm
+
+    Description:
+        Abstract base class for 2D image enhancement techniques.
+        Defines the common interface that all subclasses must implement.
+    """
+
+    @abstractmethod
+    def apply(self, image):
+        """Apply the enhancement algorithm to a 2D image and return the result."""
+
+    def __repr__(self) -> str:
+        return type(self).__name__
+
+
+# ======================================
+#        ENHANCEMENT TECHNIQUES
+# ======================================
+
+
+class HE(Algorithm):
+    """
+    Class: HE
+
+    Description:
+        Implements Histogram Equalisation (HE), improving global contrast by
+        redistributing pixel intensity uniformly across the histogram.
+    """
+
+    def apply(self, image):
+        """Apply HE to the image."""
+
+        # Convert the image to BGR if it is RGB or greyscale
+        img_bgr = convert_to_bgr(image)
+
+        # Convert from BGR to YUV
+        img_yuv = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2YUV)
+
+        # Equalise the Y (luminance) channel
+        img_yuv[:, :, 0] = cv2.equalizeHist(img_yuv[:, :, 0])
+
+        # Convert back to RGB
+        img_rgb = cv2.cvtColor(img_yuv, cv2.COLOR_YUV2RGB)
+
+        return img_rgb
+
+
+class CLAHE(Algorithm):
+    """
+    Class: CLAHE
+
+    Description:
+        Implements Contrast Limited Adaptive Histogram Equalisation (CLAHE),
+        which adjusts contrast locally while avoiding over-amplification of noise.
+
+    Attributes:
+        clip_limit (float): contrast limit for equalisation (default 2.0).
+        tile_grid_size (tuple[int, int]): grid size for local processing (default (8, 8)).
+    """
+
+    def __init__(self, clip_limit=2.0, tile_grid_size=(8, 8)):
+        super().__init__()
+        self.clip_limit = clip_limit
+        self.tile_grid_size = tile_grid_size
+
+    def apply(self, image):
+        """Apply CLAHE to the L channel of the image."""
+
+        # Convert the image to BGR if it is RGB or greyscale
+        img_bgr = convert_to_bgr(image)
+
+        # Convert from BGR to LAB
+        lab = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2LAB)
+
+        # Split the L, A, B channels
+        l, a, b = cv2.split(lab)
+
+        # Create the CLAHE object
+        clahe = cv2.createCLAHE(
+            clipLimit=self.clip_limit, tileGridSize=self.tile_grid_size
+        )
+
+        # Apply CLAHE only to the L (luminance) channel
+        l_clahe = clahe.apply(l)
+
+        # Merge the modified L channel back with A and B
+        img_merge = cv2.merge((l_clahe, a, b))
+
+        # Convert from LAB back to BGR
+        image = cv2.cvtColor(img_merge, cv2.COLOR_LAB2BGR)
+
+        return image
+
+
+class GC(Algorithm):
+    """
+    Class: GC
+
+    Description:
+        Implements Gamma Correction (GC), adjusting brightness and contrast
+        through a non-linear transformation of pixel intensity values.
+
+    Attributes:
+        gamma (float): gamma correction factor (default 2.0).
+    """
+
+    def __init__(self, gamma=2.0):
+        super().__init__()
+        self.gamma = gamma
+
+    def apply(self, image):
+        """Apply GC to the image."""
+
+        # Convert the image to BGR if it is RGB or greyscale
+        img_bgr = convert_to_bgr(image)
+
+        # Build the gamma correction lookup table
+        table = np.array((np.linspace(0, 1, 256) ** self.gamma) * 255, dtype=np.uint8)
+
+        # Apply the lookup table to the image
+        img_rgb = cv2.LUT(img_bgr, table)
+
+        return img_rgb
+
+
+class LT(Algorithm):
+    """
+    Class: LT
+
+    Description:
+        Implements Logarithmic Transformation (LT), which enhances details in
+        dark regions by compressing the dynamic intensity range.
+    """
+
+    def apply(self, image):
+        """Apply LT to the image."""
+
+        # Convert the image to BGR if it is RGB or greyscale
+        img_bgr = convert_to_bgr(image)
+
+        # Convert to uint16 to avoid issues with large values
+        img_bgr = img_bgr.astype(np.uint16)
+
+        # Compute the scaling constant c
+        c = 255 / np.log(1 + img_bgr.max())
+
+        # Apply the logarithmic transformation
+        img_log = c * np.log(1 + img_bgr)
+
+        # Clip and convert the result to uint8 for compatibility with OpenCV
+        img_rgb = np.clip(img_log, 0, 255).astype(np.uint8)
+
+        return img_rgb
+
+
+# ======================================
+#              REGISTRY
+# ======================================
+
+_REGISTRY: dict[str, type[Algorithm]] = {
+    "HE": HE,
+    "CLAHE": CLAHE,
+    "GC": GC,
+    "LT": LT,
+}
+
+
+def get_algorithm(name: str) -> Algorithm:
+    """Return a new instance of the enhancement algorithm identified by name.
+
+    Args:
+        name: Algorithm key as stored in constants.ENHANCEMENTS ('HE', 'CLAHE', 'GC', 'LT').
+
+    Raises:
+        ValueError: If name does not match any registered algorithm.
+    """
+    cls = _REGISTRY.get(name)
+    if cls is None:
+        raise ValueError(
+            f"Unknown enhancement algorithm: '{name}'. "
+            f"Valid options: {list(_REGISTRY)}"
+        )
+    return cls()
