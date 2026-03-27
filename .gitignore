@@ -97,7 +97,3 @@ demo/**/temp/
 !demo/trains/
 !demo/MSLesSeg-Dataset/
 
-# ========================
-#    TESTS
-# ========================
-tests/
