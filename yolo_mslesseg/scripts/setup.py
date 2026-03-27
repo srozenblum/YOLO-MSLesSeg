@@ -45,7 +45,6 @@ from pathlib import Path
 import requests
 from tqdm import tqdm
 
-from yolo_mslesseg.utils.logging_config import get_logger
 from yolo_mslesseg.utils.constants import (
     SPLIT_TRAIN,
     SPLIT_TEST,
@@ -54,6 +53,7 @@ from yolo_mslesseg.utils.constants import (
     DATASET_DIR,
     GT_DIR,
 )
+from yolo_mslesseg.utils.logging_config import get_logger
 from yolo_mslesseg.utils.utils import create_directory, delete_directory
 
 # Configure logger
@@ -249,7 +249,7 @@ def extract_zip(zip_file: Path, destination: Path) -> None:
             # Strip root folder if present
             new_name = name
             if root_folder and name.startswith(root_folder):
-                new_name = name[len(root_folder):]
+                new_name = name[len(root_folder) :]
 
             # Skip empty entries
             if not new_name.strip():
@@ -384,7 +384,7 @@ def process_download_and_extraction(dataset_root: Path, url: str) -> None:
     logger.info(f"🆗 Download and extraction completed successfully.")
 
 
-def process_gt_directory(dataset_root: Path, gt_root: Path) -> None:
+def process_gtHac_directory(dataset_root: Path, gt_root: Path) -> None:
     """Generates the GT/ directory by copying and unifying the original dataset masks.
 
     Args:
@@ -392,11 +392,8 @@ def process_gt_directory(dataset_root: Path, gt_root: Path) -> None:
         gt_root: Root directory where the GT/ structure will be created.
     """
     logger.info(f"📂 Generating ground truth directory (GT/)...")
-    try:
-        copy_gt_volumes(dataset_root=dataset_root, gt_root=gt_root)
-        logger.info(f"🆗 GT/ directory generated successfully.")
-    except:
-        raise
+    copy_gt_volumes(dataset_root=dataset_root, gt_root=gt_root)
+    logger.info(f"🆗 GT/ directory generated successfully.")
 
 
 # ======================================
