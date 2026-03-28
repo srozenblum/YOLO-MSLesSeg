@@ -109,7 +109,6 @@ class ConfigDataset:
         self,
         model: Model,
         dataset_entrada: str | Path | None = None,
-        k_folds: int = 5,
         full: bool = False,
         patient: Patient | None = None,
     ) -> None:
@@ -119,7 +118,6 @@ class ConfigDataset:
             model: Model instance defining the plane, modalities, and base_path.
             dataset_entrada: Override for the input dataset directory. Defaults
                 to the MSLesSeg train directory if None.
-            k_folds: Number of cross-validation folds (1 for a fixed split).
             full: If True, processes all patients (ignored in patient mode).
             patient: Patient instance for individual execution, or None for full mode.
 
@@ -130,7 +128,6 @@ class ConfigDataset:
         self._set_main_attributes(
             model=model,
             dataset_entrada=dataset_entrada,
-            k_folds=k_folds,
             full=full,
             patient=patient,
         )
@@ -149,7 +146,6 @@ class ConfigDataset:
         self,
         model: Model,
         dataset_entrada: str | Path | None,
-        k_folds: int,
         full: bool,
         patient: Patient | None,
     ) -> None:
@@ -158,13 +154,12 @@ class ConfigDataset:
         Args:
             model: Model instance defining the plane, modalities, and base_path.
             dataset_entrada: Override for the input directory, or None for default.
-            k_folds: Number of cross-validation folds.
             full: Whether to process the full dataset.
             patient: Patient instance for individual execution, or None.
         """
         self.model = model
         self.plane = model.plane
-        self.k_folds = k_folds
+        self.k_folds = model.k_folds
         self.patient = patient
         self.full = full
 

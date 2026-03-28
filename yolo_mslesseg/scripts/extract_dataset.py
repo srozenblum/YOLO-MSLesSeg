@@ -586,14 +586,12 @@ def main(argv: list[str] | None = None) -> None:
         config = ConfigDataset(
             model=model,
             dataset_entrada=args.dataset_entrada,
-            k_folds=args.k_folds,
             patient=patient,
         )
     else:
         config = ConfigDataset(
             model=model,
             dataset_entrada=args.dataset_entrada,
-            k_folds=args.k_folds,
             full=True,
         )
 
@@ -616,13 +614,11 @@ def run_dataset_pipeline(model: Model, patient: Patient | None = None, k_folds: 
     if patient is not None:
         config = ConfigDataset(
             model=model,
-            k_folds=k_folds,
             patient=patient,
         )
     else:
         config = ConfigDataset(
             model=model,
-            k_folds=k_folds,
             full=True,
         )
 

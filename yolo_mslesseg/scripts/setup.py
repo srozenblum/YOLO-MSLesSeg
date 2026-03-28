@@ -384,7 +384,7 @@ def process_download_and_extraction(dataset_root: Path, url: str) -> None:
     logger.info(f"🆗 Download and extraction completed successfully.")
 
 
-def process_gtHac_directory(dataset_root: Path, gt_root: Path) -> None:
+def process_gt_directory(dataset_root: Path, gt_root: Path) -> None:
     """Generates the GT/ directory by copying and unifying the original dataset masks.
 
     Args:

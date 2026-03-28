@@ -9,6 +9,7 @@ from yolo_mslesseg.utils.utils import (
     AUC,
     DSC,
     compute_fold,
+    evaluate_results,
     int_or_percentile,
     precision,
     recall,
@@ -156,3 +157,27 @@ def test_auc_single_class_returns_nan():
     y_pred = np.zeros(10)
     result = AUC(y_true, y_pred)
     assert np.isnan(result)
+
+
+# ---------------------------------------------------------------------------
+# evaluate_results
+# ---------------------------------------------------------------------------
+
+class TestEvaluateResults:
+    def test_empty_list_returns_none(self):
+        assert evaluate_results([]) is None
+
+    def test_all_none_returns_none(self):
+        assert evaluate_results([None, None, None]) is None
+
+    def test_all_true_returns_true(self):
+        assert evaluate_results([True, True, True]) is True
+
+    def test_mix_true_and_none_returns_partial(self):
+        assert evaluate_results([True, None, True]) == "partial"
+
+    def test_single_true_returns_true(self):
+        assert evaluate_results([True]) is True
+
+    def test_single_none_returns_none(self):
+        assert evaluate_results([None]) is None

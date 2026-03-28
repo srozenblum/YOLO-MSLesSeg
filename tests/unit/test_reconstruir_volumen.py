@@ -13,6 +13,7 @@ from yolo_mslesseg.scripts.reconstruct_volume import (
     load_and_preprocess_image,
     extract_png_indices,
     insert_slice,
+    needs_reconstruction,
     validate_slice,
 )
 
@@ -210,3 +211,23 @@ class TestLoadAndPreprocessImage:
         result = load_and_preprocess_image(img_path)
         # After binarization (max > 1), dtype is float32
         assert result.dtype == np.float32
+
+
+# ---------------------------------------------------------------------------
+# needs_reconstruction
+# ---------------------------------------------------------------------------
+
+
+class TestNeedsReconstruction:
+    def test_returns_true_when_file_does_not_exist(self, tmp_path):
+        assert needs_reconstruction(tmp_path / "missing.nii.gz") is True
+
+    def test_returns_true_when_file_is_empty(self, tmp_path):
+        empty_file = tmp_path / "empty.nii.gz"
+        empty_file.touch()
+        assert needs_reconstruction(empty_file) is True
+
+    def test_returns_false_when_file_has_content(self, tmp_path):
+        existing_file = tmp_path / "volume.nii.gz"
+        existing_file.write_bytes(b"data")
+        assert needs_reconstruction(existing_file) is False

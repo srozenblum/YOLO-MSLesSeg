@@ -10,7 +10,6 @@ from yolo_mslesseg.utils.Model import Model
 # ---------------------------------------------------------------------------
 # Valid construction
 # ---------------------------------------------------------------------------
-
 def test_init_minimal():
     m = Model(plane="axial", num_slices=50, modality=["FLAIR"], k_folds=5)
     assert m.plane == "axial"
@@ -19,7 +18,9 @@ def test_init_minimal():
 
 
 def test_init_with_enhancement():
-    m = Model(plane="axial", num_slices=50, modality=["FLAIR"], k_folds=5, enhancement="gc")
+    m = Model(
+        plane="axial", num_slices=50, modality=["FLAIR"], k_folds=5, enhancement="gc"
+    )
     assert m.enhancement == "GC"  # uppercased
 
 
@@ -37,6 +38,7 @@ def test_init_percentile_num_slices():
 # Validation errors
 # ---------------------------------------------------------------------------
 
+
 def test_invalid_plane():
     with pytest.raises(ValueError, match="Invalid plane"):
         Model(plane="diagonal", num_slices=50, modality=["T1"], k_folds=5)
@@ -44,7 +46,13 @@ def test_invalid_plane():
 
 def test_invalid_enhancement():
     with pytest.raises(ValueError, match="enhancement"):
-        Model(plane="axial", num_slices=50, modality=["T1"], k_folds=5, enhancement="UNKNOWN")
+        Model(
+            plane="axial",
+            num_slices=50,
+            modality=["T1"],
+            k_folds=5,
+            enhancement="UNKNOWN",
+        )
 
 
 def test_invalid_num_slices_zero():
@@ -60,6 +68,7 @@ def test_invalid_num_slices_negative():
 # ---------------------------------------------------------------------------
 # Properties
 # ---------------------------------------------------------------------------
+
 
 def test_folds_string_single():
     m = Model(plane="axial", num_slices=50, modality=["T1"], k_folds=1)
@@ -77,7 +86,9 @@ def test_exp_string_no_enhancement():
 
 
 def test_exp_string_with_enhancement():
-    m = Model(plane="axial", num_slices=50, modality=["T1"], k_folds=5, enhancement="HE")
+    m = Model(
+        plane="axial", num_slices=50, modality=["T1"], k_folds=5, enhancement="HE"
+    )
     assert m.exp_string == "HE"
 
 
@@ -93,27 +104,33 @@ def test_modality_str_multiple():
 
 def test_base_path_no_enhancement():
     m = Model(plane="axial", num_slices=50, modality=["FLAIR"], k_folds=5)
-    assert m.base_path == Path("Base") / "FLAIR_50c_5folds"
+    assert m.base_path == Path("Base") / "FLAIR_50slices_5folds"
 
 
 def test_base_path_with_enhancement():
-    m = Model(plane="axial", num_slices=50, modality=["FLAIR"], k_folds=5, enhancement="GC")
-    assert m.base_path == Path("GC") / "FLAIR_50c_5folds"
+    m = Model(
+        plane="axial", num_slices=50, modality=["FLAIR"], k_folds=5, enhancement="GC"
+    )
+    assert m.base_path == Path("GC") / "FLAIR_50slices_5folds"
 
 
 def test_base_path_percentile():
-    m = Model(plane="axial", num_slices="P50", modality=["FLAIR"], k_folds=5, enhancement="GC")
-    assert m.base_path == Path("GC") / "FLAIR_P50c_5folds"
+    m = Model(
+        plane="axial", num_slices="P50", modality=["FLAIR"], k_folds=5, enhancement="GC"
+    )
+    assert m.base_path == Path("GC") / "FLAIR_P50slices_5folds"
 
 
 def test_model_string_no_enhancement():
     m = Model(plane="axial", num_slices=50, modality=["FLAIR"], k_folds=5)
-    assert m.model_string == "axial_FLAIR_50c_5folds"
+    assert m.model_string == "axial_FLAIR_50slices_5folds"
 
 
 def test_model_string_with_enhancement():
-    m = Model(plane="axial", num_slices=50, modality=["FLAIR"], k_folds=5, enhancement="GC")
-    assert m.model_string == "axial_FLAIR_GC_50c_5folds"
+    m = Model(
+        plane="axial", num_slices=50, modality=["FLAIR"], k_folds=5, enhancement="GC"
+    )
+    assert m.model_string == "axial_FLAIR_GC_50slices_5folds"
 
 
 def test_repr():

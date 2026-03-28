@@ -332,7 +332,7 @@ def main(argv: list[str] | None = None) -> None:
         enhancement=args.enhancement,
     )
 
-    config = ConfigEval(model=model, epochs=args.epochs, k_folds=args.k_folds)
+    config = ConfigEval(model=model, epochs=args.epochs)
 
     run_average_folds_flow(config=config, clean=args.clean, verbose=True)
 
@@ -352,7 +352,6 @@ def run_average_folds_pipeline(
     config = ConfigEval(
         model=model,
         epochs=epochs,
-        k_folds=k_folds,
         fold_test=None,
         forced_plane=plane,
     )

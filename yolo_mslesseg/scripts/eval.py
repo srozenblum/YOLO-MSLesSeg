@@ -478,7 +478,6 @@ def main(argv: list[str] | None = None) -> None:
     config = ConfigEval(
         model=model,
         epochs=args.epochs,
-        k_folds=args.k_folds,
         patient=patient,
         fold_test=args.fold_test,
         forced_plane=args.plane,
@@ -509,7 +508,6 @@ def run_eval_pipeline(
     config = ConfigEval(
         model=model,
         epochs=epochs,
-        k_folds=k_folds,
         patient=patient,
         fold_test=fold_test,
         forced_plane=plane,

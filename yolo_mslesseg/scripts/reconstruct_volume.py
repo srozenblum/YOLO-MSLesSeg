@@ -580,7 +580,6 @@ def main(argv: list[str] | None = None) -> None:
     config = ConfigReconstruction(
         model=model,
         epochs=args.epochs,
-        k_folds=args.k_folds,
         patient=patient,
         fold_test=args.fold_test,
     )
@@ -603,7 +602,6 @@ def run_reconstruction_pipeline(
     config = ConfigReconstruction(
         model=model,
         epochs=epochs,
-        k_folds=k_folds,
         patient=patient,
         fold_test=fold_test,
     )

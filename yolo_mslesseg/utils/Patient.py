@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import nibabel as nib
 import numpy as np
 

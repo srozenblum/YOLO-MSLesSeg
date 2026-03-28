@@ -445,7 +445,6 @@ def main(argv: list[str] | None = None) -> None:
     config = ConfigConsensus(
         model=model,
         epochs=args.epochs,
-        k_folds=args.k_folds,
         patient=patient,
         fold_test=args.fold_test,
     )
@@ -471,7 +470,6 @@ def run_consensus_pipeline(
     config = ConfigConsensus(
         model=model,
         epochs=epochs,
-        k_folds=k_folds,
         patient=patient,
         fold_test=fold_test,
     )

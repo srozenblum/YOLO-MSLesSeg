@@ -93,7 +93,6 @@ class ConfigConsensus(ConfigBase):
         self,
         model: Model,
         epochs: int,
-        k_folds: int = 5,
         patient: Patient | None = None,
         fold_test: int | None = None,
     ) -> None:
@@ -102,7 +101,6 @@ class ConfigConsensus(ConfigBase):
         Args:
             model: Model instance defining the plane, modalities, and base_path.
             epochs: Number of training epochs of the YOLO model.
-            k_folds: Number of cross-validation folds (1 for a fixed split).
             patient: Patient instance for individual execution, or None for fold-level.
             fold_test: Test fold index when using cross-validation, or None.
 
@@ -113,7 +111,6 @@ class ConfigConsensus(ConfigBase):
         super().__init__(
             model=model,
             epochs=epochs,
-            k_folds=k_folds,
             patient=patient,
             fold_test=fold_test,
         )

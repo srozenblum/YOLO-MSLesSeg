@@ -40,7 +40,7 @@ class ConfigBase(ABC):
             Number of epochs of the YOLO model.
 
         k_folds (int):
-            Number of cross-validation folds.
+            Number of cross-validation folds. Derived from model.k_folds.
 
         patient (Patient | None, optional):
             Patient instance for individual execution. None for fold or
@@ -61,7 +61,6 @@ class ConfigBase(ABC):
         self,
         model: Model,
         epochs: int,
-        k_folds: int = 5,
         patient: Patient | None = None,
         fold_test: int | None = None,
     ) -> None:
@@ -70,17 +69,16 @@ class ConfigBase(ABC):
         Args:
             model: Model instance defining the plane, modalities, and base_path.
             epochs: Number of training epochs of the YOLO model.
-            k_folds: Number of cross-validation folds (1 for a fixed split).
             patient: Patient instance for individual execution, or None for fold-level.
             fold_test: Test fold index when using cross-validation, or None.
         """
         self.model = model
         self.plane: str = model.plane
         self.epochs: int = epochs
-        self.k_folds: int = k_folds
+        self.k_folds: int = model.k_folds
         self.patient = patient
         self.fold_test = fold_test
-        self.single_fold: bool = k_folds == 1
+        self.single_fold: bool = model.k_folds == 1
         self.group: str | None = "test" if self.single_fold else None
 
     # ======================================
