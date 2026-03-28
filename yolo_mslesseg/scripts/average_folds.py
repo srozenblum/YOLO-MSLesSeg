@@ -69,12 +69,12 @@ import numpy as np
 from yolo_mslesseg.configs.ConfigEval import ConfigEval
 from yolo_mslesseg.utils.Model import Model
 from yolo_mslesseg.utils.constants import EXT_JSON, ENHANCEMENTS, RESULTS_SUFFIX, RESULTS_GLOBAL_PREFIX
+from yolo_mslesseg.utils.logging_config import get_logger
 from yolo_mslesseg.utils.utils import (
     int_or_percentile,
     path_exists,
     write_json,
     read_json,
-    get_logger,
 )
 
 # Configure logger
