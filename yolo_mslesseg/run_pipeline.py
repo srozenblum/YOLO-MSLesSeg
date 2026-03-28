@@ -226,9 +226,18 @@ def run_train(model: Model, epochs: int, k_folds: int, train_flag: bool, clean: 
 
 
 def run_predictions(model: Model, epochs: int, k_folds: int, patient: Patient | None, clean: bool) -> None:
-    """
-    Executes the generation of binary 2D predictions for an individual
+    """Executes the generation of binary 2D predictions for an individual
     patient or for all patients in the experiment.
+
+    Args:
+        model: Model instance defining the plane, modalities, and configuration.
+        epochs: Number of training epochs of the YOLO model.
+        k_folds: Number of cross-validation folds (1 for a fixed split).
+        patient: Patient instance for individual execution, or None for full mode.
+        clean: If True, deletes existing predictions before generating new ones.
+
+    Returns:
+        None
     """
     logger.header(f"\n🎯 Generating predictions")
 
@@ -272,9 +281,18 @@ def run_predictions(model: Model, epochs: int, k_folds: int, patient: Patient | 
 
 
 def run_reconstructions(model: Model, epochs: int, k_folds: int, patient: Patient | None, clean: bool) -> None:
-    """
-    Executes 3D volume reconstruction from the 2D predictions.
+    """Executes 3D volume reconstruction from the 2D predictions.
     Can be used for a specific patient or for all patients in the experiment.
+
+    Args:
+        model: Model instance defining the plane, modalities, and configuration.
+        epochs: Number of training epochs of the YOLO model.
+        k_folds: Number of cross-validation folds (1 for a fixed split).
+        patient: Patient instance for individual execution, or None for full mode.
+        clean: If True, deletes existing reconstructions before generating new ones.
+
+    Returns:
+        None
     """
     # =========================
     # 1) PATIENT MODE
@@ -319,10 +337,19 @@ def run_reconstructions(model: Model, epochs: int, k_folds: int, patient: Patien
 
 
 def run_eval(model: Model, epochs: int, k_folds: int, patient: Patient | None, clean: bool) -> None:
-    """
-    Executes the evaluation metric computation (DSC, AUC, precision, recall)
+    """Executes the evaluation metric computation (DSC, AUC, precision, recall)
     on the reconstructed volumes, for an individual patient or for all
     patients in the experiment.
+
+    Args:
+        model: Model instance defining the plane, modalities, and configuration.
+        epochs: Number of training epochs of the YOLO model.
+        k_folds: Number of cross-validation folds (1 for a fixed split).
+        patient: Patient instance for individual execution, or None for full mode.
+        clean: If True, deletes existing results before computing new ones.
+
+    Returns:
+        None
     """
     logger.header(f"\n📈 Computing metrics ({model.plane})")
 
@@ -373,9 +400,20 @@ def run_consensus(
     consensus_threshold: int,
     clean: bool,
 ) -> bool:
-    """
-    Executes the consensus volume generation and its metric computation,
+    """Executes the consensus volume generation and its metric computation,
     for an individual patient or for all patients in the experiment.
+
+    Args:
+        model: Model instance defining the plane, modalities, and configuration.
+        epochs: Number of training epochs of the YOLO model.
+        k_folds: Number of cross-validation folds (1 for a fixed split).
+        patient: Patient instance for individual execution, or None for full mode.
+        consensus_threshold: Voting threshold (2 for majority, 3 for unanimity).
+        clean: If True, deletes existing consensus volumes before generating new ones.
+
+    Returns:
+        True if the consensus was generated, False if skipped due to missing
+        predicted volumes.
     """
     # =========================
     # 1) PATIENT MODE
@@ -501,9 +539,18 @@ def run_average_folds(
     consensus_generated: bool,
     clean: bool,
 ) -> None:
-    """
-    Computes the global experiment results by averaging the results
+    """Computes the global experiment results by averaging the results
     of each fold. If the consensus was generated, also averages its metrics.
+
+    Args:
+        model: Model instance defining the plane, modalities, and configuration.
+        epochs: Number of training epochs of the YOLO model.
+        k_folds: Number of cross-validation folds (1 for a fixed split).
+        consensus_generated: True if the consensus stage completed successfully.
+        clean: If True, deletes existing fold averages before computing new ones.
+
+    Returns:
+        None
     """
     # =========================
     # 1) NOT APPLICABLE IF k_folds == 1
