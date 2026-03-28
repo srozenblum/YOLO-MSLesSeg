@@ -83,7 +83,7 @@ class ConfigDataset:
         mslesseg_test_dir (Path):
             MSLesSeg-Dataset/test directory.
 
-        dataset_entrada (Path):
+        input_dir (Path):
             Effective input directory for the current execution.
             - Defaults to MSLesSeg-Dataset/train.
             - In patient mode, may be train or test depending on the patient's split.
@@ -108,7 +108,7 @@ class ConfigDataset:
     def __init__(
         self,
         model: Model,
-        dataset_entrada: str | Path | None = None,
+        input_dir: str | Path | None = None,
         full: bool = False,
         patient: Patient | None = None,
     ) -> None:
@@ -116,7 +116,7 @@ class ConfigDataset:
 
         Args:
             model: Model instance defining the plane, modalities, and base_path.
-            dataset_entrada: Override for the input dataset directory. Defaults
+            input_dir: Override for the input dataset directory. Defaults
                 to the MSLesSeg train directory if None.
             full: If True, processes all patients (ignored in patient mode).
             patient: Patient instance for individual execution, or None for full mode.
@@ -127,7 +127,7 @@ class ConfigDataset:
         # --- Main attributes ---
         self._set_main_attributes(
             model=model,
-            dataset_entrada=dataset_entrada,
+            input_dir=input_dir,
             full=full,
             patient=patient,
         )
@@ -145,7 +145,7 @@ class ConfigDataset:
     def _set_main_attributes(
         self,
         model: Model,
-        dataset_entrada: str | Path | None,
+        input_dir: str | Path | None,
         full: bool,
         patient: Patient | None,
     ) -> None:
@@ -153,7 +153,7 @@ class ConfigDataset:
 
         Args:
             model: Model instance defining the plane, modalities, and base_path.
-            dataset_entrada: Override for the input directory, or None for default.
+            input_dir: Override for the input directory, or None for default.
             full: Whether to process the full dataset.
             patient: Patient instance for individual execution, or None.
         """
@@ -169,10 +169,10 @@ class ConfigDataset:
         self.mslesseg_test_dir = self.mslesseg_root / SPLIT_TEST
 
         # Effective input dataset directory
-        if dataset_entrada is None:
-            self.dataset_entrada = self.mslesseg_train_dir
+        if input_dir is None:
+            self.input_dir = self.mslesseg_train_dir
         else:
-            self.dataset_entrada = Path(dataset_entrada)
+            self.input_dir = Path(input_dir)
 
         # Output directory
         self.output_dir = DATASETS_DIR / f"{self.model.base_path}"
@@ -199,16 +199,16 @@ class ConfigDataset:
                         patient_id=self.patient.id,
                         k_folds=self.k_folds,
                     )
-                    self.dataset_entrada = self.mslesseg_train_dir
+                    self.input_dir = self.mslesseg_train_dir
                 else:
                     self.patient_group = "test"
-                    self.dataset_entrada = self.mslesseg_test_dir
+                    self.input_dir = self.mslesseg_test_dir
 
             else:
                 # k_folds == 1:
                 # The patient's original group (train/test) is used directly
                 self.patient_group = self.patient.split
-                self.dataset_entrada = self.input_dir(self.patient_group)
+                self.input_dir = self.get_input_dir(self.patient_group)
 
         elif self.is_full:
             pass  # nothing extra
@@ -245,7 +245,7 @@ class ConfigDataset:
         # --- k_folds == 1 ---
         # Patient's group (train/test) is used directly
         else:
-            self.dataset_entrada = self.input_dir(self.patient_group)
+            self.input_dir = self.get_input_dir(self.patient_group)
 
             self.patient_root = (
                 self.output_dir / self.patient_group / self.patient.id / self.plane
@@ -261,7 +261,7 @@ class ConfigDataset:
     #               INPUTS
     # ======================================
 
-    def input_dir(self, group: str = "train") -> Path:
+    def get_input_dir(self, group: str = "train") -> Path:
         """Returns the MSLesSeg input directory for the given group.
 
         When k_folds > 1, always returns the train directory (the group
@@ -438,7 +438,7 @@ class ConfigDataset:
         Raises:
             FileNotFoundError: If the patient's input directory does not exist.
         """
-        patient_input_dir = self.dataset_entrada / self.patient.id
+        patient_input_dir = self.input_dir / self.patient.id
         if not patient_input_dir.is_dir():
             raise FileNotFoundError(
                 f"Patient input directory not found for {self.patient.id}: {patient_input_dir}"

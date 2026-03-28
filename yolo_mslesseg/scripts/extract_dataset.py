@@ -52,7 +52,7 @@ CLI Arguments:
     --patient_id (str, mutually exclusive with --full)
         Generate the YOLO dataset only for the specified patient (e.g. 'P12').
 
-    --dataset_entrada (str, optional)
+    --input_dir (str, optional)
         MSLesSeg input dataset directory.
         Defaults to MSLesSeg-Dataset/train.
         Example: MSLesSeg-Dataset/test.
@@ -188,12 +188,12 @@ def build_paths(patient: Patient, config: ConfigDataset, group: str | None = Non
 
     For k_folds > 1, paths follow datasets/<base_path>/fold{fold}/PX/<plane>/...
     For k_folds == 1, paths follow datasets/<base_path>/{train|test}/PX/<plane>/...
-    The group is inferred from config.dataset_entrada if not provided.
+    The group is inferred from config.input_dir if not provided.
 
     Args:
         patient: Patient instance whose paths are being resolved.
         config: ConfigDataset instance providing output directory and fold settings.
-        group: Dataset group ('train' or 'test'). Inferred if None (k_folds == 1 only).
+        group: Dataset group ('train' or 'test'). Inferred from config.input_dir if None (k_folds == 1 only).
 
     Returns:
         Dictionary with keys 'images', 'GT_masks', and 'labels' mapping to Path objects.
@@ -203,7 +203,7 @@ def build_paths(patient: Patient, config: ConfigDataset, group: str | None = Non
         root = config.output_dir / f"fold{fold}" / patient.id / patient.plane
     else:
         if group is None:
-            entrada_norm = str(config.dataset_entrada).replace("\\", "/").lower()
+            entrada_norm = str(config.input_dir).replace("\\", "/").lower()
             group = "test" if entrada_norm.endswith("/test") else "train"
         root = config.output_dir / group / patient.id / patient.plane
 
@@ -397,7 +397,7 @@ def run_dataset_flow(config: ConfigDataset, clean: bool, verbose: bool = False) 
 
     num_slices, percentil = resolve_num_slices(
         num_slices=config.model.num_slices,
-        input_dir=config.dataset_entrada,
+        input_dir=config.input_dir,
         plane=config.model.plane,
         modality=config.model.modality,
     )
@@ -432,7 +432,7 @@ def run_dataset_flow(config: ConfigDataset, clean: bool, verbose: bool = False) 
     # k_folds > 1 → train only (folds)
     if config.k_folds > 1:
         processed = save_patient_slices(
-            input_dir=config.input_dir("train"),
+            input_dir=config.get_input_dir("train"),
             config=config,
             num_slices=num_slices,
         )
@@ -449,14 +449,14 @@ def run_dataset_flow(config: ConfigDataset, clean: bool, verbose: bool = False) 
 
     # k_folds == 1 → train + test
     processed_train = save_patient_slices(
-        input_dir=config.input_dir("train"),
+        input_dir=config.get_input_dir("train"),
         config=config,
         num_slices=num_slices,
         group="train",
     )
 
     processed_test = save_patient_slices(
-        input_dir=config.input_dir("test"),
+        input_dir=config.get_input_dir("test"),
         config=config,
         num_slices=num_slices,
         group="test",
@@ -531,10 +531,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Number of folds for cross-validation. Defaults to 5.",
     )
     parser.add_argument(
-        "--dataset_entrada",
+        "--input_dir",
         type=str,
         default=None,
-        metavar="<dataset_entrada>",
+        metavar="<input_dir>",
         help="MSLesSeg input dataset directory. Defaults to MSLesSeg-Dataset/train.",
     )
 
@@ -585,13 +585,13 @@ def main(argv: list[str] | None = None) -> None:
         )
         config = ConfigDataset(
             model=model,
-            dataset_entrada=args.dataset_entrada,
+            input_dir=args.input_dir,
             patient=patient,
         )
     else:
         config = ConfigDataset(
             model=model,
-            dataset_entrada=args.dataset_entrada,
+            input_dir=args.input_dir,
             full=True,
         )
 
