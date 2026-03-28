@@ -100,29 +100,29 @@ The repository is organised as follows:
 │
 ├── 📁 yolo_mslesseg/                           # Main project package
 │   │
-│   ├── ejecutar_pipeline.py                    # Script para ejecutar el pipeline completo
+│   ├── run_pipeline.py                         # Script to run the full pipeline
 │   │
-│   ├── 📁 configs/                             # Clases de configuración por etapa
+│   ├── 📁 configs/                             # Per-stage configuration classes
 │   │   ├── ConfigDataset.py
 │   │   ├── ConfigTrain.py
 │   │   ├── ConfigPred.py
-│   │   ├── ConfigRecVol.py
+│   │   ├── ConfigReconstruction.py
 │   │   ├── ConfigEval.py
-│   │   └── ConfigConsenso.py
+│   │   └── ConfigConsensus.py
 │   │
-│   ├── 📁 scripts/                             # Scripts ejecutables que componen el pipeline
+│   ├── 📁 scripts/                             # Executable scripts that make up the pipeline
 │   │   ├── setup.py
-│   │   ├── extraer_dataset.py
+│   │   ├── extract_dataset.py
 │   │   ├── train.py
-│   │   ├── generar_predicciones.py
-│   │   ├── reconstruir_volumen.py
-│   │   ├── generar_consenso.py
+│   │   ├── generate_predictions.py
+│   │   ├── reconstruct_volume.py
+│   │   ├── generate_consensus.py
 │   │   ├── eval.py
-│   │   └── promediar_folds.py
+│   │   └── average_folds.py
 │   │
-│   ├── 📁 utils/                               # Utilidades y scripts auxiliares
+│   ├── 📁 utils/                               # Utilities and auxiliary modules
 │   │
-│   └── 📁 extras/                              # Scripts adicionales pero no esenciales
+│   └── 📁 extras/                              # Additional but non-essential scripts
 │
 ├── 📁 demo/                                    # Reduced pipeline runs for simple demonstration
 │
@@ -233,14 +233,14 @@ By default, the installation will run on **CPU**, which is sufficient for predic
 Once the environment is configured, the complete pipeline can be run with a single command from the project root:
 
 ```bash
-python -m yolo_mslesseg.ejecutar_pipeline \
-    --plano axial \
-    --modalidad FLAIR \
-    --num_cortes P50 \
-    --mejora CLAHE \
+python -m yolo_mslesseg.run_pipeline \
+    --plane axial \
+    --modality FLAIR \
+    --num_slices P50 \
+    --enhancement CLAHE \
     --k_folds 5 \
     --epochs 50 \
-    --completo
+    --full
 ```
 
 This command automatically executes all phases of the workflow.
@@ -249,32 +249,32 @@ repository.
 
 ### Execution parameters
 
-The following arguments allow customising the execution of `ejecutar_pipeline.py`
+The following arguments allow customising the execution of `run_pipeline.py`
 and carrying out experiments for different configurations:
 
-| Argument            | Required  | Default     | Description                                                                                                                        |
-|---------------------|-----------|-------------|------------------------------------------------------------------------------------------------------------------------------------|
-| `--plano`           | ✅ Yes     | —           | Anatomical plane: `axial`, `coronal`, or `sagital`                                                                                 |
-| `--modalidad`       | No        | All         | MRI image modality or modalities: `T1`, `T2`, `FLAIR`                                                                              |
-| `--num_cortes`      | ✅ Yes     | —           | Number of slices (integer or `PXX` for percentile)                                                                                 |
-| `--mejora`          | No        | `None`      | Image enhancement algorithm: `HE`, `CLAHE`, `GC`, `LT`                                                                            |
-| `--k_folds`         | No        | `5`         | Number of folds. If `k_folds > 1`, uses cross-validation by folds; if `k_folds == 1`, uses a fixed _train_/_test_ split.          |
-| `--epochs`          | ✅ Yes     | —           | Number of training epochs                                                                                                          |
-| `--umbral_consenso` | No        | `2`         | Voting threshold: `2` (majority) or `3` (unanimity)                                                                               |
-| `--completo`        | ✅ Yes     | —           | Process all patients                                                                                                               |
-| `--paciente_id`     | ✅ Yes     | —           | Process only the specified patient (e.g. `P1`)                                                                                     |
-| `--entrenar`        | No        | Not active  | Include the training stage                                                                                                         |
-| `--limpiar`         | No        | Not active  | Clean all previous results                                                                                                         |
+| Argument                 | Required  | Default     | Description                                                                                                                        |
+|--------------------------|-----------|-------------|------------------------------------------------------------------------------------------------------------------------------------|
+| `--plane`                | ✅ Yes     | —           | Anatomical plane: `axial`, `coronal`, or `sagital`                                                                                 |
+| `--modality`             | No        | All         | MRI image modality or modalities: `T1`, `T2`, `FLAIR`                                                                              |
+| `--num_slices`           | ✅ Yes     | —           | Number of slices (integer or `PXX` for percentile)                                                                                 |
+| `--enhancement`          | No        | `None`      | Image enhancement algorithm: `HE`, `CLAHE`, `GC`, `LT`                                                                            |
+| `--k_folds`              | No        | `5`         | Number of folds. If `k_folds > 1`, uses cross-validation by folds; if `k_folds == 1`, uses a fixed _train_/_test_ split.          |
+| `--epochs`               | ✅ Yes     | —           | Number of training epochs                                                                                                          |
+| `--consensus_threshold`  | No        | `2`         | Voting threshold: `2` (majority) or `3` (unanimity)                                                                               |
+| `--full`                 | ✅ Yes     | —           | Process all patients                                                                                                               |
+| `--patient_id`           | ✅ Yes     | —           | Process only the specified patient (e.g. `P1`)                                                                                     |
+| `--train`                | No        | Not active  | Include the training stage                                                                                                         |
+| `--clean`                | No        | Not active  | Clean all previous results                                                                                                         |
 
 > [!NOTE]
-> When more than one modality is specified (e.g. `--modalidad T1 FLAIR`), their slices are fused into a
+> When more than one modality is specified (e.g. `--modality T1 FLAIR`), their slices are fused into a
 > single 3-channel (RGB) image — one channel per modality, with the last channel repeated if fewer than
 > three modalities are provided. This format is directly compatible with YOLO's native 3-channel input,
 > allowing the model to learn jointly from all available modalities without generating multiple files per
 > slice.
 
 > [!IMPORTANT]
-> The `--completo` and `--paciente_id` arguments are **mutually exclusive**.
+> The `--full` and `--patient_id` arguments are **mutually exclusive**.
 > Only one of them can be used in each pipeline execution.
 
 > [!IMPORTANT]
@@ -287,41 +287,25 @@ and carrying out experiments for different configurations:
 > Model training is not executed automatically.
 > By default, this stage is skipped because it is computationally intensive.
 > This allows faster pipeline execution and favours reproducibility when trained weights already exist.
-> To run training, it must be explicitly activated with the `--entrenar` flag.
+> To run training, it must be explicitly activated with the `--train` flag.
 
 ---
 
 ## 🔧 Stage-by-stage Execution
 
 Individual pipeline stages can also be run independently using the scripts located in the
-`yolo_mslesseg/scripts/` folder. Each module (`extraer_dataset.py`, `train.py`, `generar_predicciones.py`,
-`generar_consenso.py`,
-`reconstruir_volumen.py`, `eval.py`, etc.) can be invoked directly from the command line.
+`yolo_mslesseg/scripts/` folder. Each module (`extract_dataset.py`, `train.py`, `generate_predictions.py`,
+`generate_consensus.py`,
+`reconstruct_volume.py`, `eval.py`, etc.) can be invoked directly from the command line.
 
-The arguments accepted by each script differ slightly from those of `ejecutar_pipeline.py`. Each file
+The arguments accepted by each script differ slightly from those of `run_pipeline.py`. Each file
 includes its own parameter description and specific options, which should be consulted by running it
 with `--help`. For example:
 
 ```bash
-python -m yolo_mslesseg.scripts.reconstruir_volumen --help
+python -m yolo_mslesseg.scripts.reconstruct_volume --help
 ```
 
-## 🧪 Project Demo
-
-The repository includes a demo mode that allows running the complete pipeline on a reduced set
-of patients and pre-trained models. The demo is designed to quickly showcase the system's functionality without
-needing to train models or process the full dataset.
-
-It is located in the `demo/` folder and has its own [README](demo/README_demo.md) with detailed instructions.
-To consult its specifics, navigate to that folder and follow the documentation included there.
-
-It can be run with the following command from the repository root:
-
-```bash
-python -m demo.ejecutar_demo
-```
-
----
 
 ## 🔬 Experimental Design
 
