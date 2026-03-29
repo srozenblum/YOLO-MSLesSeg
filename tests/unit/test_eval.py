@@ -27,7 +27,7 @@ class TestComputeAverages:
         values = [0.6, 0.7, 0.8]
         result = compute_averages({"DSC": values})
         expected_media = float(np.round(np.mean(values), 3))
-        expected_std = float(np.round(np.std(values), 3))
+        expected_std = float(np.round(np.std(values, ddof=1), 3))
         assert result["DSC"]["media"] == pytest.approx(expected_media, abs=1e-3)
         assert result["DSC"]["std"] == pytest.approx(expected_std, abs=1e-3)
 
