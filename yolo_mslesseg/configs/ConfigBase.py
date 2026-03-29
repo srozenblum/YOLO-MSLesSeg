@@ -135,9 +135,16 @@ class ConfigBase(ABC):
                 f"epochs={self.epochs}, "
                 f"group={self.group})"
             )
+        if self.fold_test is not None:
+            return (
+                f"{self.__class__.__name__}("
+                f"model={self.model.model_string}, "
+                f"epochs={self.epochs}, "
+                f"fold={self.fold_test})"
+            )
         return (
             f"{self.__class__.__name__}("
             f"model={self.model.model_string}, "
             f"epochs={self.epochs}, "
-            f"fold={self.fold_test})"
+            f"mode=experiment)"
         )
