@@ -116,21 +116,11 @@ def verify_consensus_folds(model: Model, epochs: int, k_folds: int) -> tuple:
     all three planes (axial, coronal, and sagittal), which is required to
     generate the consensus.
     """
+    assert k_folds > 1, "verify_consensus_folds must only be called with k_folds > 1"
+
     valid_folds = []
     incomplete_folds = []
 
-    # Single-fold execution (test/)
-    if k_folds == 1:
-        pred_vols_dir = (
-            PRED_VOLS_DIR / f"{model.base_path}_{epochs}epochs" / SPLIT_TEST
-        )
-        if verify_group_volumes(pred_vols_dir):
-            valid_folds.append(SPLIT_TEST)
-        else:
-            incomplete_folds.append(SPLIT_TEST)
-        return valid_folds, incomplete_folds
-
-    # Cross-validation execution
     for fold in range(1, k_folds + 1):
         pred_vols_fold_dir = (
             PRED_VOLS_DIR / f"{model.base_path}_{epochs}epochs" / f"fold{fold}"
