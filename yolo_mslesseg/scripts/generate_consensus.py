@@ -84,7 +84,7 @@ from yolo_mslesseg.configs.ConfigConsensus import ConfigConsensus
 from yolo_mslesseg.utils.Model import Model
 from yolo_mslesseg.utils.Patient import Patient
 from yolo_mslesseg.utils.logging_config import get_logger
-from yolo_mslesseg.utils.constants import EXT_NIFTI, MASK_SUFFIX, ENHANCEMENTS, ANATOMICAL_PLANES
+from yolo_mslesseg.utils.constants import EXT_NIFTI, MASK_SUFFIX, ENHANCEMENTS, ANATOMICAL_PLANES, StageResult
 from yolo_mslesseg.utils.utils import (
     load_volume,
     save_volume,
@@ -157,7 +157,7 @@ def process_patient_consensus(
     config: ConfigConsensus,
     paths_dir: dict[str, Path] | None = None,
     umbral: int = 2,
-) -> bool | None:
+) -> StageResult:
     """Executes the consensus generation process for an individual patient.
 
     Skips if the consensus volume already exists. Generates and validates the
@@ -170,7 +170,8 @@ def process_patient_consensus(
         umbral: Voting threshold (2 for majority, 3 for unanimity).
 
     Returns:
-        True if the consensus was generated, None if skipped (already exists).
+        StageResult.COMPLETED if the consensus was generated, StageResult.SKIPPED
+        if skipped (already exists).
 
     Raises:
         RuntimeError: If the generated consensus volume fails validation.
@@ -187,7 +188,7 @@ def process_patient_consensus(
 
     # Skip if the consensus volume already exists
     if path_exists(output_path):
-        return
+        return StageResult.SKIPPED
 
     generate_consensus(
         axial_path=paths_dir["axial"],
@@ -200,7 +201,7 @@ def process_patient_consensus(
     if not is_valid_reconstruction(output_path, gt_vol):
         raise RuntimeError("Consensus reconstruction is not valid.")
 
-    return True
+    return StageResult.COMPLETED
 
 
 def build_paths(patient_id: str, config: ConfigConsensus) -> dict[str, Path]:
@@ -225,7 +226,7 @@ def build_paths(patient_id: str, config: ConfigConsensus) -> dict[str, Path]:
     return paths
 
 
-def generate_consensus_for_patients(input_dir: Path, config: ConfigConsensus, umbral: int = 2) -> bool | None | str:
+def generate_consensus_for_patients(input_dir: Path, config: ConfigConsensus, umbral: int = 2) -> StageResult:
     """Executes the consensus generation process for all patients in a directory.
 
     Args:
@@ -234,8 +235,8 @@ def generate_consensus_for_patients(input_dir: Path, config: ConfigConsensus, um
         umbral: Voting threshold (2 for majority, 3 for unanimity).
 
     Returns:
-        True if all patients were processed, None if all were skipped, or
-        'partial' if there was a mix of processed and skipped patients.
+        StageResult.COMPLETED if all patients were processed, StageResult.SKIPPED
+        if all were skipped, or StageResult.PARTIAL if there was a mix.
     """
     patients = list_patients(input_dir)
     results = []
@@ -294,9 +295,9 @@ def run_consensus_flow(config: ConfigConsensus, clean: bool, umbral: int = 2, ve
     # Patient execution
     if config.is_individual_patient:
         consensus_generated = process_patient_consensus(config=config, umbral=umbral)
-        if consensus_generated is None:
+        if consensus_generated is StageResult.SKIPPED:
             logger.skip(f"⏩ Consensus volume already exists.")
-        elif consensus_generated is True:
+        elif consensus_generated is StageResult.COMPLETED:
             logger.info(f"✅ Consensus generated successfully.")
         else:
             logger.warning(f"⚠️ Unknown status when generating consensus.")
@@ -307,11 +308,11 @@ def run_consensus_flow(config: ConfigConsensus, clean: bool, umbral: int = 2, ve
             input_dir=config.pred_vols_fold_dir, config=config, umbral=umbral
         )
         if config.k_folds == 1:
-            if consensus_results is None:
+            if consensus_results is StageResult.SKIPPED:
                 logger.skip(f"⏩ Consensus volumes for {config.group} already exist.")
-            elif consensus_results is True:
+            elif consensus_results is StageResult.COMPLETED:
                 logger.info(f"🆗 Consensus volumes for {config.group} generated successfully.")
-            elif consensus_results == "partial":
+            elif consensus_results is StageResult.PARTIAL:
                 logger.info(
                     f"🔁 Consensus volumes for {config.group} partially updated."
                 )

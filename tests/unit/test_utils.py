@@ -5,6 +5,7 @@ import argparse
 import numpy as np
 import pytest
 
+from yolo_mslesseg.utils.constants import StageResult
 from yolo_mslesseg.utils.utils import (
     AUC,
     DSC,
@@ -164,20 +165,20 @@ def test_auc_single_class_returns_nan():
 # ---------------------------------------------------------------------------
 
 class TestEvaluateResults:
-    def test_empty_list_returns_none(self):
-        assert evaluate_results([]) is None
+    def test_empty_list_returns_skipped(self):
+        assert evaluate_results([]) is StageResult.SKIPPED
 
-    def test_all_none_returns_none(self):
-        assert evaluate_results([None, None, None]) is None
+    def test_all_skipped_returns_skipped(self):
+        assert evaluate_results([StageResult.SKIPPED, StageResult.SKIPPED, StageResult.SKIPPED]) is StageResult.SKIPPED
 
-    def test_all_true_returns_true(self):
-        assert evaluate_results([True, True, True]) is True
+    def test_all_completed_returns_completed(self):
+        assert evaluate_results([StageResult.COMPLETED, StageResult.COMPLETED, StageResult.COMPLETED]) is StageResult.COMPLETED
 
-    def test_mix_true_and_none_returns_partial(self):
-        assert evaluate_results([True, None, True]) == "partial"
+    def test_mix_completed_and_skipped_returns_partial(self):
+        assert evaluate_results([StageResult.COMPLETED, StageResult.SKIPPED, StageResult.COMPLETED]) is StageResult.PARTIAL
 
-    def test_single_true_returns_true(self):
-        assert evaluate_results([True]) is True
+    def test_single_completed_returns_completed(self):
+        assert evaluate_results([StageResult.COMPLETED]) is StageResult.COMPLETED
 
-    def test_single_none_returns_none(self):
-        assert evaluate_results([None]) is None
+    def test_single_skipped_returns_skipped(self):
+        assert evaluate_results([StageResult.SKIPPED]) is StageResult.SKIPPED

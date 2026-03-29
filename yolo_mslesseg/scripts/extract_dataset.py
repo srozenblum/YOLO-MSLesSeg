@@ -95,7 +95,7 @@ from yolo_mslesseg.configs.ConfigDataset import ConfigDataset
 from yolo_mslesseg.utils.Model import Model
 from yolo_mslesseg.utils.Patient import Patient
 from yolo_mslesseg.utils.logging_config import get_logger
-from yolo_mslesseg.utils.constants import EXT_PNG, ENHANCEMENTS
+from yolo_mslesseg.utils.constants import EXT_PNG, ENHANCEMENTS, StageResult
 from yolo_mslesseg.utils.utils import (
     list_patients,
     normalize_binary_mask,
@@ -293,7 +293,7 @@ def annotate_masks(gt_masks_dir: Path, labels_dir: Path) -> None:
 # ======================================
 
 
-def process_patient_dataset(patient: Patient, config: ConfigDataset, paths_dir: dict[str, Path] | None = None, num_slices: int | None = None) -> bool | None:
+def process_patient_dataset(patient: Patient, config: ConfigDataset, paths_dir: dict[str, Path] | None = None, num_slices: int | None = None) -> StageResult:
     """Executes the slice extraction and annotation process for an individual patient.
 
     Skips extraction if all output directories already exist and are non-empty.
@@ -306,13 +306,14 @@ def process_patient_dataset(patient: Patient, config: ConfigDataset, paths_dir: 
         num_slices: Maximum number of slices to extract, or None for all lesion slices.
 
     Returns:
-        True if extraction was performed, None if skipped (already exists).
+        StageResult.COMPLETED if extraction was performed, StageResult.SKIPPED if
+        skipped (already exists).
     """
     if paths_dir is None:
         paths_dir = config.patient_dir
 
     if all(path.is_dir() and any(path.iterdir()) for path in paths_dir.values()):
-        return
+        return StageResult.SKIPPED
 
     save_slices(
         patient=patient,
@@ -322,10 +323,10 @@ def process_patient_dataset(patient: Patient, config: ConfigDataset, paths_dir: 
     )
 
     annotate_masks(gt_masks_dir=paths_dir["GT_masks"], labels_dir=paths_dir["labels"])
-    return True
+    return StageResult.COMPLETED
 
 
-def save_patient_slices(input_dir: Path, config: ConfigDataset, num_slices: int | None, group: str | None = None) -> bool | None | str:
+def save_patient_slices(input_dir: Path, config: ConfigDataset, num_slices: int | None, group: str | None = None) -> StageResult:
     """Executes the slice extraction process for all patients in a directory.
 
     Args:
@@ -335,8 +336,8 @@ def save_patient_slices(input_dir: Path, config: ConfigDataset, num_slices: int 
         group: Dataset group ('train' or 'test'). Inferred from config if None.
 
     Returns:
-        True if all patients were processed, None if all were skipped, or
-        'partial' if there was a mix of processed and skipped patients.
+        StageResult.COMPLETED if all patients were processed, StageResult.SKIPPED
+        if all were skipped, or StageResult.PARTIAL if there was a mix.
     """
     patients = list_patients(input_dir)
 
@@ -416,9 +417,9 @@ def run_dataset_flow(config: ConfigDataset, clean: bool, verbose: bool = False) 
             config=config,
             num_slices=num_slices,
         )
-        if dataset_extracted is None:
+        if dataset_extracted is StageResult.SKIPPED:
             logger.skip("⏩ YOLO dataset already exists.")
-        elif dataset_extracted is True:
+        elif dataset_extracted is StageResult.COMPLETED:
             logger.info("✅ Slice extraction completed.")
             logger.info("📝 Annotations completed.")
         else:
@@ -437,11 +438,11 @@ def run_dataset_flow(config: ConfigDataset, clean: bool, verbose: bool = False) 
             num_slices=num_slices,
         )
 
-        if processed is None:
+        if processed is StageResult.SKIPPED:
             logger.skip("⏩ YOLO dataset already exists.")
-        elif processed is True:
+        elif processed is StageResult.COMPLETED:
             logger.info("🆗 YOLO dataset extracted successfully.")
-        elif processed == "partial":
+        elif processed is StageResult.PARTIAL:
             logger.info("🔁 YOLO dataset partially updated.")
         else:
             logger.warning("⚠️ Unknown status when extracting the YOLO dataset.")
@@ -462,11 +463,11 @@ def run_dataset_flow(config: ConfigDataset, clean: bool, verbose: bool = False) 
         group="test",
     )
 
-    if processed_train is None and processed_test is None:
+    if processed_train is StageResult.SKIPPED and processed_test is StageResult.SKIPPED:
         logger.skip("⏩ YOLO dataset already exists.")
-    elif processed_train is True and processed_test is True:
+    elif processed_train is StageResult.COMPLETED and processed_test is StageResult.COMPLETED:
         logger.info("🆗 YOLO dataset extracted successfully.")
-    elif processed_train == "partial" or processed_test == "partial":
+    elif processed_train is StageResult.PARTIAL or processed_test is StageResult.PARTIAL:
         logger.info("🔁 YOLO dataset partially updated.")
     else:
         logger.warning("⚠️ Unknown status when extracting YOLO train/ dataset.")

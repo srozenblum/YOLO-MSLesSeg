@@ -84,7 +84,7 @@ from yolo_mslesseg.configs.ConfigReconstruction import ConfigReconstruction
 from yolo_mslesseg.utils.Model import Model
 from yolo_mslesseg.utils.Patient import Patient
 from yolo_mslesseg.utils.logging_config import get_logger
-from yolo_mslesseg.utils.constants import EXT_PNG, EXT_NIFTI, MASK_SUFFIX, ENHANCEMENTS
+from yolo_mslesseg.utils.constants import EXT_PNG, EXT_NIFTI, MASK_SUFFIX, ENHANCEMENTS, StageResult
 from yolo_mslesseg.utils.utils import (
     save_volume,
     int_or_percentile,
@@ -267,7 +267,7 @@ def reconstruct_volume(pred_masks_dir: Path, reference_volume: Path, output_path
 # ======================================
 
 
-def process_patient_volume(patient_id: str, config: ConfigReconstruction, paths_dir: dict[str, Path] | None = None) -> bool | None:
+def process_patient_volume(patient_id: str, config: ConfigReconstruction, paths_dir: dict[str, Path] | None = None) -> StageResult:
     """Executes the volume reconstruction process for an individual patient.
 
     Checks whether the volume already exists and is valid, then reconstructs and
@@ -280,7 +280,8 @@ def process_patient_volume(patient_id: str, config: ConfigReconstruction, paths_
             config patient paths if None.
 
     Returns:
-        True if the volume was reconstructed, None if skipped (already valid).
+        StageResult.COMPLETED if the volume was reconstructed, StageResult.SKIPPED
+        if skipped (already valid).
 
     Raises:
         RuntimeError: If the reconstructed volume fails validation.
@@ -312,7 +313,7 @@ def process_patient_volume(patient_id: str, config: ConfigReconstruction, paths_
             reconstruction_needed = True
         else:
             # If valid, no reconstruction needed
-            return
+            return StageResult.SKIPPED
     else:
         # If the volume does not exist, reconstruct
         reconstruction_needed = True
@@ -329,7 +330,7 @@ def process_patient_volume(patient_id: str, config: ConfigReconstruction, paths_
             pred_vol_path=patient_pred_vol, gt_vol_path=patient_gt_vol
         ):
             raise RuntimeError(f"Validation failed for {patient_id}.")
-        return True
+        return StageResult.COMPLETED
 
 
 def build_paths(patient_id: str, config: ConfigReconstruction) -> dict[str, Path]:
@@ -354,7 +355,7 @@ def build_paths(patient_id: str, config: ConfigReconstruction) -> dict[str, Path
     }
 
 
-def reconstruct_volumes_for_patients(input_dir: Path, config: ConfigReconstruction) -> bool | None | str:
+def reconstruct_volumes_for_patients(input_dir: Path, config: ConfigReconstruction) -> StageResult:
     """Executes the volume reconstruction process for all patients in a directory.
 
     Args:
@@ -362,8 +363,8 @@ def reconstruct_volumes_for_patients(input_dir: Path, config: ConfigReconstructi
         config: ConfigReconstruction instance providing model and directory settings.
 
     Returns:
-        True if all patients were processed, None if all were skipped, or
-        'partial' if there was a mix of processed and skipped patients.
+        StageResult.COMPLETED if all patients were processed, StageResult.SKIPPED
+        if all were skipped, or StageResult.PARTIAL if there was a mix.
     """
     patients = list_patients(input_dir)
 
@@ -423,9 +424,9 @@ def run_volume_flow(config: ConfigReconstruction, clean: bool, verbose: bool = F
         reconstructed = process_patient_volume(
             patient_id=patient_id, config=config
         )
-        if reconstructed is None:
+        if reconstructed is StageResult.SKIPPED:
             logger.skip(f"⏩ Reconstructed volume already exists.")
-        elif reconstructed is True:
+        elif reconstructed is StageResult.COMPLETED:
             logger.info(f"✅ Volume reconstructed and validated successfully.")
         else:
             logger.warning(f"⚠️ Unknown status when reconstructing volume.")
@@ -436,11 +437,11 @@ def run_volume_flow(config: ConfigReconstruction, clean: bool, verbose: bool = F
             input_dir=config.dataset_fold_dir, config=config
         )
         if config.k_folds == 1:
-            if reconstructed is None:
+            if reconstructed is StageResult.SKIPPED:
                 logger.skip(f"⏩ Volumes for {config.group} already exist.")
-            elif reconstructed is True:
+            elif reconstructed is StageResult.COMPLETED:
                 logger.info(f"🆗 Volumes for {config.group} reconstructed successfully.")
-            elif reconstructed == "partial":
+            elif reconstructed is StageResult.PARTIAL:
                 logger.info(
                     f"🔁 Volumes for {config.group} partially updated."
                 )

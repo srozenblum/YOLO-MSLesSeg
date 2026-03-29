@@ -73,6 +73,7 @@ from yolo_mslesseg.utils.constants import (
     WEIGHTS_FILE,
     DATASETS_DIR,
     N_TRAIN_PATIENTS,
+    StageResult,
 )
 
 if TYPE_CHECKING:
@@ -673,27 +674,28 @@ def ensure_grayscale(image: np.ndarray) -> np.ndarray:
 # ======================================
 
 
-def evaluate_results(results: list) -> bool | None | str:
+def evaluate_results(results: list) -> StageResult:
     """Evaluates the combined status of a list of partial pipeline results.
 
-    Each element can be True (stage succeeded) or None (stage was skipped).
+    Each element must be a StageResult value: COMPLETED or SKIPPED.
 
     Args:
         results: List of per-patient or per-fold stage results.
 
     Returns:
-        True if all results are True, None if all results are None, or
-        'partial' if there is a mix of both.
+        StageResult.SKIPPED if all results are SKIPPED or the list is empty,
+        StageResult.COMPLETED if all results are COMPLETED, or
+        StageResult.PARTIAL if there is a mix of both.
     """
     if not results:
-        return None  # Avoid failure if the list is empty
+        return StageResult.SKIPPED
 
-    if all(r is None for r in results):
-        return None
-    elif all(r is True for r in results):
-        return True
+    if all(r is StageResult.SKIPPED for r in results):
+        return StageResult.SKIPPED
+    elif all(r is StageResult.COMPLETED for r in results):
+        return StageResult.COMPLETED
     else:
-        return "partial"
+        return StageResult.PARTIAL
 
 
 # ======================================
@@ -781,20 +783,20 @@ def AUC(y_true: np.ndarray, y_pred: np.ndarray) -> float:
 # ======================================
 
 
-def log_fold_status(logger: logging.Logger, result: bool | None | str, fold: int) -> None:
+def log_fold_status(logger: logging.Logger, result: StageResult, fold: int) -> None:
     """Logs the execution status of a fold for a specific pipeline stage.
 
     Args:
         logger: Logger instance with custom level support (skip, info, warning).
-        result: Stage result — True (completed), None (skipped), 'partial'
-            (partially updated), or any other value (unknown status).
+        result: Stage result — StageResult.COMPLETED, StageResult.SKIPPED,
+            StageResult.PARTIAL, or any other value (unknown status).
         fold: Fold index to include in the log message.
     """
-    if result is None:
+    if result is StageResult.SKIPPED:
         logger.skip(f"⏩ Fold {fold} already exists.")
-    elif result is True or isinstance(result, (dict, list)):
+    elif result is StageResult.COMPLETED:
         logger.info(f"🆗 Fold {fold} completed.")
-    elif result == "partial":
+    elif result is StageResult.PARTIAL:
         logger.info(f"🔁 Fold {fold} partially updated.")
     else:
         logger.warning(f"⚠️ Fold {fold}: unknown status.")

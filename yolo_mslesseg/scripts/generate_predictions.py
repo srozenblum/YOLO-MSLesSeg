@@ -90,7 +90,7 @@ from yolo_mslesseg.configs.ConfigPred import ConfigPred
 from yolo_mslesseg.utils.Model import Model
 from yolo_mslesseg.utils.Patient import Patient
 from yolo_mslesseg.utils.logging_config import get_logger
-from yolo_mslesseg.utils.constants import EXT_PNG, ENHANCEMENTS
+from yolo_mslesseg.utils.constants import EXT_PNG, ENHANCEMENTS, StageResult
 from yolo_mslesseg.utils.utils import (
     list_patients,
     int_or_percentile,
@@ -296,7 +296,7 @@ def generate_predictions(model: YOLO, image_list: list[Path], output_dir: Path) 
 
 def process_patient_predictions(
     patient_id: str, config: ConfigPred, paths_dir: dict[str, Path] | None = None, yolo_model: YOLO | None = None
-) -> bool | None:
+) -> StageResult:
     """Executes the full prediction process for an individual patient.
 
     Loads the model if not provided, skips if pred_masks already exist,
@@ -309,7 +309,8 @@ def process_patient_predictions(
         yolo_model: Pre-loaded YOLO model instance. Loaded from config if None.
 
     Returns:
-        True if predictions were generated, None if skipped (already exists).
+        StageResult.COMPLETED if predictions were generated, StageResult.SKIPPED
+        if skipped (already exists).
 
     Raises:
         RuntimeError: If no valid images are found for the patient.
@@ -329,7 +330,7 @@ def process_patient_predictions(
     if path_exists(patient_pred_masks_dir) and any(
         patient_pred_masks_dir.glob(f"*{EXT_PNG}")
     ):
-        return
+        return StageResult.SKIPPED
 
     # Get patient images
     image_list = get_patient_images(
@@ -344,7 +345,7 @@ def process_patient_predictions(
         image_list=image_list,
         output_dir=patient_pred_masks_dir,
     )
-    return True
+    return StageResult.COMPLETED
 
 
 def build_paths(patient_id: str, config: ConfigPred) -> dict[str, Path]:
@@ -364,7 +365,7 @@ def build_paths(patient_id: str, config: ConfigPred) -> dict[str, Path]:
     }
 
 
-def generate_predictions_for_patients(input_dir: Path, config: ConfigPred) -> bool | None | str:
+def generate_predictions_for_patients(input_dir: Path, config: ConfigPred) -> StageResult:
     """Executes the prediction generation process for all patients in a directory.
 
     Args:
@@ -372,8 +373,8 @@ def generate_predictions_for_patients(input_dir: Path, config: ConfigPred) -> bo
         config: ConfigPred instance providing model and directory settings.
 
     Returns:
-        True if all patients were processed, None if all were skipped, or
-        'partial' if there was a mix of processed and skipped patients.
+        StageResult.COMPLETED if all patients were processed, StageResult.SKIPPED
+        if all were skipped, or StageResult.PARTIAL if there was a mix.
     """
     patients = list_patients(input_dir)
     yolo_model = load_model(config.model_path)
@@ -435,9 +436,9 @@ def run_prediction_flow(config: ConfigPred, clean: bool, verbose: bool = False) 
         predictions_generated = process_patient_predictions(
             patient_id=config.patient.id, config=config
         )
-        if predictions_generated is None:
+        if predictions_generated is StageResult.SKIPPED:
             logger.skip(f"⏩ Predictions already exist.")
-        elif predictions_generated is True:
+        elif predictions_generated is StageResult.COMPLETED:
             logger.info(f"✅ Predictions generated successfully.")
         else:
             logger.warning(f"⚠️ Unknown status when generating predictions.")
@@ -460,11 +461,11 @@ def run_prediction_flow(config: ConfigPred, clean: bool, verbose: bool = False) 
         )
 
         if config.single_fold:
-            if processed is None:
+            if processed is StageResult.SKIPPED:
                 logger.skip(f"⏩ Predictions for {config.group} already exist.")
-            elif processed is True:
+            elif processed is StageResult.COMPLETED:
                 logger.info(f"🆗 Predictions for {config.group} generated successfully.")
-            elif processed == "partial":
+            elif processed is StageResult.PARTIAL:
                 logger.info(
                     f"🔁 Predictions for {config.group} partially updated."
                 )

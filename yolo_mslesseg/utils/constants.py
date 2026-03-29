@@ -31,6 +31,7 @@ Relationships:
     - Ensures consistency with the official pipeline directory structure.
 """
 
+from enum import Enum
 from pathlib import Path
 
 # Base directories
@@ -84,3 +85,17 @@ WEIGHTS_FILE = "best.pt"
 #   global:     global_{plane}_results.json
 RESULTS_SUFFIX = "_results"
 RESULTS_GLOBAL_PREFIX = "global_"
+
+
+class StageResult(Enum):
+    """Enum representing the execution status of a pipeline stage.
+
+    Values:
+        COMPLETED: The stage ran and produced new output.
+        SKIPPED: The stage was skipped because output already existed.
+        PARTIAL: Some patients were processed and some were skipped.
+    """
+
+    COMPLETED = "completed"
+    SKIPPED = "skipped"
+    PARTIAL = "partial"
