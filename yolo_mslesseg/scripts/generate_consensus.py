@@ -84,7 +84,7 @@ from yolo_mslesseg.configs.ConfigConsensus import ConfigConsensus
 from yolo_mslesseg.utils.Model import Model
 from yolo_mslesseg.utils.Patient import Patient
 from yolo_mslesseg.utils.logging_config import get_logger
-from yolo_mslesseg.utils.constants import EXT_NIFTI, MASK_SUFFIX, ENHANCEMENTS, PLANES
+from yolo_mslesseg.utils.constants import EXT_NIFTI, MASK_SUFFIX, ENHANCEMENTS, ANATOMICAL_PLANES
 from yolo_mslesseg.utils.utils import (
     load_volume,
     save_volume,
@@ -179,22 +179,25 @@ def process_patient_consensus(
     if paths_dir is None:
         paths_dir = config.patient_pred_vols
         gt_vol = config.patient_gt_vol
+        output_path = paths_dir["consenso"]
     else:
         gt_vol = paths_dir["gt"]
+        patient_id = paths_dir["axial"].parent.name
+        output_path = config.pred_vols_fold_dir / patient_id / f"{patient_id}_consenso{EXT_NIFTI}"
 
     # Skip if the consensus volume already exists
-    if path_exists(paths_dir["consenso"]):
+    if path_exists(output_path):
         return
 
     generate_consensus(
         axial_path=paths_dir["axial"],
         coronal_path=paths_dir["coronal"],
         sagittal_path=paths_dir["sagittal"],
-        output_path=paths_dir["consenso"],
+        output_path=output_path,
         umbral=umbral,
     )
 
-    if not is_valid_reconstruction(paths_dir["consenso"], gt_vol):
+    if not is_valid_reconstruction(output_path, gt_vol):
         raise RuntimeError("Consensus reconstruction is not valid.")
 
     return True
@@ -208,13 +211,14 @@ def build_paths(patient_id: str, config: ConfigConsensus) -> dict[str, Path]:
         config: ConfigConsensus instance providing directory settings.
 
     Returns:
-        Dictionary mapping plane names and 'gt' to their respective Path objects.
+        Dictionary mapping the three anatomical plane names and 'gt' to their
+        respective Path objects. Does not include the consensus output path.
     """
     paths = {
         plane: config.pred_vols_fold_dir
         / patient_id
         / f"{patient_id}_{plane}{EXT_NIFTI}"
-        for plane in PLANES
+        for plane in ANATOMICAL_PLANES
     }
     paths["gt"] = config.gt_dir / patient_id / f"{patient_id}{MASK_SUFFIX}{EXT_NIFTI}"
 
