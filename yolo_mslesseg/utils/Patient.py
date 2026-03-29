@@ -48,7 +48,7 @@ class Patient:
             Patient identifier (format 'PX').
 
         plane (str):
-            Anatomical orientation ('axial', 'coronal', 'sagital') or 'consenso'.
+            Anatomical orientation ('axial', 'coronal', 'sagittal') or 'consenso'.
 
         timepoint (str, optional):
             MRI acquisition timepoint. Defaults to 'T1'.
@@ -88,7 +88,7 @@ class Patient:
 
         Args:
             id: Patient identifier string (e.g. 'P12').
-            plane: Anatomical plane ('axial', 'coronal', 'sagital', or 'consenso').
+            plane: Anatomical plane ('axial', 'coronal', 'sagittal', or 'consenso').
             timepoint: MRI acquisition timepoint. Defaults to 'T1'.
             modality: List of MRI modalities to use. Defaults to all modalities.
             enhancement: Enhancement algorithm name, or None for no enhancement.
@@ -294,7 +294,7 @@ class Patient:
     @property
     def num_slices(self) -> int:
         """Returns the total number of slices in the mask for the current plane."""
-        mapping = {"axial": 2, "coronal": 1, "sagital": 0}
+        mapping = {"axial": 2, "coronal": 1, "sagittal": 0}
         if self.plane not in mapping:
             raise ValueError(f"Unrecognised plane: {self.plane}")
         return self.gt_mask.shape[mapping[self.plane]]
@@ -402,7 +402,7 @@ class Patient:
         mapping = {
             "axial": (slice(None), slice(None), i),
             "coronal": (slice(None), i, slice(None)),
-            "sagital": (i, slice(None), slice(None)),
+            "sagittal": (i, slice(None), slice(None)),
         }
 
         return mapping[self.plane]

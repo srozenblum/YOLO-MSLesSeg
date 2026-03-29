@@ -3,7 +3,7 @@ Script: generate_consensus.py
 
 Description:
     Combines the volumetric predictions obtained from the three anatomical planes
-    (axial, coronal, and sagital) to generate a 3D consensus volume in NIfTI format.
+    (axial, coronal, and sagittal) to generate a 3D consensus volume in NIfTI format.
     The consensus is computed through majority voting (threshold ≥ 2 or 3) and is
     automatically validated against the ground truth. Can be executed at patient or
     fold level.
@@ -106,42 +106,42 @@ logger = get_logger(__file__)
 # ======================================
 
 
-def combine_volumes(axial_vol: np.ndarray, coronal_vol: np.ndarray, sagital_vol: np.ndarray, umbral: int = 2) -> np.ndarray:
+def combine_volumes(axial_vol: np.ndarray, coronal_vol: np.ndarray, sagittal_vol: np.ndarray, umbral: int = 2) -> np.ndarray:
     """Combines three plane volumes into a binary consensus volume using majority voting.
 
     Args:
         axial_vol: Predicted volume from the axial plane.
         coronal_vol: Predicted volume from the coronal plane.
-        sagital_vol: Predicted volume from the sagital plane.
+        sagittal_vol: Predicted volume from the sagittal plane.
         umbral: Voting threshold (2 for majority, 3 for unanimity).
 
     Returns:
         Binary consensus volume as a uint8 NumPy array.
     """
-    consensus = ((axial_vol + coronal_vol + sagital_vol) >= umbral).astype(np.uint8)
+    consensus = ((axial_vol + coronal_vol + sagittal_vol) >= umbral).astype(np.uint8)
     return consensus
 
 
-def generate_consensus(axial_path: Path, coronal_path: Path, sagital_path: Path, output_path: Path, umbral: int = 2) -> None:
+def generate_consensus(axial_path: Path, coronal_path: Path, sagittal_path: Path, output_path: Path, umbral: int = 2) -> None:
     """Generates and saves a consensus NIfTI volume from three anatomical plane predictions.
 
     Args:
         axial_path: Path to the axial plane predicted NIfTI volume.
         coronal_path: Path to the coronal plane predicted NIfTI volume.
-        sagital_path: Path to the sagital plane predicted NIfTI volume.
+        sagittal_path: Path to the sagittal plane predicted NIfTI volume.
         output_path: Path where the consensus NIfTI volume will be saved.
         umbral: Voting threshold (2 for majority, 3 for unanimity).
     """
     axial_vol = load_volume(axial_path)
     coronal_vol = load_volume(coronal_path)
-    sagital_vol = load_volume(sagital_path)
+    sagittal_vol = load_volume(sagittal_path)
     affine = load_nifti_reference(axial_path)[1]
 
     # Combine volumes by applying the threshold to generate the consensus
     consensus = combine_volumes(
         axial_vol=axial_vol,
         coronal_vol=coronal_vol,
-        sagital_vol=sagital_vol,
+        sagittal_vol=sagittal_vol,
         umbral=umbral,
     )
 
@@ -189,7 +189,7 @@ def process_patient_consensus(
     generate_consensus(
         axial_path=paths_dir["axial"],
         coronal_path=paths_dir["coronal"],
-        sagital_path=paths_dir["sagital"],
+        sagittal_path=paths_dir["sagittal"],
         output_path=paths_dir["consenso"],
         umbral=umbral,
     )

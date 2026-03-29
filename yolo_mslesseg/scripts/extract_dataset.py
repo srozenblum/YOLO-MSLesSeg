@@ -27,7 +27,7 @@ Execution modes:
 
 CLI Arguments:
     --plane (str, required)
-        Anatomical extraction plane ('axial', 'coronal', 'sagital').
+        Anatomical extraction plane ('axial', 'coronal', 'sagittal').
 
     --modality (list[str], optional)
         MRI modality or modalities ('T1', 'T2', 'FLAIR').
@@ -62,7 +62,7 @@ CLI Arguments:
 
 CLI Usage:
     python -m yolo_mslesseg.scripts.extract_dataset \\
-        --plane "sagital" \\
+        --plane "sagittal" \\
         --modality "T1" \\
         --num_slices 100 \\
         --k_folds 4 \\
@@ -121,7 +121,7 @@ def compute_percentile_slice_count(input_dir: Path, plane: str, modality: list[s
 
     Args:
         input_dir: Directory containing patient subdirectories.
-        plane: Anatomical plane to use ('axial', 'coronal', 'sagital').
+        plane: Anatomical plane to use ('axial', 'coronal', 'sagittal').
         modality: List of MRI modalities to include.
         percentil: Percentile to compute over the distribution of slice counts.
 
@@ -158,7 +158,7 @@ def resolve_num_slices(num_slices: int | str | None, input_dir: Path, plane: str
     Args:
         num_slices: Fixed integer count, a percentile string (e.g. 'P50'), or None.
         input_dir: Directory containing patient subdirectories (used for percentile computation).
-        plane: Anatomical plane ('axial', 'coronal', 'sagital').
+        plane: Anatomical plane ('axial', 'coronal', 'sagittal').
         modality: List of MRI modalities to include.
 
     Returns:
@@ -496,8 +496,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--plane",
         type=str,
         required=True,
-        choices=["axial", "coronal", "sagital"],
-        metavar="[axial, coronal, sagital]",
+        choices=["axial", "coronal", "sagittal"],
+        metavar="[axial, coronal, sagittal]",
         help="Anatomical extraction plane.",
     )
     parser.add_argument(

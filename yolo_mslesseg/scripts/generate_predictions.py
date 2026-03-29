@@ -22,7 +22,7 @@ Execution modes:
 
 CLI Arguments:
     --plane (str, required)
-        Anatomical extraction plane ('axial', 'coronal', 'sagital').
+        Anatomical extraction plane ('axial', 'coronal', 'sagittal').
 
     --modality (list[str], optional)
         MRI modality or modalities ('T1', 'T2', 'FLAIR').
@@ -500,8 +500,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--plane",
         type=str,
         required=True,
-        choices=["axial", "coronal", "sagital"],
-        metavar="[axial, coronal, sagital]",
+        choices=["axial", "coronal", "sagittal"],
+        metavar="[axial, coronal, sagittal]",
         help="Anatomical extraction plane.",
     )
     parser.add_argument(

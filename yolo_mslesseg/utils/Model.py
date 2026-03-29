@@ -19,7 +19,7 @@ class Model:
 
     Attributes:
         plane (str):
-            Anatomical plane used ('axial', 'coronal', 'sagital') or 'consenso'.
+            Anatomical plane used ('axial', 'coronal', 'sagittal') or 'consenso'.
 
         num_slices (int | str):
             Number of slices used (integer value or percentile string 'PX').
@@ -47,7 +47,7 @@ class Model:
         """Initialises a Model instance with the given experimental configuration.
 
         Args:
-            plane: Anatomical plane ('axial', 'coronal', 'sagital', or 'consenso').
+            plane: Anatomical plane ('axial', 'coronal', 'sagittal', or 'consenso').
             num_slices: Number of slices as an integer or percentile string (e.g. 'P50').
             modality: List of MRI modalities to include (e.g. ['T1', 'FLAIR']).
             k_folds: Number of cross-validation folds (1 for fixed split).

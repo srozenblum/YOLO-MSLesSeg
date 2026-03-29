@@ -48,7 +48,7 @@ on the FLAIR image in the axial, coronal, and sagittal planes.
 <p align="center">
   <img src="visualizations/LT/FLAIR_P50slices_5folds_50epochs/fold1/P1/axial/P1_FLAIR_103.png" height="270">
   <img src="visualizations/LT/FLAIR_P50slices_5folds_50epochs/fold1/P1/coronal/P1_FLAIR_73.png" height="270">
-  <img src="visualizations/LT/FLAIR_P50slices_5folds_50epochs/fold1/P1/sagital/P1_FLAIR_119.png" height="270">
+  <img src="visualizations/LT/FLAIR_P50slices_5folds_50epochs/fold1/P1/sagittal/P1_FLAIR_119.png" height="270">
 </p>
 
 ### Complete patient sequence
@@ -248,19 +248,19 @@ repository.
 The following arguments allow customising the execution of `run_pipeline.py`
 and carrying out experiments for different configurations:
 
-| Argument                | Required | Default    | Description                                                                                                              |
-|-------------------------|----------|------------|--------------------------------------------------------------------------------------------------------------------------|
-| `--plane`               | ✅ Yes    | —          | Anatomical plane: `axial`, `coronal`, or `sagital`                                                                       |
-| `--modality`            | No       | All        | MRI image modality or modalities: `T1`, `T2`, `FLAIR`                                                                    |
-| `--num_slices`          | ✅ Yes    | —          | Number of slices (integer or `PXX` for percentile)                                                                       |
-| `--enhancement`         | No       | `None`     | Image enhancement algorithm: `HE`, `CLAHE`, `GC`, `LT`                                                                   |
-| `--k_folds`             | No       | `5`        | Number of folds. If `k_folds > 1`, uses cross-validation by folds; if `k_folds == 1`, uses a fixed _train_/_test_ split. |
-| `--epochs`              | ✅ Yes    | —          | Number of training epochs                                                                                                |
-| `--consensus_threshold` | No       | `2`        | Voting threshold: `2` (majority) or `3` (unanimity)                                                                      |
-| `--full`                | ✅ Yes    | —          | Process all patients                                                                                                     |
-| `--patient_id`          | ✅ Yes    | —          | Process only the specified patient (e.g. `P1`)                                                                           |
-| `--train`               | No       | Not active | Include the training stage                                                                                               |
-| `--clean`               | No       | Not active | Clean all previous results                                                                                               |
+| Argument                | Required | Default    | Description                                                                                                          |
+|-------------------------|----------|------------|----------------------------------------------------------------------------------------------------------------------|
+| `--plane`               | ✅ Yes    | —          | Anatomical plane: `axial`, `coronal`, or `sagittal`                                                                   |
+| `--modality`            | No       | All        | MRI image modality or modalities: `T1`, `T2`, `FLAIR`                                                                |
+| `--num_slices`          | ✅ Yes    | —          | Number of slices (integer or `PXX` for percentile)                                                                   |
+| `--enhancement`         | No       | `None`     | Image enhancement algorithm: `HE`, `CLAHE`, `GC`, `LT`                                                               |
+| `--k_folds`             | No       | `5`        | Number of folds. If `k_folds > 1`, uses cross-validation by folds; if `k_folds == 1`, uses a fixed train/test split. |
+| `--epochs`              | ✅ Yes    | —          | Number of training epochs                                                                                            |
+| `--consensus_threshold` | No       | `2`        | Voting threshold: `2` (majority) or `3` (unanimity)                                                                  |
+| `--full`                | ✅ Yes    | —          | Process all patients                                                                                                 |
+| `--patient_id`          | ✅ Yes    | —          | Process only the specified patient (e.g. `P1`)                                                                       |
+| `--train`               | No       | Not active | Include the training stage                                                                                           |
+| `--clean`               | No       | Not active | Clean all previous results                                                                                           |
 
 > [!NOTE]
 > When more than one modality is specified (e.g. `--modality T1 FLAIR`), their slices are fused into a

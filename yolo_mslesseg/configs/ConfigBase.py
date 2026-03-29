@@ -33,7 +33,7 @@ class ConfigBase(ABC):
             Model instance defining the plane, modalities, enhancement, and base_path.
 
         plane (str):
-            Anatomical processing plane ('axial', 'coronal', 'sagital').
+            Anatomical processing plane ('axial', 'coronal', 'sagittal').
             Subclasses may override this (e.g. 'consenso' in ConfigConsensus).
 
         epochs (int):

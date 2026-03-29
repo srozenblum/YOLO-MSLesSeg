@@ -77,7 +77,7 @@ class ConfigEval(ConfigBase):
             Model instance defining the plane, modalities, enhancement, and base_path.
 
         plane (str):
-            Anatomical processing plane ('axial', 'coronal', 'sagital').
+            Anatomical processing plane ('axial', 'coronal', 'sagittal').
             If `forced_plane` is provided, it overrides the model's plane.
 
         epochs (int):

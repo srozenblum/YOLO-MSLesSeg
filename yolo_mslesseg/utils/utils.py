@@ -307,7 +307,7 @@ def is_valid_reconstruction(pred_vol_path: str | Path, gt_vol_path: str | Path) 
 def predicted_volumes_complete(patient_dir: str | Path) -> bool:
     """Checks that all three predicted volumes exist for a patient.
 
-    Verifies that axial, coronal, and sagital volumes are present in the
+    Verifies that axial, coronal, and sagittal volumes are present in the
     patient's prediction directory.
 
     Args:
@@ -327,7 +327,7 @@ def verify_group_volumes(root_dir: Path) -> bool:
     """Verifies that all patients in a directory have complete predicted volumes.
 
     Checks that every patient has predicted volumes for all three anatomical
-    planes: axial, coronal, and sagital.
+    planes: axial, coronal, and sagittal.
 
     Args:
         root_dir: Directory containing patient subdirectories.

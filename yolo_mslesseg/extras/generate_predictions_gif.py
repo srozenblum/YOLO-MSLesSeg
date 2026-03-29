@@ -10,7 +10,7 @@ CLI Arguments:
         ID of the patient to visualise.
 
     --plane (str, required)
-        Anatomical extraction plane ('axial', 'coronal', 'sagital').
+        Anatomical extraction plane ('axial', 'coronal', 'sagittal').
 
     --modality (list[str], optional)
         MRI modality or modalities ('T1', 'T2', 'FLAIR').
@@ -36,7 +36,7 @@ CLI Arguments:
 CLI Usage:
     python -m yolo_mslesseg.extras.generate_predictions_gif \\
         --patient_id P14 \\
-        --plane sagital \\
+        --plane sagittal \\
         --modality FLAIR \\
         --num_slices P50 \\
         --enhancement HE \\
@@ -478,8 +478,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--plane",
         type=str,
         required=True,
-        choices=["axial", "coronal", "sagital"],
-        metavar="[axial, coronal, sagital]",
+        choices=["axial", "coronal", "sagittal"],
+        metavar="[axial, coronal, sagittal]",
         help="Anatomical extraction plane.",
     )
     parser.add_argument(

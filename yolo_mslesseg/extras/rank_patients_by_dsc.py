@@ -20,7 +20,7 @@ Execution mode:
 
 CLI Arguments:
     --plane (str, required)
-        Anatomical plane of the model ('axial', 'coronal', 'sagital').
+        Anatomical plane of the model ('axial', 'coronal', 'sagittal').
         Used only to build the Model object.
 
     --modality (list[str], optional)
@@ -255,8 +255,8 @@ def parse_args() -> argparse.Namespace:
         "--plane",
         type=str,
         required=True,
-        choices=["axial", "coronal", "sagital"],
-        metavar="[axial, coronal, sagital]",
+        choices=["axial", "coronal", "sagittal"],
+        metavar="[axial, coronal, sagittal]",
         help="Anatomical plane of the model.",
     )
     parser.add_argument(

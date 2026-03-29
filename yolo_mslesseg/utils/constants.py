@@ -53,8 +53,8 @@ N_TRAIN_PATIENTS = 53
 MODALITIES = ("T1", "T2", "FLAIR")
 
 # Planes
-PLANES = ("axial", "coronal", "sagital", "consenso")
-ANATOMICAL_PLANES = ("axial", "coronal", "sagital")
+PLANES = ("axial", "coronal", "sagittal", "consenso")
+ANATOMICAL_PLANES = ("axial", "coronal", "sagittal")
 
 # Timepoints present in the MSLesSeg dataset directory structure.
 # Used to detect whether a patient directory uses timepoint subdirectories.

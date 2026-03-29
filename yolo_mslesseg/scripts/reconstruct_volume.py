@@ -19,7 +19,7 @@ Execution modes:
 
 CLI Arguments:
     --plane (str, required)
-        Anatomical extraction plane ('axial', 'coronal', 'sagital').
+        Anatomical extraction plane ('axial', 'coronal', 'sagittal').
 
     --modality (list[str], optional)
         MRI modality or modalities ('T1', 'T2', 'FLAIR').
@@ -51,7 +51,7 @@ CLI Arguments:
 
 CLI Usage:
     python -m yolo_mslesseg.scripts.reconstruct_volume \\
-        --plane sagital \\
+        --plane sagittal \\
         --num_slices P75 \\
         --epochs 25 \\
         --fold_test 1
@@ -174,7 +174,7 @@ def validate_slice(idx: int, img_array: np.ndarray, shape_original: tuple[int, .
         idx: Slice index within the volume.
         img_array: 2D slice array to validate.
         shape_original: Shape of the reference NIfTI volume (x, y, z).
-        plane: Anatomical plane ('axial', 'coronal', 'sagital').
+        plane: Anatomical plane ('axial', 'coronal', 'sagittal').
 
     Raises:
         ValueError: If the index is out of range or the slice dimensions are incorrect.
@@ -183,7 +183,7 @@ def validate_slice(idx: int, img_array: np.ndarray, shape_original: tuple[int, .
     max_indices = {
         "axial": shape_original[2],
         "coronal": shape_original[1],
-        "sagital": shape_original[0],
+        "sagittal": shape_original[0],
     }
     if idx < 0 or idx >= max_indices[plane]:
         raise ValueError(f"Index {idx} out of range for plane {plane}.")
@@ -192,7 +192,7 @@ def validate_slice(idx: int, img_array: np.ndarray, shape_original: tuple[int, .
     expected_shapes = {
         "axial": (shape_original[0], shape_original[1]),
         "coronal": (shape_original[0], shape_original[2]),
-        "sagital": (shape_original[1], shape_original[2]),
+        "sagittal": (shape_original[1], shape_original[2]),
     }
     if img_array.shape != expected_shapes[plane]:
         raise ValueError(
@@ -208,13 +208,13 @@ def insert_slice(volume: np.ndarray, img_array: np.ndarray, idx: int, plane: str
         volume: 3D NumPy array to insert the slice into (modified in-place).
         img_array: 2D slice array to insert.
         idx: Slice index along the axis corresponding to the plane.
-        plane: Anatomical plane ('axial', 'coronal', 'sagital').
+        plane: Anatomical plane ('axial', 'coronal', 'sagittal').
     """
     if plane == "axial":
         volume[:, :, idx] = img_array
     elif plane == "coronal":
         volume[:, idx, :] = img_array
-    elif plane == "sagital":
+    elif plane == "sagittal":
         volume[idx, :, :] = img_array
 
 
@@ -242,7 +242,7 @@ def reconstruct_volume(pred_masks_dir: Path, reference_volume: Path, output_path
         pred_masks_dir: Directory containing the predicted mask PNG files.
         reference_volume: Path to the ground truth NIfTI file used as shape/affine reference.
         output_path: Path where the reconstructed NIfTI volume will be saved.
-        plane: Anatomical plane ('axial', 'coronal', 'sagital').
+        plane: Anatomical plane ('axial', 'coronal', 'sagittal').
 
     Returns:
         Reconstructed 3D volume as a float32 NumPy array.
@@ -479,8 +479,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--plane",
         type=str,
         required=True,
-        choices=["axial", "coronal", "sagital"],
-        metavar="[axial, coronal, sagital]",
+        choices=["axial", "coronal", "sagittal"],
+        metavar="[axial, coronal, sagittal]",
         help="Anatomical extraction plane.",
     )
     parser.add_argument(

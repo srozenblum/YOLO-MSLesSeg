@@ -83,7 +83,7 @@ class ConfigTrain:
             Model instance defining the plane, modalities, enhancement, and base_path.
 
         plane (str):
-            Anatomical processing plane ('axial', 'coronal', or 'sagital').
+            Anatomical processing plane ('axial', 'coronal', or 'sagittal').
 
         epochs (int):
             Number of training epochs.

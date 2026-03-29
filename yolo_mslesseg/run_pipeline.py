@@ -30,7 +30,7 @@ Stages:
 
 CLI Arguments:
     --plane (str, required)
-        Anatomical extraction plane ('axial', 'coronal', 'sagital').
+        Anatomical extraction plane ('axial', 'coronal', 'sagittal').
 
     --modality (list[str], optional)
         MRI modality or modalities ('T1', 'T2', 'FLAIR').
@@ -113,7 +113,7 @@ logger = get_logger(__file__)
 def verify_consensus_folds(model: Model, epochs: int, k_folds: int) -> tuple:
     """
     Checks which folds of the model have complete predicted volumes across
-    all three planes (axial, coronal, and sagital), which is required to
+    all three planes (axial, coronal, and sagittal), which is required to
     generate the consensus.
     """
     valid_folds = []
@@ -669,8 +669,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--plane",
         type=str,
         required=True,
-        choices=["axial", "coronal", "sagital"],
-        metavar="[axial, coronal, sagital]",
+        choices=["axial", "coronal", "sagittal"],
+        metavar="[axial, coronal, sagittal]",
         help="Anatomical extraction plane.",
     )
     parser.add_argument(
