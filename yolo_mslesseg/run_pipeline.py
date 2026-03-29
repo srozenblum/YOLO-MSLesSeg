@@ -67,12 +67,12 @@ CLI Arguments:
         Clean previous results before generating new ones.
 
 CLI Usage:
-    python -m yolo_mslesseg.run_pipeline \\
-        --plane axial \\
-        --modality FLAIR \\
-        --num_slices P50 \\
-        --enhancement HE \\
-        --epochs 50 \\
+    python -m yolo_mslesseg.run_pipeline \
+        --plane axial \
+        --modality FLAIR \
+        --num_slices P50 \
+        --enhancement HE \
+        --epochs 50 \
         --full
 """
 

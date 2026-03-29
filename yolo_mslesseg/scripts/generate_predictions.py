@@ -53,11 +53,11 @@ CLI Arguments:
         Clean the directory with binary 2D predictions before generating new ones.
 
 CLI Usage:
-    python -m yolo_mslesseg.scripts.generate_predictions \\
-        --plane coronal \\
-        --modality FLAIR \\
-        --num_slices 50 \\
-        --epochs 100 \\
+    python -m yolo_mslesseg.scripts.generate_predictions \
+        --plane coronal \
+        --modality FLAIR \
+        --num_slices 50 \
+        --epochs 100 \
         --fold_test 3
 
 Inputs:

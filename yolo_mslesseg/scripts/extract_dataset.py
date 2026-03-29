@@ -61,11 +61,11 @@ CLI Arguments:
         Clean the previous YOLO dataset before extracting a new one.
 
 CLI Usage:
-    python -m yolo_mslesseg.scripts.extract_dataset \\
-        --plane "sagittal" \\
-        --modality "T1" \\
-        --num_slices 100 \\
-        --k_folds 4 \\
+    python -m yolo_mslesseg.scripts.extract_dataset \
+        --plane "sagittal" \
+        --modality "T1" \
+        --num_slices 100 \
+        --k_folds 4 \
         --full
 
 Inputs:

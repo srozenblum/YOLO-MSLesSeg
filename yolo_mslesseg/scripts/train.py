@@ -54,19 +54,19 @@ CLI Arguments:
         Clean previous training results before starting a new run.
 
 CLI Usage:
-    python -m yolo_mslesseg.scripts.train \\
-        --plane "sagittal" \\
-        --modality "T2" \\
-        --num_slices 20 \\
-        --epochs 40 \\
-        --k_folds 5 \\
+    python -m yolo_mslesseg.scripts.train \
+        --plane "sagittal" \
+        --modality "T2" \
+        --num_slices 20 \
+        --epochs 40 \
+        --k_folds 5 \
         --fold_test 2
 
-    python -m yolo_mslesseg.scripts.train \\
-        --plane "axial" \\
-        --modality "FLAIR" \\
-        --num_slices "P50" \\
-        --epochs 50 \\
+    python -m yolo_mslesseg.scripts.train \
+        --plane "axial" \
+        --modality "FLAIR" \
+        --num_slices "P50" \
+        --epochs 50 \
         --k_folds 1
 
 Inputs:

@@ -52,12 +52,12 @@ CLI Arguments:
         Clean the directory with binary 2D predictions before generating new ones.
 
 CLI Usage:
-    python -m yolo_mslesseg.scripts.eval \\
-        --plane axial \\
-        --modality FLAIR \\
-        --num_slices P50 \\
-        --epochs 60 \\
-        --fold_test 5 \\
+    python -m yolo_mslesseg.scripts.eval \
+        --plane axial \
+        --modality FLAIR \
+        --num_slices P50 \
+        --epochs 60 \
+        --fold_test 5 \
         --clean
 
 Inputs:

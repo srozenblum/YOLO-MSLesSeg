@@ -52,10 +52,10 @@ CLI Arguments:
         Clean previous consensus volumes before generating new ones.
 
 CLI Usage:
-    python -m yolo_mslesseg.scripts.generate_consensus \\
-        --epochs 50 \\
-        --num_slices 20 \\
-        --k_folds 5 \\
+    python -m yolo_mslesseg.scripts.generate_consensus \
+        --epochs 50 \
+        --num_slices 20 \
+        --k_folds 5 \
         --fold_test 1
 
 Inputs:

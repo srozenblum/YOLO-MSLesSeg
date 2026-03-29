@@ -45,10 +45,10 @@ CLI Arguments:
         Clean previous global results before computing new ones.
 
 CLI Usage:
-    python -m yolo_mslesseg.scripts.average_folds \\
-        --plane coronal \\
-        --num_slices 40 \\
-        --epochs 80 \\
+    python -m yolo_mslesseg.scripts.average_folds \
+        --plane coronal \
+        --num_slices 40 \
+        --epochs 80 \
         --k_folds 5
 
 Inputs:
