@@ -602,13 +602,12 @@ def main(argv: list[str] | None = None) -> None:
     )
 
 
-def run_dataset_pipeline(model: Model, patient: Patient | None = None, k_folds: int = 5, clean: bool = False) -> None:
+def run_dataset_pipeline(model: Model, patient: Patient | None = None, clean: bool = False) -> None:
     """Internal pipeline entry point: executes the dataset extraction flow programmatically.
 
     Args:
         model: Model instance defining the extraction configuration.
         patient: Patient instance for individual execution, or None for full mode.
-        k_folds: Number of cross-validation folds (1 for a fixed split).
         clean: If True, deletes existing dataset outputs before extracting.
     """
     if patient is not None:

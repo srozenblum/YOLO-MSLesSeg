@@ -166,7 +166,6 @@ def run_dataset(model: Model, patient: Patient | None, k_folds: int, clean: bool
     run_dataset_pipeline(
         model=model,
         patient=patient,
-        k_folds=k_folds,
         clean=clean,
     )
 
@@ -248,7 +247,6 @@ def run_predictions(model: Model, epochs: int, k_folds: int, patient: Patient | 
         run_predictions_pipeline(
             model=model,
             epochs=epochs,
-            k_folds=k_folds,
             patient=patient,
             clean=clean,
         )
@@ -261,7 +259,6 @@ def run_predictions(model: Model, epochs: int, k_folds: int, patient: Patient | 
         run_predictions_pipeline(
             model=model,
             epochs=epochs,
-            k_folds=k_folds,
             fold_test=None,
             clean=clean,
         )
@@ -274,7 +271,6 @@ def run_predictions(model: Model, epochs: int, k_folds: int, patient: Patient | 
         run_predictions_pipeline(
             model=model,
             epochs=epochs,
-            k_folds=k_folds,
             fold_test=fold,
             clean=clean,
         )
@@ -302,7 +298,6 @@ def run_reconstructions(model: Model, epochs: int, k_folds: int, patient: Patien
         run_reconstruction_pipeline(
             model=model,
             epochs=epochs,
-            k_folds=k_folds,
             patient=patient,
             clean=clean,
         )
@@ -317,7 +312,6 @@ def run_reconstructions(model: Model, epochs: int, k_folds: int, patient: Patien
         run_reconstruction_pipeline(
             model=model,
             epochs=epochs,
-            k_folds=k_folds,
             fold_test=None,
             clean=clean,
         )
@@ -330,7 +324,6 @@ def run_reconstructions(model: Model, epochs: int, k_folds: int, patient: Patien
         run_reconstruction_pipeline(
             model=model,
             epochs=epochs,
-            k_folds=k_folds,
             fold_test=fold,
             clean=clean,
         )
@@ -360,7 +353,6 @@ def run_eval(model: Model, epochs: int, k_folds: int, patient: Patient | None, c
         run_eval_pipeline(
             model=model,
             epochs=epochs,
-            k_folds=k_folds,
             patient=patient,
             clean=clean,
         )
@@ -373,7 +365,6 @@ def run_eval(model: Model, epochs: int, k_folds: int, patient: Patient | None, c
         run_eval_pipeline(
             model=model,
             epochs=epochs,
-            k_folds=k_folds,
             fold_test=None,
             clean=clean,
         )
@@ -386,7 +377,6 @@ def run_eval(model: Model, epochs: int, k_folds: int, patient: Patient | None, c
         run_eval_pipeline(
             model=model,
             epochs=epochs,
-            k_folds=k_folds,
             fold_test=fold,
             clean=clean,
         )
@@ -437,7 +427,6 @@ def run_consensus(
         run_consensus_pipeline(
             model=model,
             epochs=epochs,
-            k_folds=k_folds,
             umbral=consensus_threshold,
             patient=patient,
             clean=clean,
@@ -448,7 +437,6 @@ def run_consensus(
             model=model,
             plane="consenso",
             epochs=epochs,
-            k_folds=k_folds,
             patient=patient,
             clean=clean,
         )
@@ -471,7 +459,6 @@ def run_consensus(
         run_consensus_pipeline(
             model=model,
             epochs=epochs,
-            k_folds=k_folds,
             umbral=consensus_threshold,
             fold_test=None,
             clean=clean,
@@ -482,7 +469,6 @@ def run_consensus(
             model=model,
             plane="consenso",
             epochs=epochs,
-            k_folds=k_folds,
             fold_test=None,
             clean=clean,
         )
@@ -512,7 +498,6 @@ def run_consensus(
         run_consensus_pipeline(
             model=model,
             epochs=epochs,
-            k_folds=k_folds,
             umbral=consensus_threshold,
             fold_test=fold,
             clean=clean,
@@ -524,7 +509,6 @@ def run_consensus(
             model=model,
             plane="consenso",
             epochs=epochs,
-            k_folds=k_folds,
             fold_test=fold,
             clean=clean,
         )
@@ -565,7 +549,6 @@ def run_average_folds(
     run_average_folds_pipeline(
         model=model,
         epochs=epochs,
-        k_folds=k_folds,
         clean=clean,
     )
 
@@ -578,7 +561,6 @@ def run_average_folds(
             model=model,
             plane="consenso",
             epochs=epochs,
-            k_folds=k_folds,
             clean=clean,
         )
 

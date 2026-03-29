@@ -587,7 +587,7 @@ def main(argv: list[str] | None = None) -> None:
 
 
 def run_reconstruction_pipeline(
-    model: Model, patient: Patient | None = None, fold_test: int | None = None, epochs: int = 50, k_folds: int = 5, clean: bool = False
+    model: Model, patient: Patient | None = None, fold_test: int | None = None, epochs: int = 50, clean: bool = False
 ) -> None:
     """Internal pipeline entry point: executes the volume reconstruction flow programmatically.
 
@@ -596,7 +596,6 @@ def run_reconstruction_pipeline(
         patient: Patient instance for individual execution, or None for fold mode.
         fold_test: Test fold index when using cross-validation, or None.
         epochs: Number of training epochs of the YOLO model.
-        k_folds: Number of cross-validation folds (1 for a fixed split).
         clean: If True, deletes existing reconstructed volumes before regenerating.
     """
     config = ConfigReconstruction(

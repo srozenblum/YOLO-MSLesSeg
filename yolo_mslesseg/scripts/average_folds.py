@@ -338,7 +338,7 @@ def main(argv: list[str] | None = None) -> None:
 
 
 def run_average_folds_pipeline(
-    model: Model, plane: str | None = None, epochs: int = 50, k_folds: int = 5, clean: bool = False
+    model: Model, plane: str | None = None, epochs: int = 50, clean: bool = False
 ) -> None:
     """Internal pipeline entry point: executes the fold-average flow programmatically.
 
@@ -346,7 +346,6 @@ def run_average_folds_pipeline(
         model: Model instance defining the experiment configuration.
         plane: Plane label overriding the model's plane, or None.
         epochs: Number of training epochs of the YOLO model.
-        k_folds: Number of cross-validation folds.
         clean: If True, deletes existing global results before computing new ones.
     """
     config = ConfigEval(
