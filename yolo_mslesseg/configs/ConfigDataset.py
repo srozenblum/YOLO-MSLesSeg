@@ -193,6 +193,8 @@ class ConfigDataset:
         self.is_full = (not self.is_individual_patient) and self.full
 
         if self.is_individual_patient:
+            original_input_dir = self.input_dir
+
             if self.k_folds > 1:
                 # Cross-validation:
                 # - Train patients → assigned to their corresponding fold
@@ -213,6 +215,12 @@ class ConfigDataset:
                 # The patient's original group (train/test) is used directly
                 self.patient_group = self.patient.split
                 self.input_dir = self.get_input_dir(self.patient_group)
+
+            if self.input_dir != original_input_dir:
+                logger.warning(
+                    f"⚠️ --input_dir was overridden: '{original_input_dir}' → "
+                    f"'{self.input_dir}' (derived from patient split)."
+                )
 
         elif self.is_full:
             pass  # nothing extra
