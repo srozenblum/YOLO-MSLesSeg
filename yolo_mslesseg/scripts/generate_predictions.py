@@ -191,13 +191,12 @@ def save_prediction(pred: np.ndarray, image_filename: str, output_dir: Path) -> 
     return output_path
 
 
-def fold_predictions_complete(fold_dir: Path, plane: str, single_fold: bool = False) -> bool:
+def fold_predictions_complete(fold_dir: Path, plane: str) -> bool:
     """Checks whether all patients in a fold directory have non-empty pred_masks directories.
 
     Args:
         fold_dir: Fold directory containing patient subdirectories.
         plane: Anatomical plane name used to locate the pred_masks subdirectory.
-        single_fold: Unused parameter kept for API compatibility.
 
     Returns:
         True if every patient has a non-empty pred_masks directory, False otherwise.
@@ -449,7 +448,6 @@ def run_prediction_flow(config: ConfigPred, clean: bool, verbose: bool = False) 
         if fold_predictions_complete(
             config.dataset_fold_dir,
             config.plane,
-            single_fold=config.single_fold,
         ):
             if config.single_fold:
                 logger.skip(f"⏩ Predictions for {config.group} already exist.")
