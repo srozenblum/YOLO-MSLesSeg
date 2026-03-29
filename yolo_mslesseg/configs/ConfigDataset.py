@@ -103,6 +103,9 @@ class ConfigDataset:
 
         patient_dir (dict[str, Path] | None, optional):
             Dictionary of patient subdirectories: images/, GT_masks/, labels/.
+
+        patient_is_train (bool):
+            True if the patient belongs to the train split (CV mode only).
     """
 
     def __init__(
@@ -203,6 +206,7 @@ class ConfigDataset:
                 else:
                     self.patient_group = "test"
                     self.input_dir = self.mslesseg_test_dir
+                self.patient_is_train: bool = self.patient.split == "train"
 
             else:
                 # k_folds == 1:
@@ -230,7 +234,7 @@ class ConfigDataset:
         # Train patients → inside foldX/
         # Test patients  → inside test/
         if self.k_folds > 1:
-            if hasattr(self, "patient_fold"):
+            if self.patient_is_train:
                 self.patient_root = (
                     self.output_dir
                     / f"fold{self.patient_fold}"
