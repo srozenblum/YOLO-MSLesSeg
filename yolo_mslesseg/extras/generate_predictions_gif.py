@@ -65,6 +65,7 @@ from matplotlib.colors import ListedColormap
 from yolo_mslesseg.utils.Model import Model
 from yolo_mslesseg.utils.Patient import Patient
 from yolo_mslesseg.utils.logging_config import get_logger
+from yolo_mslesseg.utils.constants import VISUALIZATIONS_DIR
 from yolo_mslesseg.utils.utils import (
     int_or_percentile,
     compute_fold,
@@ -407,7 +408,7 @@ def run_flow(patient: Patient, model: Model, epochs: int, clean: bool) -> None:
 
         output_dir = (
             root
-            / "visualizaciones"
+            / VISUALIZATIONS_DIR
             / enhancement
             / global_config
             / "test"
@@ -421,7 +422,7 @@ def run_flow(patient: Patient, model: Model, epochs: int, clean: bool) -> None:
 
         output_dir = (
             root
-            / "visualizaciones"
+            / VISUALIZATIONS_DIR
             / enhancement
             / global_config
             / f"fold{patient_fold}"

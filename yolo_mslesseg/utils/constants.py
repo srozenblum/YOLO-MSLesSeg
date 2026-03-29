@@ -40,6 +40,7 @@ TRAINS_DIR = Path("trains")
 PRED_VOLS_DIR = Path("pred_vols")
 RESULTS_DIR = Path("results")
 GT_DIR = Path("GT")
+VISUALIZATIONS_DIR = Path("visualizations")
 
 # Splits
 SPLIT_TRAIN = "train"
