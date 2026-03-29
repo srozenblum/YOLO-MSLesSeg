@@ -151,39 +151,6 @@ def copy_directory_contents(input_dir: Path, output_dir: Path) -> None:
             raise
 
 
-def duplicate_modality_labels(images_dir: Path, labels_dir: Path) -> None:
-    """Creates modality-specific label files from base slice labels and removes the originals.
-
-    For each image named PX_<modality>_<slice>.png, copies PX_<slice>.txt to
-    PX_<modality>_<slice>.txt and then deletes the original PX_<slice>.txt.
-
-    Args:
-        images_dir: Directory containing the modality-specific image PNG files.
-        labels_dir: Directory containing the base label TXT files to duplicate.
-    """
-    labels_base = set()
-
-    for img in images_dir.glob(f"*{EXT_PNG}"):
-        parts = img.stem.split("_")
-        if len(parts) != 3:
-            continue
-
-        patient_id, mod, slice_num = parts
-        label_base = labels_dir / f"{patient_id}_{slice_num}{EXT_TXT}"
-        label_dest = labels_dir / f"{patient_id}_{mod}_{slice_num}{EXT_TXT}"
-
-        if label_base.exists():
-            if not label_dest.exists():
-                shutil.copy2(label_base, label_dest)
-            labels_base.add(label_base)
-
-    for lb in labels_base:
-        try:
-            lb.unlink()
-        except Exception as e:
-            logger.warning(f"⚠️ Could not delete {lb}: {e}.")
-
-
 def prepare_yolo_flat(root_dir: Path) -> None:
     """Organises a flat directory into the images/ and labels/ structure required by YOLO.
 
@@ -203,8 +170,6 @@ def prepare_yolo_flat(root_dir: Path) -> None:
 
     for lbl in root_dir.glob(f"*{EXT_TXT}"):
         shutil.move(str(lbl), str(labels_output_dir / lbl.name))
-
-    duplicate_modality_labels(images_output_dir, labels_output_dir)
 
 
 def copy_group_patients_to_flat(group_dir: Path, plane: str, output_dir: Path) -> None:
