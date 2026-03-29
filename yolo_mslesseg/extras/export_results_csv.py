@@ -76,7 +76,7 @@ import pandas as pd
 
 from yolo_mslesseg.utils.Model import Model
 from yolo_mslesseg.utils.logging_config import get_logger
-from yolo_mslesseg.utils.constants import EXT_JSON, PLANES, RESULTS_DIR, EXT_CSV
+from yolo_mslesseg.utils.constants import EXT_JSON, PLANES, RESULTS_DIR, EXT_CSV, ENHANCEMENTS
 from yolo_mslesseg.utils.utils import (
     read_json,
     path_exists,
@@ -129,7 +129,7 @@ def parse_experiment(filepath: Path) -> tuple[str, str]:
 
     for parent in filepath.parents:
         name = parent.name.upper()
-        if name in ["BASE", "HE", "CLAHE", "GC", "LT"]:
+        if name in {e.upper() for e in ENHANCEMENTS} | {"BASE"}:
             return plane, name
 
     raise ValueError(f"Could not infer enhancement from path: {filepath}")
