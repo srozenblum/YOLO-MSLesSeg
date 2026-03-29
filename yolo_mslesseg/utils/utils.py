@@ -211,13 +211,12 @@ def patient_paths(patient: "Patient", model: "Model", slice_idx: int) -> dict[st
         respective file paths.
     """
     patient_id = patient.id
-    modality = patient.modality_str
 
     base_dir = patient_base_dir(patient=patient, model=model)
 
     return {
-        "img": base_dir / "images" / f"{patient_id}_{modality}_{slice_idx}{EXT_PNG}",
-        "pred": base_dir / "pred_masks" / f"{patient_id}_{modality}_{slice_idx}{EXT_PNG}",
+        "img": base_dir / "images" / f"{patient_id}_{slice_idx}{EXT_PNG}",
+        "pred": base_dir / "pred_masks" / f"{patient_id}_{slice_idx}{EXT_PNG}",
         "gt": base_dir / "GT_masks" / f"{patient_id}_{slice_idx}{EXT_PNG}",
     }
 
