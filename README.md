@@ -1,8 +1,3 @@
-> Final Degree Project
-> Author: Sebastián Rozenblum
-> Health Engineering · Bioinformatics Track
-> University of Málaga · 2025–2026
-
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)
 ![License](https://img.shields.io/badge/License-TBD-lightgrey)
 
@@ -10,7 +5,7 @@
 
 This project implements a complete pipeline for the automatic segmentation and evaluation of multiple sclerosis
 lesions in MRI images, using
-[**YOLO11-seg**](https://docs.ultralytics.com/es/models/yolo11/) models.
+[**YOLO11-seg**](https://docs.ultralytics.com/models/yolo11/) models.
 The system is based on the
 [**MSLesSeg Competition**](https://www.nature.com/articles/s41597-025-05250-y) (ICPR 2024) dataset, an international
 benchmark for the validation of automatic methods for multiple sclerosis lesion segmentation.
@@ -103,6 +98,7 @@ The repository is organised as follows:
 │   ├── run_pipeline.py                         # Script to run the full pipeline
 │   │
 │   ├── 📁 configs/                             # Per-stage configuration classes
+│   │   ├── ConfigBase.py
 │   │   ├── ConfigDataset.py
 │   │   ├── ConfigTrain.py
 │   │   ├── ConfigPred.py
@@ -124,7 +120,7 @@ The repository is organised as follows:
 │   │
 │   └── 📁 extras/                              # Additional but non-essential scripts
 │
-├── 📁 demo/                                    # Reduced pipeline runs for simple demonstration
+├── 📁 tests/                                   # Unit and integration test suite
 │
 ├── 📁 MSLesSeg-Dataset/                        # Raw input dataset, downloaded from the official repository (*️⃣)
 │
@@ -252,19 +248,19 @@ repository.
 The following arguments allow customising the execution of `run_pipeline.py`
 and carrying out experiments for different configurations:
 
-| Argument                 | Required  | Default     | Description                                                                                                                        |
-|--------------------------|-----------|-------------|------------------------------------------------------------------------------------------------------------------------------------|
-| `--plane`                | ✅ Yes     | —           | Anatomical plane: `axial`, `coronal`, or `sagital`                                                                                 |
-| `--modality`             | No        | All         | MRI image modality or modalities: `T1`, `T2`, `FLAIR`                                                                              |
-| `--num_slices`           | ✅ Yes     | —           | Number of slices (integer or `PXX` for percentile)                                                                                 |
-| `--enhancement`          | No        | `None`      | Image enhancement algorithm: `HE`, `CLAHE`, `GC`, `LT`                                                                            |
-| `--k_folds`              | No        | `5`         | Number of folds. If `k_folds > 1`, uses cross-validation by folds; if `k_folds == 1`, uses a fixed _train_/_test_ split.          |
-| `--epochs`               | ✅ Yes     | —           | Number of training epochs                                                                                                          |
-| `--consensus_threshold`  | No        | `2`         | Voting threshold: `2` (majority) or `3` (unanimity)                                                                               |
-| `--full`                 | ✅ Yes     | —           | Process all patients                                                                                                               |
-| `--patient_id`           | ✅ Yes     | —           | Process only the specified patient (e.g. `P1`)                                                                                     |
-| `--train`                | No        | Not active  | Include the training stage                                                                                                         |
-| `--clean`                | No        | Not active  | Clean all previous results                                                                                                         |
+| Argument                | Required | Default    | Description                                                                                                              |
+|-------------------------|----------|------------|--------------------------------------------------------------------------------------------------------------------------|
+| `--plane`               | ✅ Yes    | —          | Anatomical plane: `axial`, `coronal`, or `sagital`                                                                       |
+| `--modality`            | No       | All        | MRI image modality or modalities: `T1`, `T2`, `FLAIR`                                                                    |
+| `--num_slices`          | ✅ Yes    | —          | Number of slices (integer or `PXX` for percentile)                                                                       |
+| `--enhancement`         | No       | `None`     | Image enhancement algorithm: `HE`, `CLAHE`, `GC`, `LT`                                                                   |
+| `--k_folds`             | No       | `5`        | Number of folds. If `k_folds > 1`, uses cross-validation by folds; if `k_folds == 1`, uses a fixed _train_/_test_ split. |
+| `--epochs`              | ✅ Yes    | —          | Number of training epochs                                                                                                |
+| `--consensus_threshold` | No       | `2`        | Voting threshold: `2` (majority) or `3` (unanimity)                                                                      |
+| `--full`                | ✅ Yes    | —          | Process all patients                                                                                                     |
+| `--patient_id`          | ✅ Yes    | —          | Process only the specified patient (e.g. `P1`)                                                                           |
+| `--train`               | No       | Not active | Include the training stage                                                                                               |
+| `--clean`               | No       | Not active | Clean all previous results                                                                                               |
 
 > [!NOTE]
 > When more than one modality is specified (e.g. `--modality T1 FLAIR`), their slices are fused into a
@@ -306,7 +302,6 @@ with `--help`. For example:
 python -m yolo_mslesseg.scripts.reconstruct_volume --help
 ```
 
-
 ## 🔬 Experimental Design
 
 The pipeline is evaluated on the MSLesSeg dataset using two complementary evaluation schemes and standard
@@ -337,10 +332,10 @@ publication.
 
 ```bibtex
 @article{rozenblum2026yolomslesseg,
-  author  = {Rozenblum, Sebastián},
-  title   = {YOLO-MSLesSeg: Automatic Multiple Sclerosis Lesion Segmentation with YOLO11-seg},
-  journal = {},
-  year    = {2026},
-  doi     = {}
+    author = {Rozenblum, Sebastián},
+    title = {YOLO-MSLesSeg: Automatic Multiple Sclerosis Lesion Segmentation with YOLO11-seg},
+    journal = {},
+    year = {2026},
+    doi = {}
 }
 ```
