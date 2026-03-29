@@ -91,8 +91,17 @@ class ConfigBase(ABC):
 
         Returns:
             'test' when k_folds == 1, or 'fold<fold_test>' when k_folds > 1.
+
+        Raises:
+            ValueError: If fold_test is None in cross-validation mode (experiment mode).
         """
-        return self.group if self.single_fold else f"fold{self.fold_test}"
+        if self.single_fold:
+            return self.group
+        if self.fold_test is None:
+            raise ValueError(
+                "fold_subdir is not available in experiment mode (fold_test is None)."
+            )
+        return f"fold{self.fold_test}"
 
     # ======================================
     #             INTERFACE
