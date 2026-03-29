@@ -88,6 +88,9 @@ class ConfigTrain:
         epochs (int):
             Number of training epochs.
 
+        k_folds (int):
+            Number of cross-validation folds. Derived from model.k_folds.
+
         fold_test (int | None, optional):
             Fold used as the test set (1, ..., k_folds).
             Only applies when k_folds > 1.
@@ -149,6 +152,7 @@ class ConfigTrain:
         self.fold_test = fold_test
 
         self.single_fold = self.model.k_folds == 1
+        self.k_folds: int = model.k_folds
 
         if self.single_fold:
             if self.fold_test is not None:
