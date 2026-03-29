@@ -45,8 +45,8 @@ class TestTrainedModelExists:
         model = Model(plane="coronal", num_slices="P50", modality=["FLAIR"], k_folds=5)
         assert trained_model_exists(model, epochs=50, fold_test=1) is True
 
-    def test_base_sagital_fold1_exists(self):
-        model = Model(plane="sagital", num_slices="P50", modality=["FLAIR"], k_folds=5)
+    def test_base_sagittal_fold1_exists(self):
+        model = Model(plane="sagittal", num_slices="P50", modality=["FLAIR"], k_folds=5)
         assert trained_model_exists(model, epochs=50, fold_test=1) is True
 
     def test_nonexistent_config_returns_false(self, model_base):
@@ -72,8 +72,8 @@ class TestPredictedVolumesOnDisk:
     def test_p1_fold1_coronal_volume_exists(self):
         assert (PRED_VOLS_FOLD1_P1 / "P1_coronal.nii.gz").exists()
 
-    def test_p1_fold1_sagital_volume_exists(self):
-        assert (PRED_VOLS_FOLD1_P1 / "P1_sagital.nii.gz").exists()
+    def test_p1_fold1_sagittal_volume_exists(self):
+        assert (PRED_VOLS_FOLD1_P1 / "P1_sagittal.nii.gz").exists()
 
     def test_p1_fold1_consenso_volume_exists(self):
         assert (PRED_VOLS_FOLD1_P1 / "P1_consenso.nii.gz").exists()
@@ -96,8 +96,8 @@ class TestFoldMetricsOnDisk:
     def test_global_coronal_results_json_exists(self):
         assert (RESULTS_BASE_DIR / "global_coronal_results.json").exists()
 
-    def test_global_sagital_results_json_exists(self):
-        assert (RESULTS_BASE_DIR / "global_sagital_results.json").exists()
+    def test_global_sagittal_results_json_exists(self):
+        assert (RESULTS_BASE_DIR / "global_sagittal_results.json").exists()
 
     def test_global_consenso_results_json_exists(self):
         assert (RESULTS_BASE_DIR / "global_consenso_results.json").exists()

@@ -45,8 +45,8 @@ def test_coronal_normalize_roundtrip(volume):
     np.testing.assert_array_equal((result > 0).astype(np.uint8), original)
 
 
-def test_sagital_normalize_roundtrip(volume):
-    """Prediction mask for a sagital slice reconstructs the original slice."""
+def test_sagittal_normalize_roundtrip(volume):
+    """Prediction mask for a sagittal slice reconstructs the original slice."""
     original = volume[3, :, :].copy()          # (y=12, z=14)
     yolo_input = original.T                     # (14, 12)
     pred = (yolo_input > 0).astype(np.uint8)
@@ -77,12 +77,12 @@ def test_coronal_insert_roundtrip(volume):
     np.testing.assert_array_equal(new_vol[:, j, :], original)
 
 
-def test_sagital_insert_roundtrip(volume):
-    """A slice inserted at the correct sagital index matches the original."""
+def test_sagittal_insert_roundtrip(volume):
+    """A slice inserted at the correct sagittal index matches the original."""
     k = 2
     original = volume[k, :, :].copy()
     new_vol = np.zeros_like(volume, dtype=np.float32)
-    insert_slice(new_vol, original.astype(np.float32), k, "sagital")
+    insert_slice(new_vol, original.astype(np.float32), k, "sagittal")
     np.testing.assert_array_equal(new_vol[k, :, :], original)
 
 
@@ -91,7 +91,7 @@ def test_sagital_insert_roundtrip(volume):
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("plane,idx", [("axial", 5), ("coronal", 4), ("sagital", 3)])
+@pytest.mark.parametrize("plane,idx", [("axial", 5), ("coronal", 4), ("sagittal", 3)])
 def test_full_roundtrip_all_planes(volume, plane, idx):
     """
     For every plane: extract a slice, simulate a perfect YOLO prediction,

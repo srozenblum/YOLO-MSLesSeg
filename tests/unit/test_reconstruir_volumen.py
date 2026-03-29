@@ -66,18 +66,18 @@ class TestValidateSlice:
         with pytest.raises(ValueError):
             validate_slice(0, np.zeros((SHAPE[0], SHAPE[1])), SHAPE, "coronal")
 
-    # --- sagital ---
+    # --- sagittal ---
 
-    def test_sagital_valid_index_and_shape(self):
-        validate_slice(0, np.zeros((SHAPE[1], SHAPE[2])), SHAPE, "sagital")
+    def test_sagittal_valid_index_and_shape(self):
+        validate_slice(0, np.zeros((SHAPE[1], SHAPE[2])), SHAPE, "sagittal")
 
-    def test_sagital_index_out_of_range_raises(self):
+    def test_sagittal_index_out_of_range_raises(self):
         with pytest.raises(ValueError):
-            validate_slice(SHAPE[0], np.zeros((SHAPE[1], SHAPE[2])), SHAPE, "sagital")
+            validate_slice(SHAPE[0], np.zeros((SHAPE[1], SHAPE[2])), SHAPE, "sagittal")
 
-    def test_sagital_wrong_shape_raises(self):
+    def test_sagittal_wrong_shape_raises(self):
         with pytest.raises(ValueError):
-            validate_slice(0, np.zeros((SHAPE[0], SHAPE[1])), SHAPE, "sagital")
+            validate_slice(0, np.zeros((SHAPE[0], SHAPE[1])), SHAPE, "sagittal")
 
 
 # ---------------------------------------------------------------------------
@@ -103,10 +103,10 @@ class TestInsertSlice:
         insert_slice(vol, slice_data, 5, "coronal")
         np.testing.assert_array_equal(vol[:, 5, :], slice_data)
 
-    def test_sagital_inserts_at_correct_x(self):
+    def test_sagittal_inserts_at_correct_x(self):
         vol = np.zeros(SHAPE)
         slice_data = np.ones((SHAPE[1], SHAPE[2]))
-        insert_slice(vol, slice_data, 3, "sagital")
+        insert_slice(vol, slice_data, 3, "sagittal")
         np.testing.assert_array_equal(vol[3, :, :], slice_data)
 
     def test_multiple_axial_insertions_are_independent(self):

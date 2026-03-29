@@ -2,7 +2,7 @@
 Unit tests for combine_volumes in generate_consensus.py.
 
 The function implements voxel-wise majority voting across three binary volumes
-(axial, coronal, sagital) with a configurable threshold (2 or 3).
+(axial, coronal, sagittal) with a configurable threshold (2 or 3).
 """
 
 import numpy as np
@@ -76,10 +76,10 @@ def test_per_voxel_voting_threshold2():
     """Only the voxel with two active planes should be 1."""
     axial = np.zeros(SHAPE, dtype=np.uint8)
     coronal = np.zeros(SHAPE, dtype=np.uint8)
-    sagital = np.zeros(SHAPE, dtype=np.uint8)
+    sagittal = np.zeros(SHAPE, dtype=np.uint8)
     axial[1, 2, 3] = 1
     coronal[1, 2, 3] = 1
-    result = combine_volumes(axial, coronal, sagital, umbral=2)
+    result = combine_volumes(axial, coronal, sagittal, umbral=2)
     assert result[1, 2, 3] == 1
     assert result[0, 0, 0] == 0
 
@@ -88,12 +88,12 @@ def test_per_voxel_voting_threshold3():
     """Only the voxel with all three planes active should be 1."""
     axial = np.zeros(SHAPE, dtype=np.uint8)
     coronal = np.zeros(SHAPE, dtype=np.uint8)
-    sagital = np.zeros(SHAPE, dtype=np.uint8)
+    sagittal = np.zeros(SHAPE, dtype=np.uint8)
     axial[1, 2, 3] = 1
     coronal[1, 2, 3] = 1
-    sagital[1, 2, 3] = 1
-    result_3 = combine_volumes(axial, coronal, sagital, umbral=3)
-    result_2 = combine_volumes(axial, coronal, sagital, umbral=2)
+    sagittal[1, 2, 3] = 1
+    result_3 = combine_volumes(axial, coronal, sagittal, umbral=3)
+    result_2 = combine_volumes(axial, coronal, sagittal, umbral=2)
     assert result_3[1, 2, 3] == 1
     assert result_2[1, 2, 3] == 1
 

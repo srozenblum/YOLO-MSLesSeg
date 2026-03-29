@@ -145,8 +145,8 @@ def test_plane_index_coronal_maps_to_y_axis():
     assert p.plane_index(3) == (slice(None), 3, slice(None))
 
 
-def test_plane_index_sagital_maps_to_x_axis():
-    p = Patient(id="P1", plane="sagital", modality=["FLAIR"])
+def test_plane_index_sagittal_maps_to_x_axis():
+    p = Patient(id="P1", plane="sagittal", modality=["FLAIR"])
     assert p.plane_index(2) == (2, slice(None), slice(None))
 
 
@@ -157,7 +157,7 @@ def test_plane_index_consenso_raises():
 
 
 # ---------------------------------------------------------------------------
-# Coronal and sagital slice shapes
+# Coronal and sagittal slice shapes
 # ---------------------------------------------------------------------------
 
 
@@ -167,8 +167,8 @@ def patient_coronal():
 
 
 @pytest.fixture(scope="module")
-def patient_sagital():
-    return Patient(id="P1", plane="sagital", modality=["FLAIR"])
+def patient_sagittal():
+    return Patient(id="P1", plane="sagittal", modality=["FLAIR"])
 
 
 def test_coronal_slice_is_2d(patient_coronal):
@@ -183,15 +183,15 @@ def test_coronal_slice_shape_matches_xz(patient_coronal):
     assert slice_2d.shape == (vol.shape[0], vol.shape[2])
 
 
-def test_sagital_slice_is_2d(patient_sagital):
-    vol = patient_sagital.load_volume("FLAIR")
-    slice_2d = patient_sagital.get_image_slice(vol.shape[0] // 2, "FLAIR")
+def test_sagittal_slice_is_2d(patient_sagittal):
+    vol = patient_sagittal.load_volume("FLAIR")
+    slice_2d = patient_sagittal.get_image_slice(vol.shape[0] // 2, "FLAIR")
     assert slice_2d.ndim == 2
 
 
-def test_sagital_slice_shape_matches_yz(patient_sagital):
-    vol = patient_sagital.load_volume("FLAIR")
-    slice_2d = patient_sagital.get_image_slice(vol.shape[0] // 2, "FLAIR")
+def test_sagittal_slice_shape_matches_yz(patient_sagittal):
+    vol = patient_sagittal.load_volume("FLAIR")
+    slice_2d = patient_sagittal.get_image_slice(vol.shape[0] // 2, "FLAIR")
     assert slice_2d.shape == (vol.shape[1], vol.shape[2])
 
 
@@ -208,8 +208,8 @@ def test_coronal_num_slices_equals_y_dim(patient_coronal):
     assert patient_coronal.num_slices == patient_coronal.gt_mask.shape[1]
 
 
-def test_sagital_num_slices_equals_x_dim(patient_sagital):
-    assert patient_sagital.num_slices == patient_sagital.gt_mask.shape[0]
+def test_sagittal_num_slices_equals_x_dim(patient_sagittal):
+    assert patient_sagittal.num_slices == patient_sagittal.gt_mask.shape[0]
 
 
 # ---------------------------------------------------------------------------
