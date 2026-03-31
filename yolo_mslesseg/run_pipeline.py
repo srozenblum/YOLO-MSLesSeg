@@ -417,7 +417,7 @@ def run_consensus(
         run_consensus_pipeline(
             model=model,
             epochs=epochs,
-            umbral=consensus_threshold,
+            threshold=consensus_threshold,
             patient=patient,
             clean=clean,
         )
@@ -449,7 +449,7 @@ def run_consensus(
         run_consensus_pipeline(
             model=model,
             epochs=epochs,
-            umbral=consensus_threshold,
+            threshold=consensus_threshold,
             fold_test=None,
             clean=clean,
         )
@@ -488,7 +488,7 @@ def run_consensus(
         run_consensus_pipeline(
             model=model,
             epochs=epochs,
-            umbral=consensus_threshold,
+            threshold=consensus_threshold,
             fold_test=fold,
             clean=clean,
         )
