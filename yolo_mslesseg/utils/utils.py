@@ -487,7 +487,7 @@ def compute_fold(patient_id: str, k_folds: int = 5) -> int:
     """
 
     # Convert patient ID to number
-    numero = int(patient_id[1:])
+    number = int(patient_id[1:])
 
     # Only train-split patients (P1–P53) are used in CV mode
     all_ids = list(range(1, N_TRAIN_PATIENTS + 1))
@@ -497,7 +497,7 @@ def compute_fold(patient_id: str, k_folds: int = 5) -> int:
 
     # Find which fold the patient belongs to
     for i, fold in enumerate(folds, 1):
-        if numero in fold:
+        if number in fold:
             return i
 
     raise ValueError(f"Cannot compute fold for patient {patient_id}.")

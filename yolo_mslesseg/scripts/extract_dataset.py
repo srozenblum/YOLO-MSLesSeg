@@ -116,14 +116,14 @@ LOGGER.setLevel(logging.WARNING)
 # ======================================
 
 
-def compute_percentile_slice_count(input_dir: Path, plane: str, modality: list[str], percentil: int = 50) -> int:
+def compute_percentile_slice_count(input_dir: Path, plane: str, modality: list[str], percentile: int = 50) -> int:
     """Computes the number of slices based on the global percentile of lesion-containing slices.
 
     Args:
         input_dir: Directory containing patient subdirectories.
         plane: Anatomical plane to use ('axial', 'coronal', 'sagittal').
         modality: List of MRI modalities to include.
-        percentil: Percentile to compute over the distribution of slice counts.
+        percentile: Percentile to compute over the distribution of slice counts.
 
     Returns:
         Number of slices corresponding to the given percentile across all patients.
@@ -145,9 +145,9 @@ def compute_percentile_slice_count(input_dir: Path, plane: str, modality: list[s
         )
 
     try:
-        num_slices = int(np.percentile(slice_counts, percentil))
+        num_slices = int(np.percentile(slice_counts, percentile))
     except Exception as e:
-        raise ValueError(f"Invalid percentile ({percentil}): {e}")
+        raise ValueError(f"Invalid percentile ({percentile}): {e}")
 
     return num_slices
 
@@ -171,14 +171,14 @@ def resolve_num_slices(num_slices: int | str | None, input_dir: Path, plane: str
         return num_slices, None
 
     if isinstance(num_slices, str) and num_slices.startswith("P"):
-        percentil = int(num_slices[1:])
+        percentile = int(num_slices[1:])
         num_slices_percentile = compute_percentile_slice_count(
             input_dir=input_dir,
             plane=plane,
             modality=modality,
-            percentil=percentil,
+            percentile=percentile,
         )
-        return num_slices_percentile, percentil
+        return num_slices_percentile, percentile
 
     raise ValueError(f"Invalid num_slices format: {num_slices}.")
 
@@ -203,8 +203,8 @@ def build_paths(patient: Patient, config: ConfigDataset, group: str | None = Non
         root = config.output_dir / f"fold{fold}" / patient.id / patient.plane
     else:
         if group is None:
-            entrada_norm = str(config.input_dir).replace("\\", "/").lower()
-            group = "test" if entrada_norm.endswith("/test") else "train"
+            path_norm = str(config.input_dir).replace("\\", "/").lower()
+            group = "test" if path_norm.endswith("/test") else "train"
         root = config.output_dir / group / patient.id / patient.plane
 
     return {
@@ -396,17 +396,17 @@ def run_dataset_flow(config: ConfigDataset, clean: bool, verbose: bool = False) 
 
     config.verify_paths()
 
-    num_slices, percentil = resolve_num_slices(
+    num_slices, percentile = resolve_num_slices(
         num_slices=config.model.num_slices,
         input_dir=config.input_dir,
         plane=config.model.plane,
         modality=config.model.modality,
     )
 
-    if percentil is None:
+    if percentile is None:
         logger.info(f"📊 Number of slices to extract: {num_slices}.")
     else:
-        logger.info(f"📊 Number of slices to extract: {num_slices} (P{percentil}).")
+        logger.info(f"📊 Number of slices to extract: {num_slices} (P{percentile}).")
 
     # =========================
     #   INDIVIDUAL PATIENT MODE
