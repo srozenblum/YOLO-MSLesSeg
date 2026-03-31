@@ -387,7 +387,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         type=int,
         default=2,
         choices=[2, 3],
-        metavar="",
+        metavar="<threshold>",
         help="Voting threshold for consensus generation. Defaults to 2.",
     )
     group = parser.add_mutually_exclusive_group(required=False)
