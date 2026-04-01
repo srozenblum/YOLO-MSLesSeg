@@ -108,7 +108,7 @@ class TestFoldMetricsOnDisk:
 
     def test_global_axial_dsc_has_media_and_std(self):
         data = read_json(RESULTS_BASE_DIR / "global_axial_results.json")
-        assert "media" in data["DSC"]
+        assert "mean" in data["DSC"]
         assert "std" in data["DSC"]
 
 

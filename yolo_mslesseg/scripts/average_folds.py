@@ -94,9 +94,9 @@ def aggregate_fold_metrics(total_dict: dict[str, list[float]], file: Path) -> No
     """
     metrics = read_json(file)
     for k, v in metrics.items():
-        # Case 1: fold format {"media": x, "std": y}
-        if isinstance(v, dict) and "media" in v:
-            total_dict.setdefault(k, []).append(v["media"])
+        # Case 1: fold format {"mean": x, "std": y}
+        if isinstance(v, dict) and "mean" in v:
+            total_dict.setdefault(k, []).append(v["mean"])
         # Case 2: patient format {"metric": value}
         elif isinstance(v, (int, float)):
             total_dict.setdefault(k, []).append(float(v))
@@ -150,7 +150,7 @@ def compute_experiment_summary(fold_metrics: dict[str, list[float]]) -> dict[str
     results = {}
     for metric, values in fold_metrics.items():
         results[metric] = {
-            "media": float(np.round(np.mean(values), 3)),
+            "mean": float(np.round(np.mean(values), 3)),
             "std": float(np.round(np.std(values, ddof=1), 3)),
         }
     return results

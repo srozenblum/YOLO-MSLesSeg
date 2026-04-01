@@ -2,15 +2,15 @@
 Script: visualize_slice_prediction.py
 
 Description:
-    Generates a figure to visualise the model prediction on a specific slice of
+    Generates a figure to visualize the model prediction on a specific slice of
     a patient and compare it with the ground truth mask, overlaying both on the
     original image. If no specific slice is indicated, the script evaluates all
-    available slices, computes the DSC for each one, and visualises only the
+    available slices, computes the DSC for each one, and visualizes only the
     slice with the best performance.
 
 CLI Arguments:
     --patient_id (str, required)
-        ID of the patient to visualise.
+        ID of the patient to visualize.
 
     --plane (str, required)
         Anatomical extraction plane ('axial', 'coronal', 'sagittal').
@@ -34,7 +34,7 @@ CLI Arguments:
         Defaults to 5.
 
     --slice (int, optional)
-        Exact slice number to visualise.
+        Exact slice number to visualize.
         If not specified, the script iterates over all patient slices
         and automatically selects the one with maximum DSC.
 
@@ -56,7 +56,7 @@ Inputs:
     - Predicted and ground truth masks in PNG format.
 
 Outputs:
-    - PNG image with the generated visualisation.
+    - PNG image with the generated visualization.
 """
 
 import argparse
@@ -70,8 +70,8 @@ from matplotlib.colors import ListedColormap
 
 from yolo_mslesseg.utils.Model import Model
 from yolo_mslesseg.utils.Patient import Patient
-from yolo_mslesseg.utils.logging_config import get_logger
 from yolo_mslesseg.utils.constants import EXT_PNG, VISUALIZATIONS_DIR
+from yolo_mslesseg.utils.logging_config import get_logger
 from yolo_mslesseg.utils.utils import (
     compute_fold,
     int_or_percentile,
@@ -186,9 +186,7 @@ def select_best_slice(
     slices = get_patient_slices(patient, model)
 
     if not slices:
-        raise RuntimeError(
-            f"No PNG slices found for patient {patient.id}."
-        )
+        raise RuntimeError(f"No PNG slices found for patient {patient.id}.")
 
     best_slice = None
     best_dsc = -1.0
@@ -323,7 +321,7 @@ def visualize_best_slice(
     """Selects the slice with the best DSC and saves the corresponding figure.
 
     Args:
-        patient: Patient instance defining the patient to visualise.
+        patient: Patient instance defining the patient to visualize.
         model: Model instance providing the plane and modality settings.
         output_dir: Directory where the output figure will be saved.
         clean: If True, deletes the previous figure before generating a new one.
@@ -339,9 +337,7 @@ def visualize_best_slice(
 
     logger.info(f"🏅 Best slice found: {best_slice}  (DSC = {best_dsc:.3f}).")
 
-    output_path = (
-        output_dir / f"{patient.id}_{patient.modality_str}_{best_slice}.png"
-    )
+    output_path = output_dir / f"{patient.id}_{patient.modality_str}_{best_slice}.png"
 
     if clean and path_exists(output_path):
         logger.info(f"♻️ Cleaning previous figure.")
@@ -371,9 +367,9 @@ def visualize_specific_slice(
     """Generates and saves the figure for a specific slice of the patient.
 
     Args:
-        patient: Patient instance defining the patient to visualise.
+        patient: Patient instance defining the patient to visualize.
         model: Model instance providing the plane and modality settings.
-        slice_num: Index of the slice to visualise.
+        slice_num: Index of the slice to visualize.
         output_dir: Directory where the output figure will be saved.
         clean: If True, deletes the previous figure before generating a new one.
     """
@@ -415,19 +411,19 @@ def run_flow(
     slice_num: int | None,
     clean: bool,
 ) -> None:
-    """Executes the visualisation flow for a specific or best-performing slice.
+    """Executes the visualization flow for a specific or best-performing slice.
 
     Args:
-        patient: Patient instance defining the patient to visualise.
+        patient: Patient instance defining the patient to visualize.
         model: Model instance providing the plane and modality settings.
         epochs: Number of training epochs of the YOLO model.
-        slice_num: Specific slice index to visualise, or None to auto-select the best.
+        slice_num: Specific slice index to visualize, or None to auto-select the best.
         clean: If True, deletes the previous figure before generating a new one.
 
     Raises:
         ValueError: If the patient belongs to the train split when k_folds == 1.
     """
-    logger.header(f"\n🖼️ Generating prediction visualisation")
+    logger.header(f"\n🖼️ Generating prediction visualization")
 
     root = Path.cwd()  # respects demo/ if called from a demo script
     global_config = build_config_name(model, epochs)
@@ -457,7 +453,7 @@ def run_flow(
         if getattr(patient, "split", None) != "test":
             raise ValueError(
                 f"Patient {patient_id} belongs to 'train'. "
-                "With k_folds == 1, visualisations are only allowed for 'test' patients."
+                "With k_folds == 1, visualizations are only allowed for 'test' patients."
             )
 
         output_dir = (
@@ -505,13 +501,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         argv = sys.argv[1:]
 
     parser = argparse.ArgumentParser(
-        description="Generate a figure to visualise the prediction and ground truth on a patient slice."
+        description="Generate a figure to visualize the prediction and ground truth on a patient slice."
     )
     parser.add_argument(
         "--patient_id",
         type=str,
         metavar="<patient_id>",
-        help="ID of the patient to visualise.",
+        help="ID of the patient to visualize.",
     )
     parser.add_argument(
         "--plane",
@@ -562,7 +558,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--slice",
         type=int,
         metavar="<slice>",
-        help="Specific slice number to visualise.",
+        help="Specific slice number to visualize.",
     )
     parser.add_argument(
         "--clean",
@@ -575,7 +571,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 
 def main(argv: list[str] | None = None) -> None:
-    """CLI entry point: parses arguments, builds the Model and Patient instances, and executes the visualisation.
+    """CLI entry point: parses arguments, builds the Model and Patient instances, and executes the visualization.
 
     Args:
         argv: Argument list to parse. Defaults to sys.argv[1:] if None.

@@ -169,7 +169,7 @@ def compute_averages(metrics_dict: dict[str, list[float]]) -> dict[str, dict[str
 
     averages = {
         metric: {
-            "media": float(np.round(np.mean(value), 3)),
+            "mean": float(np.round(np.mean(value), 3)),
             "std": float(np.round(np.std(value, ddof=1), 3)),
         }
         for metric, value in metrics_dict.items()

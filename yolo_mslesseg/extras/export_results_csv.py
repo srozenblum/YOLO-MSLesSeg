@@ -144,7 +144,7 @@ def format_json_value(value: dict | float | int) -> str:
     Returns:
         Formatted string 'X.XXX ± Y.YYY', or an empty string if the format is unexpected.
     """
-    if isinstance(value, dict) and "media" in value and "std" in value:
+    if isinstance(value, dict) and "mean" in value and "std" in value:
         return f"{float(value['media']):.3f} ± {float(value['std']):.3f}"
     return ""
 
