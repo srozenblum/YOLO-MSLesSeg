@@ -425,7 +425,7 @@ def run_consensus(
         logger.header("\n📈 Computing metrics (consensus)")
         run_eval_pipeline(
             model=model,
-            plane="consenso",
+            plane="consensus",
             epochs=epochs,
             patient=patient,
             clean=clean,
@@ -457,7 +457,7 @@ def run_consensus(
         logger.header("\n📈 Computing metrics (consensus)")
         run_eval_pipeline(
             model=model,
-            plane="consenso",
+            plane="consensus",
             epochs=epochs,
             fold_test=None,
             clean=clean,
@@ -497,7 +497,7 @@ def run_consensus(
     for fold in valid_folds:
         run_eval_pipeline(
             model=model,
-            plane="consenso",
+            plane="consensus",
             epochs=epochs,
             fold_test=fold,
             clean=clean,
@@ -549,7 +549,7 @@ def run_average_folds(
         logger.header(f"\n🧮 Averaging folds (consensus)")
         run_average_folds_pipeline(
             model=model,
-            plane="consenso",
+            plane="consensus",
             epochs=epochs,
             clean=clean,
         )

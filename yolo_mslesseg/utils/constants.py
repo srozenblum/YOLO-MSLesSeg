@@ -55,7 +55,7 @@ N_TRAIN_PATIENTS = 53
 MODALITIES = ("T1", "T2", "FLAIR")
 
 # Planes
-PLANES = ("axial", "coronal", "sagittal", "consenso")
+PLANES = ("axial", "coronal", "sagittal", "consensus")
 ANATOMICAL_PLANES = ("axial", "coronal", "sagittal")
 
 # Timepoints present in the MSLesSeg dataset directory structure.

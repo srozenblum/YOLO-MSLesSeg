@@ -76,7 +76,7 @@ class TestPredictedVolumesOnDisk:
         assert (PRED_VOLS_FOLD1_P1 / "P1_sagittal.nii.gz").exists()
 
     def test_p1_fold1_consenso_volume_exists(self):
-        assert (PRED_VOLS_FOLD1_P1 / "P1_consenso.nii.gz").exists()
+        assert (PRED_VOLS_FOLD1_P1 / "P1_consensus.nii.gz").exists()
 
     def test_predicted_volumes_complete_for_p1_fold1(self):
         assert predicted_volumes_complete(PRED_VOLS_FOLD1_P1) is True
@@ -100,7 +100,7 @@ class TestFoldMetricsOnDisk:
         assert (RESULTS_BASE_DIR / "global_sagittal_results.json").exists()
 
     def test_global_consenso_results_json_exists(self):
-        assert (RESULTS_BASE_DIR / "global_consenso_results.json").exists()
+        assert (RESULTS_BASE_DIR / "global_consensus_results.json").exists()
 
     def test_global_axial_results_has_expected_metric_keys(self):
         data = read_json(RESULTS_BASE_DIR / "global_axial_results.json")

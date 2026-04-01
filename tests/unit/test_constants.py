@@ -19,11 +19,11 @@ def test_anatomical_planes_subset_of_planes():
 
 
 def test_consenso_not_in_anatomical_planes():
-    assert "consenso" not in ANATOMICAL_PLANES
+    assert "consensus" not in ANATOMICAL_PLANES
 
 
 def test_consenso_in_planes():
-    assert "consenso" in PLANES
+    assert "consensus" in PLANES
 
 
 def test_enhancements_no_none():

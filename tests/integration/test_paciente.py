@@ -151,7 +151,7 @@ def test_plane_index_sagittal_maps_to_x_axis():
 
 
 def test_plane_index_consenso_raises():
-    p = Patient(id="P1", plane="consenso", modality=["FLAIR"])
+    p = Patient(id="P1", plane="consensus", modality=["FLAIR"])
     with pytest.raises(ValueError):
         p.plane_index(0)
 

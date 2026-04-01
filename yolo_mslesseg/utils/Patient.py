@@ -48,7 +48,7 @@ class Patient:
             Patient identifier (format 'PX').
 
         plane (str):
-            Anatomical orientation ('axial', 'coronal', 'sagittal') or 'consenso'.
+            Anatomical orientation ('axial', 'coronal', 'sagittal') or 'consensus'.
 
         timepoint (str, optional):
             MRI acquisition timepoint. Defaults to 'T1'.
@@ -88,7 +88,7 @@ class Patient:
 
         Args:
             id: Patient identifier string (e.g. 'P12').
-            plane: Anatomical plane ('axial', 'coronal', 'sagittal', or 'consenso').
+            plane: Anatomical plane ('axial', 'coronal', 'sagittal', or 'consensus').
             timepoint: MRI acquisition timepoint. Defaults to 'T1'.
             modality: List of MRI modalities to use. Defaults to all modalities.
             enhancement: Enhancement algorithm name, or None for no enhancement.
@@ -391,12 +391,12 @@ class Patient:
             3-tuple of slice or int objects for indexing a 3D volume array.
 
         Raises:
-            ValueError: If the current plane is 'consenso', which does not
+            ValueError: If the current plane is 'consensus', which does not
                 support index extraction.
         """
-        if self.plane == "consenso":
+        if self.plane == "consensus":
             raise ValueError(
-                "'consenso' is not an anatomical plane and does not support index extraction."
+                "'consensus' is not an anatomical plane and does not support index extraction."
             )
 
         mapping = {

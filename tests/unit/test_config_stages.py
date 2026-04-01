@@ -87,7 +87,7 @@ class TestConfigReconstructionPaths:
 class TestConfigConsensusPaths:
     def test_cv_plane_is_consenso(self, model_cv):
         cfg = ConfigConsensus(model=model_cv, epochs=50, fold_test=1)
-        assert cfg.plane == "consenso"
+        assert cfg.plane == "consensus"
 
     def test_cv_pred_vols_fold_dir_contains_fold1(self, model_cv):
         cfg = ConfigConsensus(model=model_cv, epochs=50, fold_test=1)

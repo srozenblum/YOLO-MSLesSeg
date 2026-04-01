@@ -53,7 +53,7 @@ class ConfigConsensus(ConfigBase):
             Model instance defining the plane, modalities, enhancement, and base_path.
 
         plane (str):
-            Fixed anatomical plane label ('consenso').
+            Fixed anatomical plane label ('consensus').
 
         epochs (int):
             Number of epochs of the trained YOLO model.
@@ -115,8 +115,8 @@ class ConfigConsensus(ConfigBase):
             fold_test=fold_test,
         )
 
-        # Override: consenso stage always uses the 'consenso' plane label
-        self.plane = "consenso"
+        # Override: consensus stage always uses the 'consensus' plane label
+        self.plane = "consensus"
 
         # GT directory (depends on single_fold, already initialised in base)
         self.gt_dir = GT_DIR / (SPLIT_TEST if self.single_fold else SPLIT_TRAIN)
@@ -236,7 +236,7 @@ class ConfigConsensus(ConfigBase):
 
                 # Delete only consensus NIfTI files
                 for file in patient_dir.iterdir():
-                    if "consenso" in file.name.lower() and file.name.endswith(
+                    if "consensus" in file.name.lower() and file.name.endswith(
                         f"{EXT_NIFTI}"
                     ):
                         try:
@@ -246,7 +246,7 @@ class ConfigConsensus(ConfigBase):
 
     def _clean_patient_consensus_volume(self) -> None:
         """Cleans the consensus NIfTI file for an individual patient."""
-        consensus_path = self.patient_pred_vols["consenso"]
+        consensus_path = self.patient_pred_vols["consensus"]
         if path_exists(consensus_path):
             try:
                 consensus_path.unlink()

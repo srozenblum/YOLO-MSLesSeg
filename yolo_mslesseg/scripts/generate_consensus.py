@@ -180,11 +180,11 @@ def process_patient_consensus(
     if paths_dir is None:
         paths_dir = config.patient_pred_vols
         gt_vol = config.patient_gt_vol
-        output_path = paths_dir["consenso"]
+        output_path = paths_dir["consensus"]
     else:
         gt_vol = paths_dir["gt"]
         patient_id = paths_dir["axial"].parent.name
-        output_path = config.pred_vols_fold_dir / patient_id / f"{patient_id}_consenso{EXT_NIFTI}"
+        output_path = config.pred_vols_fold_dir / patient_id / f"{patient_id}_consensus{EXT_NIFTI}"
 
     # Skip if the consensus volume already exists
     if path_exists(output_path):
@@ -432,7 +432,7 @@ def main(argv: list[str] | None = None) -> None:
     args = parse_args(argv)
 
     model = Model(
-        plane="consenso",
+        plane="consensus",
         num_slices=args.num_slices,
         modality=args.modality,
         k_folds=args.k_folds,
