@@ -475,7 +475,12 @@ class ConfigDataset:
     # ======================================
 
     def __repr__(self) -> str:
-        """String representation of this ConfigDataset instance."""
+        """String representation of this ConfigDataset instance.
+
+        Returns:
+            String including the class name, model identifier, and either the
+            full-mode flag or the patient identifier with k_folds.
+        """
         if self.is_full:
             return f"{self.__class__.__name__}(model={self.model.model_string}, full={self.full}, k_folds={self.k_folds})"
         return f"{self.__class__.__name__}(model={self.model.model_string}, patient={self.patient.id}, k_folds={self.k_folds})"

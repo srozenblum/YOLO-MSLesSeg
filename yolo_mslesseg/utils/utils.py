@@ -235,6 +235,9 @@ def load_volume(vol_path: str | Path) -> np.ndarray:
 
     Returns:
         NumPy array containing the volume data.
+
+    Raises:
+        Exception: Re-raises any exception thrown by nibabel after logging it.
     """
     try:
         return nib.load(vol_path).get_fdata()
@@ -273,6 +276,9 @@ def save_volume(volume: np.ndarray, affine: np.ndarray, output_path: str | Path)
         volume: Volume data as a NumPy array.
         affine: 4x4 affine transformation matrix.
         output_path: Destination path for the NIfTI file.
+
+    Raises:
+        Exception: Re-raises any exception thrown by nibabel after logging it.
     """
     try:
         nifti_out = nib.Nifti1Image(volume, affine)

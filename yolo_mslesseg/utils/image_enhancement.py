@@ -36,6 +36,11 @@ class Algorithm(ABC):
         """Apply the enhancement algorithm to a 2D image and return the result."""
 
     def __repr__(self) -> str:
+        """Returns the class name as the string representation.
+
+        Returns:
+            Class name string of the concrete subclass.
+        """
         return type(self).__name__
 
 
@@ -54,7 +59,14 @@ class HE(Algorithm):
     """
 
     def apply(self, image: np.ndarray) -> np.ndarray:
-        """Apply HE to the image."""
+        """Applies HE to the image.
+
+        Args:
+            image: 2D or 3D float image array to enhance.
+
+        Returns:
+            Enhanced image as a uint8 RGB NumPy array.
+        """
 
         # Convert the image to BGR if it is RGB or greyscale
         img_bgr = convert_to_bgr(image)
@@ -90,7 +102,14 @@ class CLAHE(Algorithm):
         self.tile_grid_size = tile_grid_size
 
     def apply(self, image: np.ndarray) -> np.ndarray:
-        """Apply CLAHE to the L channel of the image."""
+        """Applies CLAHE to the L channel of the image.
+
+        Args:
+            image: 2D or 3D float image array to enhance.
+
+        Returns:
+            Enhanced image as a uint8 BGR NumPy array.
+        """
 
         # Convert the image to BGR if it is RGB or greyscale
         img_bgr = convert_to_bgr(image)
@@ -135,7 +154,14 @@ class GC(Algorithm):
         self.gamma = gamma
 
     def apply(self, image: np.ndarray) -> np.ndarray:
-        """Apply GC to the image."""
+        """Applies GC to the image.
+
+        Args:
+            image: 2D or 3D float image array to enhance.
+
+        Returns:
+            Enhanced image as a uint8 RGB NumPy array.
+        """
 
         # Convert the image to BGR if it is RGB or greyscale
         img_bgr = convert_to_bgr(image)
@@ -159,7 +185,14 @@ class LT(Algorithm):
     """
 
     def apply(self, image: np.ndarray) -> np.ndarray:
-        """Apply LT to the image."""
+        """Applies LT to the image.
+
+        Args:
+            image: 2D or 3D float image array to enhance.
+
+        Returns:
+            Enhanced image as a uint8 RGB NumPy array.
+        """
 
         # Convert the image to BGR if it is RGB or greyscale
         img_bgr = convert_to_bgr(image)
@@ -192,10 +225,13 @@ _REGISTRY: dict[str, type[Algorithm]] = {
 
 
 def get_algorithm(name: str) -> Algorithm:
-    """Return a new instance of the enhancement algorithm identified by name.
+    """Returns a new instance of the enhancement algorithm identified by name.
 
     Args:
         name: Algorithm key as stored in constants.ENHANCEMENTS ('HE', 'CLAHE', 'GC', 'LT').
+
+    Returns:
+        New instance of the requested Algorithm subclass.
 
     Raises:
         ValueError: If name does not match any registered algorithm.

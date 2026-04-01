@@ -111,10 +111,19 @@ logger = get_logger(__file__)
 
 
 def verify_consensus_folds(model: Model, epochs: int, k_folds: int) -> tuple[list[int], list[int]]:
-    """
-    Checks which folds of the model have complete predicted volumes across
-    all three planes (axial, coronal, and sagittal), which is required to
-    generate the consensus.
+    """Checks which folds have complete predicted volumes across all three planes.
+
+    Determines which folds have all three anatomical plane volumes (axial,
+    coronal, and sagittal) available, which is required to generate the consensus.
+
+    Args:
+        model: Model instance providing the base path and experiment configuration.
+        epochs: Number of training epochs used to locate the predicted volume directory.
+        k_folds: Total number of cross-validation folds to inspect.
+
+    Returns:
+        Tuple of (valid_folds, incomplete_folds) where each element is a sorted
+        list of fold indices.
     """
     assert k_folds > 1, "verify_consensus_folds must only be called with k_folds > 1"
 
@@ -139,7 +148,11 @@ def verify_consensus_folds(model: Model, epochs: int, k_folds: int) -> tuple[lis
 
 
 def run_setup(clean: bool) -> None:
-    """Downloads the official dataset and prepares the directory structure."""
+    """Downloads the official dataset and prepares the directory structure.
+
+    Args:
+        clean: If True, deletes the existing GT/ directory before running.
+    """
     logger.header(
         f"\n📦 Downloading MSLesSeg dataset and preparing directory structure"
     )
@@ -147,10 +160,16 @@ def run_setup(clean: bool) -> None:
 
 
 def run_dataset(model: Model, patient: Patient | None, k_folds: int, clean: bool) -> None:
-    """
-    Executes the dataset generation stage. Manages the extraction of
-    slices and annotations for an individual patient or for all patients
-    in the experiment.
+    """Executes the dataset generation stage.
+
+    Manages the extraction of slices and annotations for an individual patient
+    or for all patients in the experiment.
+
+    Args:
+        model: Model instance defining the extraction configuration.
+        patient: Patient instance for individual execution, or None for full mode.
+        k_folds: Number of cross-validation folds.
+        clean: If True, deletes existing dataset outputs before extracting.
     """
     logger.header(f"\n🧩 Preparing YOLO dataset")
     run_dataset_pipeline(
@@ -161,17 +180,18 @@ def run_dataset(model: Model, patient: Patient | None, k_folds: int, clean: bool
 
 
 def run_train(model: Model, epochs: int, k_folds: int, train_flag: bool, clean: bool) -> None:
-    """
-    Executes the YOLO model training stage.
+    """Executes the YOLO model training stage.
 
-    - k_folds > 1:
-        Trains one model per fold (fold1, ..., foldK).
+    With k_folds > 1, trains one model per fold (fold1, ..., foldK). With
+    k_folds == 1, trains a single model using train/ and test/ as fixed sets.
+    This stage is optional and only runs when train_flag is True.
 
-    - k_folds == 1:
-        Trains a single model using train/ and test/ as fixed sets.
-        fold_test is not used.
-
-    This stage is optional and is only activated when `--train` is present.
+    Args:
+        model: Model instance defining the training configuration.
+        epochs: Number of training epochs.
+        k_folds: Number of cross-validation folds (1 for fixed split).
+        train_flag: If False, the stage is skipped entirely.
+        clean: If True, deletes existing training outputs before starting.
     """
     logger.header(f"\n🧠 Training model")
 
@@ -627,9 +647,13 @@ def run_pipeline(
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    """
-    Parses the script arguments.
-    If no argument list is provided, reads from the command line.
+    """Parses command-line arguments for the pipeline script.
+
+    Args:
+        argv: Argument list to parse. Defaults to sys.argv[1:] if None.
+
+    Returns:
+        Namespace with the parsed CLI arguments.
     """
     if argv is None:
         argv = sys.argv[1:]
@@ -718,12 +742,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 
 def main(argv: list[str] | None = None) -> None:
-    """
-    CLI entry point for `run_pipeline.py`.
+    """CLI entry point for run_pipeline.py.
 
-    Parses the command-line arguments, builds the `Model` and (optionally)
-    `Patient` instances, and delegates the full workflow execution to
-    `run_pipeline`.
+    Parses the command-line arguments, builds the Model and (optionally)
+    Patient instances, and delegates the full workflow execution to run_pipeline.
+
+    Args:
+        argv: Argument list to parse. Defaults to sys.argv[1:] if None.
     """
     args = parse_args(argv)
 

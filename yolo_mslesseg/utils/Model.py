@@ -121,24 +121,40 @@ class Model:
 
     @property
     def modality_str(self) -> str:
-        """Concatenated representation of the image modalities (e.g. 'T1T2FLAIR')."""
+        """Concatenated representation of the image modalities (e.g. 'T1T2FLAIR').
+
+        Returns:
+            String of modality names joined without separators.
+        """
         return "".join(self.modality)
 
     @property
     def exp_string(self) -> str:
-        """Short experiment name ('Base' or enhancement type)."""
+        """Short experiment name ('Base' or enhancement type).
+
+        Returns:
+            Enhancement algorithm name if set, otherwise 'Base'.
+        """
         return self.enhancement if self.enhancement else "Base"
 
     @property
     def folds_string(self) -> str:
-        """String representation of the number of folds ('1fold' or '<k>folds')."""
+        """String representation of the number of folds ('1fold' or '<k>folds').
+
+        Returns:
+            '1fold' when k_folds == 1, or '<k>folds' for cross-validation.
+        """
         if self.k_folds == 1:
             return "1fold"
         return f"{self.k_folds}folds"
 
     @property
     def base_path(self) -> Path:
-        """Base path for the model."""
+        """Base path for the model.
+
+        Returns:
+            Path combining the experiment string and the modality/slices/folds identifier.
+        """
         return (
             Path(self.exp_string)
             / f"{self.modality_str}_{self.num_slices}slices_{self.folds_string}"
@@ -146,7 +162,12 @@ class Model:
 
     @property
     def model_string(self) -> str:
-        """Unique, human-readable model identifier based on plane, modality, and slice count."""
+        """Unique, human-readable model identifier based on plane, modality, and slice count.
+
+        Returns:
+            Canonical model identifier string including plane, modalities, enhancement
+            (if any), slice count, and fold scheme.
+        """
         if not self.enhancement:
             return f"{self.plane}_{self.modality_str}_{self.num_slices}slices_{self.folds_string}"
         else:
@@ -157,9 +178,17 @@ class Model:
     # ======================================
 
     def __repr__(self) -> str:
-        """Internal representation of the Model instance."""
+        """Internal representation of the Model instance.
+
+        Returns:
+            String of the form 'Model(<model_string>)'.
+        """
         return f"Model({self.model_string})"
 
     def __str__(self) -> str:
-        """Human-readable representation of the Model instance."""
+        """Human-readable representation of the Model instance.
+
+        Returns:
+            The model_string identifier.
+        """
         return f"{self.model_string}"

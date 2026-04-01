@@ -145,7 +145,7 @@ def compute_experiment_summary(fold_metrics: dict[str, list[float]]) -> dict[str
         fold_metrics: Dictionary mapping metric names to lists of per-fold values.
 
     Returns:
-        Dictionary mapping metric names to dicts with 'media' (mean) and 'std' keys.
+        Dictionary mapping metric names to dicts with 'mean' and 'std' keys.
     """
     results = {}
     for metric, values in fold_metrics.items():

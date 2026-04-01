@@ -159,7 +159,7 @@ def compute_averages(metrics_dict: dict[str, list[float]]) -> dict[str, dict[str
         metrics_dict: Dictionary mapping metric names to lists of per-patient values.
 
     Returns:
-        Dictionary mapping metric names to dicts with 'media' (mean) and 'std' keys.
+        Dictionary mapping metric names to dicts with 'mean' and 'std' keys.
 
     Raises:
         ValueError: If metrics_dict is empty.

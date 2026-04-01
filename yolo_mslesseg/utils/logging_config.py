@@ -32,7 +32,15 @@ from pathlib import Path
 
 
 def register_custom_level(value: int, name: str) -> int:
-    """Register a custom logging level and add logger.<name_lowercase>()."""
+    """Registers a custom logging level and adds a logger.<name_lowercase>() method.
+
+    Args:
+        value: Numeric level value (must be unique among registered levels).
+        name: Level name string (stored in uppercase by the logging module).
+
+    Returns:
+        The level value passed in, for use as a module-level constant.
+    """
     logging.addLevelName(value, name)
 
     def log_method(self, message: str, *args, **kwargs) -> None:
@@ -90,13 +98,19 @@ class NoColorFormatter(logging.Formatter):
 
 
 def configure_logging(level: int = logging.INFO, log_file: str | Path | None = None) -> logging.Logger:
-    """
-    Configure global logging:
-        - Colour-coded handler for console output with UTF-8 encoding.
-        - Plain handler for file output with UTF-8 encoding.
-        - Custom SKIP and HEADER levels enabled.
+    """Configures global logging with a colour-coded console handler and optional file handler.
 
-    This function is called automatically when this module is imported.
+    Sets up the root logger with ANSI-colour output to stdout and, when a path
+    is supplied, a plain-text file handler. Custom SKIP and HEADER levels are
+    automatically available after this call. Called automatically on module import.
+
+    Args:
+        level: Minimum logging level for the root logger. Defaults to logging.INFO.
+        log_file: Optional path for a plain-text log file. No file handler is
+            added when None.
+
+    Returns:
+        Configured root logger instance.
     """
     logger = logging.getLogger()
     logger.setLevel(level)
@@ -158,14 +172,14 @@ def configure_demo_logging() -> None:
 
 
 def get_logger(source_file: str | Path) -> logging.Logger:
-    """
-    Return a script-specific logger.
+    """Returns a script-specific logger named after the source file stem.
 
     Args:
-        source_file (str | Path): path of the script (__file__ recommended).
+        source_file: Path of the calling script. Pass __file__ to derive the
+            logger name from the module filename.
 
-    Example:
-        logger = get_logger(__file__)
+    Returns:
+        Logger instance named after the stem of source_file.
     """
     name = Path(source_file).stem
     return logging.getLogger(name)

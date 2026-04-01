@@ -120,7 +120,12 @@ class ConfigBase(ABC):
     # ======================================
 
     def __repr__(self) -> str:
-        """String representation of this configuration instance."""
+        """String representation of this configuration instance.
+
+        Returns:
+            String including the class name, model identifier, epochs, and the
+            active execution scope (patient, group, fold, or experiment mode).
+        """
         if self.patient is not None:
             return (
                 f"{self.__class__.__name__}("

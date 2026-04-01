@@ -221,12 +221,20 @@ class Patient:
 
     @property
     def is_train(self) -> bool:
-        """Returns True if the patient belongs to the training split."""
+        """Returns True if the patient belongs to the training split.
+
+        Returns:
+            True if the patient's split is 'train', False otherwise.
+        """
         return self.split == SPLIT_TRAIN
 
     @property
     def is_test(self) -> bool:
-        """Returns True if the patient belongs to the test split."""
+        """Returns True if the patient belongs to the test split.
+
+        Returns:
+            True if the patient's split is 'test', False otherwise.
+        """
         return self.split == SPLIT_TEST
 
     def volume_path(self, modality: str) -> Path:
@@ -248,7 +256,11 @@ class Patient:
 
     @property
     def gt_mask_path(self) -> Path:
-        """Returns the path to the ground truth mask."""
+        """Returns the path to the ground truth mask.
+
+        Returns:
+            Path to the patient's ground truth NIfTI mask file.
+        """
         if self.no_timepoints:
             return self.base_dir / f"{self.id}{MASK_SUFFIX}{EXT_NIFTI}"
         return (
@@ -282,7 +294,11 @@ class Patient:
 
     @property
     def gt_mask(self) -> np.ndarray:
-        """Returns the binary ground truth mask."""
+        """Returns the binary ground truth mask.
+
+        Returns:
+            3D NumPy array with the ground truth mask data.
+        """
         if self._gt_mask is None:
             if not path_exists(self.gt_mask_path):
                 raise FileNotFoundError(
@@ -293,7 +309,14 @@ class Patient:
 
     @property
     def num_slices(self) -> int:
-        """Returns the total number of slices in the mask for the current plane."""
+        """Returns the total number of slices in the mask for the current plane.
+
+        Returns:
+            Integer count of slices along the axis corresponding to the current plane.
+
+        Raises:
+            ValueError: If the current plane is not 'axial', 'coronal', or 'sagittal'.
+        """
         mapping = {"axial": 2, "coronal": 1, "sagittal": 0}
         if self.plane not in mapping:
             raise ValueError(f"Unrecognised plane: {self.plane}")
@@ -485,9 +508,17 @@ class Patient:
         return [(i, self.get_mask_slice(i)) for i in indices]
 
     def __repr__(self) -> str:
-        """Internal representation of the Patient instance."""
+        """Internal representation of the Patient instance.
+
+        Returns:
+            String of the form 'Patient(<id>)'.
+        """
         return f"Patient({self.id})"
 
     def __str__(self) -> str:
-        """Human-readable representation of the Patient instance."""
+        """Human-readable representation of the Patient instance.
+
+        Returns:
+            The patient identifier string.
+        """
         return self.id

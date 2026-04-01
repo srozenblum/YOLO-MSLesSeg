@@ -267,7 +267,12 @@ class ConfigTrain:
     # ======================================
 
     def __repr__(self) -> str:
-        """String representation of this ConfigTrain instance."""
+        """String representation of this ConfigTrain instance.
+
+        Returns:
+            String including the class name, model identifier, epochs, and either
+            k_folds (single-fold mode) or the active fold index.
+        """
         if self.single_fold:
             return f"{self.__class__.__name__}(model={self.model.model_string}, epochs={self.epochs}, k_folds=1)"
         return f"{self.__class__.__name__}(model={self.model.model_string}, fold={self.fold_test}, epochs={self.epochs})"

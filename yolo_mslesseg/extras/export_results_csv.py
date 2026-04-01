@@ -139,13 +139,13 @@ def format_json_value(value: dict | float | int) -> str:
     """Formats a metric value as a 'mean ± std' string.
 
     Args:
-        value: Dictionary with 'media' and 'std' keys, or a scalar value.
+        value: Dictionary with 'mean' and 'std' keys, or a scalar value.
 
     Returns:
         Formatted string 'X.XXX ± Y.YYY', or an empty string if the format is unexpected.
     """
     if isinstance(value, dict) and "mean" in value and "std" in value:
-        return f"{float(value['media']):.3f} ± {float(value['std']):.3f}"
+        return f"{float(value['mean']):.3f} ± {float(value['std']):.3f}"
     return ""
 
 
