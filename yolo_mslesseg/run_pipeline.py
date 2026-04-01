@@ -110,7 +110,7 @@ logger = get_logger(__file__)
 # ======================================
 
 
-def verify_consensus_folds(model: Model, epochs: int, k_folds: int) -> tuple:
+def verify_consensus_folds(model: Model, epochs: int, k_folds: int) -> tuple[list[int], list[int]]:
     """
     Checks which folds of the model have complete predicted volumes across
     all three planes (axial, coronal, and sagittal), which is required to

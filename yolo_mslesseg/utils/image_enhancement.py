@@ -32,7 +32,7 @@ class Algorithm(ABC):
     """
 
     @abstractmethod
-    def apply(self, image):
+    def apply(self, image: np.ndarray) -> np.ndarray:
         """Apply the enhancement algorithm to a 2D image and return the result."""
 
     def __repr__(self) -> str:
@@ -53,7 +53,7 @@ class HE(Algorithm):
         redistributing pixel intensity uniformly across the histogram.
     """
 
-    def apply(self, image):
+    def apply(self, image: np.ndarray) -> np.ndarray:
         """Apply HE to the image."""
 
         # Convert the image to BGR if it is RGB or greyscale
@@ -84,12 +84,12 @@ class CLAHE(Algorithm):
         tile_grid_size (tuple[int, int]): grid size for local processing (default (8, 8)).
     """
 
-    def __init__(self, clip_limit=2.0, tile_grid_size=(8, 8)):
+    def __init__(self, clip_limit: float = 2.0, tile_grid_size: tuple[int, int] = (8, 8)) -> None:
         super().__init__()
         self.clip_limit = clip_limit
         self.tile_grid_size = tile_grid_size
 
-    def apply(self, image):
+    def apply(self, image: np.ndarray) -> np.ndarray:
         """Apply CLAHE to the L channel of the image."""
 
         # Convert the image to BGR if it is RGB or greyscale
@@ -130,11 +130,11 @@ class GC(Algorithm):
         gamma (float): gamma correction factor (default 2.0).
     """
 
-    def __init__(self, gamma=2.0):
+    def __init__(self, gamma: float = 2.0) -> None:
         super().__init__()
         self.gamma = gamma
 
-    def apply(self, image):
+    def apply(self, image: np.ndarray) -> np.ndarray:
         """Apply GC to the image."""
 
         # Convert the image to BGR if it is RGB or greyscale
@@ -158,7 +158,7 @@ class LT(Algorithm):
         dark regions by compressing the dynamic intensity range.
     """
 
-    def apply(self, image):
+    def apply(self, image: np.ndarray) -> np.ndarray:
         """Apply LT to the image."""
 
         # Convert the image to BGR if it is RGB or greyscale

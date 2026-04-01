@@ -16,7 +16,7 @@ from yolo_mslesseg.scripts.reconstruct_volume import insert_slice
 
 
 @pytest.fixture
-def volume():
+def volume() -> np.ndarray:
     """Synthetic binary volume with a reproducible random pattern."""
     rng = np.random.default_rng(42)
     return rng.integers(0, 2, size=(10, 12, 14), dtype=np.uint8)

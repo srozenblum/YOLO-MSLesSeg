@@ -183,7 +183,7 @@ def compute_averages(metrics_dict: dict[str, list[float]]) -> dict[str, dict[str
 # ======================================
 
 
-def process_patient_eval(config: ConfigEval, paths_dir: dict[str, Path] | None = None, fold_mode: bool = False) -> dict | None:
+def process_patient_eval(config: ConfigEval, paths_dir: dict[str, Path] | None = None, fold_mode: bool = False) -> dict[str, float] | None:
     """Executes metric computation for an individual patient.
 
     In fold_mode, returns existing metrics if already computed. Otherwise skips

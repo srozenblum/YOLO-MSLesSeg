@@ -31,11 +31,11 @@ from pathlib import Path
 # ============================================================
 
 
-def register_custom_level(value, name):
+def register_custom_level(value: int, name: str) -> int:
     """Register a custom logging level and add logger.<name_lowercase>()."""
     logging.addLevelName(value, name)
 
-    def log_method(self, message, *args, **kwargs):
+    def log_method(self, message: str, *args, **kwargs) -> None:
         if self.isEnabledFor(value):
             self._log(value, message, args, **kwargs)
 
@@ -70,7 +70,7 @@ class ColorFormatter(logging.Formatter):
 
     RESET = "\033[0m"
 
-    def format(self, record):
+    def format(self, record: logging.LogRecord) -> str:
         color = self.COLORS.get(record.levelno, self.RESET)
         msg = super().format(record)
         return f"{color}{msg}{self.RESET}"
@@ -79,7 +79,7 @@ class ColorFormatter(logging.Formatter):
 class NoColorFormatter(logging.Formatter):
     """Formatter that strips ANSI codes before writing to a file."""
 
-    def format(self, record):
+    def format(self, record: logging.LogRecord) -> str:
         raw = super().format(record)
         return ANSI_ESCAPE.sub("", raw)
 
@@ -89,7 +89,7 @@ class NoColorFormatter(logging.Formatter):
 # ============================================================
 
 
-def configure_logging(level=logging.INFO, log_file=None):
+def configure_logging(level: int = logging.INFO, log_file: str | Path | None = None) -> logging.Logger:
     """
     Configure global logging:
         - Colour-coded handler for console output with UTF-8 encoding.
@@ -129,7 +129,7 @@ def configure_logging(level=logging.INFO, log_file=None):
 configure_logging()
 
 
-def configure_demo_logging():
+def configure_demo_logging() -> None:
     """
     Configure logging for demo execution.
     """
@@ -157,7 +157,7 @@ def configure_demo_logging():
 # ============================================================
 
 
-def get_logger(source_file):
+def get_logger(source_file: str | Path) -> logging.Logger:
     """
     Return a script-specific logger.
 
