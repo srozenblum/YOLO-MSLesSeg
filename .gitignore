@@ -89,6 +89,11 @@ __pycache__/
 *.ipynb_checkpoints/
 
 # ========================
+#    MIGRATION SCRIPTS
+# ========================
+extras/migrate_sagital_dirs.py
+
+# ========================
 #    DEMO
 # ========================
 demo/**/output/
