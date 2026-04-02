@@ -1,3 +1,27 @@
+"""
+Module: Model.py
+
+Description:
+    Defines the Model class, which represents the structural configuration
+    of a YOLO model used in the YOLO-MSLesSeg pipeline. The Model object is
+    the central configuration carrier passed to all pipeline stages.
+
+Usage:
+    from yolo_mslesseg.utils.Model import Model
+    model = Model(plane="axial", num_slices="P50", modality=["FLAIR"], k_folds=5)
+
+Inputs:
+    None. Provides the Model class definition.
+
+Outputs:
+    None. Provides the Model class definition.
+
+Relationships:
+    - Used by all Config classes (ConfigDataset, ConfigTrain, ConfigPred,
+      ConfigReconstruction, ConfigEval, ConfigConsensus).
+    - Used by all pipeline scripts as the primary configuration object.
+"""
+
 from pathlib import Path
 
 from yolo_mslesseg.utils.constants import ENHANCEMENTS, PLANES

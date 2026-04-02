@@ -12,15 +12,6 @@ Execution modes:
     1. CLI (standalone).
     2. Internal (from `run_pipeline.py`).
 
-CLI Arguments:
-    --url (str, optional)
-        Direct download link to the MSLesSeg dataset ZIP file.
-        Defaults to the official Figshare file.
-
-    --clean (flag, optional)
-        Clean the previously generated GT/ directory, but not the
-        downloaded dataset in MSLesSeg-Dataset/.
-
 CLI Usage:
     python -m yolo_mslesseg.scripts.setup --clean
 

@@ -1,3 +1,27 @@
+"""
+Module: ConfigEval
+
+Description:
+    Defines the ConfigEval class, which manages configuration and path
+    resolution for the evaluation stage (eval.py).
+
+Usage:
+    from yolo_mslesseg.configs.ConfigEval import ConfigEval
+    config = ConfigEval(model=model, epochs=50, fold_test=1)
+
+Inputs:
+    None. Provides the ConfigEval class definition.
+
+Outputs:
+    None. Provides the ConfigEval class definition.
+
+Relationships:
+    - Used exclusively by eval.py and average_folds.py.
+    - Subclasses ConfigBase.
+    - Depends on Model and Patient from utils/.
+    - Depends on constants.py for directory paths.
+"""
+
 from yolo_mslesseg.configs.ConfigBase import ConfigBase
 from yolo_mslesseg.utils.logging_config import get_logger
 from yolo_mslesseg.utils.Model import Model

@@ -90,7 +90,7 @@ RESULTS_GLOBAL_PREFIX = "global_"
 class StageResult(Enum):
     """Enum representing the execution status of a pipeline stage.
 
-    Values:
+    Attributes:
         COMPLETED: The stage ran and produced new output.
         SKIPPED: The stage was skipped because output already existed.
         PARTIAL: Some patients were processed and some were skipped.

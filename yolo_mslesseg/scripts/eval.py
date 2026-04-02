@@ -19,38 +19,6 @@ Execution modes:
          along with the remaining parameters.
        - The argument parser is not used.
 
-CLI Arguments:
-    --plane (str, required)
-        Anatomical plane of the model ('axial', 'coronal', 'sagittal', 'consenso').
-
-    --modality (list[str], optional)
-        MRI modality or modalities ('T1', 'T2', 'FLAIR').
-        Defaults to all.
-
-    --num_slices (int_or_percentile, required)
-        Number of extracted slices (integer value or percentile, e.g. 50 or 'P75').
-
-    --enhancement (str, optional)
-        Image enhancement algorithm applied ('HE', 'CLAHE', 'GC', 'LT', or None).
-        Defaults to None.
-
-    --epochs (int, required)
-        Number of epochs of the trained model.
-
-    --k_folds (int, optional)
-        Number of folds for cross-validation.
-        Defaults to 5.
-
-    --fold_test (int, mutually exclusive with --patient_id)
-        Compute metrics for all patients in the indicated fold,
-        used as the test set.
-
-    --patient_id (str, mutually exclusive with --fold_test)
-        Compute metrics only for the specified patient.
-
-    --clean (flag, optional)
-        Clean the directory with binary 2D predictions before generating new ones.
-
 CLI Usage:
     python -m yolo_mslesseg.scripts.eval \
         --plane axial \
@@ -73,7 +41,7 @@ Inputs:
 
 Outputs:
     - JSON with per-patient or fold-average metrics in
-        results/<modality>_<num_slices>slices_<k_folds>folds_<epochs>epochs/foldX/.
+        results/<enhancement>/<modality>_<num_slices>slices_<k_folds>folds_<epochs>epochs/foldX/.
 """
 
 import argparse

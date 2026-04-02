@@ -7,6 +7,20 @@ Description:
     are common to all four pipeline stage configurations and exposes the
     fold_subdir helper property that eliminates repeated single_fold branching
     throughout path-resolution methods.
+
+Usage:
+    Not instantiated directly. Used as the base class for all stage-specific
+    Config classes that handle folds and patients.
+
+Inputs:
+    None. Provides the ConfigBase abstract class definition.
+
+Outputs:
+    None. Provides the ConfigBase abstract class definition.
+
+Relationships:
+    - Subclassed by ConfigPred, ConfigReconstruction, ConfigEval, and ConfigConsensus.
+    - Depends on Model and Patient from utils/.
 """
 
 from abc import ABC, abstractmethod
@@ -34,7 +48,7 @@ class ConfigBase(ABC):
 
         plane (str):
             Anatomical processing plane ('axial', 'coronal', 'sagittal').
-            Subclasses may override this (e.g. 'consenso' in ConfigConsensus).
+            Subclasses may override this (e.g. 'consensus' in ConfigConsensus).
 
         epochs (int):
             Number of epochs of the YOLO model.

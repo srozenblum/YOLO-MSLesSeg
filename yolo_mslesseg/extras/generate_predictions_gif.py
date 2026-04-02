@@ -5,34 +5,6 @@ Description:
     Generates an animated GIF that iterates over all available slices of a patient
     and overlays the prediction mask (red) and the ground truth mask (green).
 
-CLI Arguments:
-    --patient_id (str, required)
-        ID of the patient to visualise.
-
-    --plane (str, required)
-        Anatomical extraction plane ('axial', 'coronal', 'sagittal').
-
-    --modality (list[str], optional)
-        MRI modality or modalities ('T1', 'T2', 'FLAIR').
-        Defaults to all.
-
-    --num_slices (int_or_percentile, required)
-        Number of extracted slices (integer value or percentile, e.g. 50 or 'P50').
-
-    --enhancement (str, optional)
-        Image enhancement algorithm applied ('HE', 'CLAHE', 'GC', 'LT', or None).
-        Defaults to None.
-
-    --epochs (int, required)
-        Number of epochs of the trained model.
-
-    --k_folds (int, optional)
-        Number of folds for cross-validation.
-        Defaults to 5.
-
-    --clean (flag, optional)
-        If a previous GIF exists, deletes it before generating a new one.
-
 CLI Usage:
     python -m yolo_mslesseg.extras.generate_predictions_gif \\
         --patient_id P14 \\

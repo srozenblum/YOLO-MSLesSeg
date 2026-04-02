@@ -1,3 +1,28 @@
+"""
+Module: Patient.py
+
+Description:
+    Defines the Patient class, which represents a single patient from the
+    MSLesSeg dataset. Provides access to MRI volumes, ground truth masks,
+    and lesion-containing slices for a given anatomical plane, timepoint,
+    and set of modalities.
+
+Usage:
+    from yolo_mslesseg.utils.Patient import Patient
+    patient = Patient(id="P12", plane="axial", modality=["FLAIR"])
+
+Inputs:
+    - MSLesSeg-Dataset/ directory must exist with the expected structure.
+
+Outputs:
+    None. Provides the Patient class definition.
+
+Relationships:
+    - Used by extract_dataset.py for slice extraction.
+    - Used by eval.py and run_pipeline.py for individual patient evaluation.
+    - Used by ConfigBase subclasses (ConfigPred, ConfigEval, etc.).
+"""
+
 from pathlib import Path
 
 import nibabel as nib
@@ -70,6 +95,12 @@ class Patient:
 
         gt_mask (np.ndarray):
             Ground truth volume loaded in memory.
+
+        split (str):
+            Dataset split the patient belongs to ('train' or 'test').
+
+        no_timepoints (bool):
+            True if the patient directory does not contain timepoint subdirectories.
 
         _volumes (dict[str, np.ndarray]):
             Dictionary of volumes loaded per modality.

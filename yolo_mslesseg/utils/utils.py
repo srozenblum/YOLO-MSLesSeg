@@ -47,6 +47,17 @@ Conventions:
     - Functions never silently swallow critical errors: exceptions are re-raised.
     - Binary masks are normalised to the range {0, 1}.
     - The `int_or_percentile` type accepts integer values or strings "P<n>".
+
+Inputs:
+    None. Provides reusable utility functions.
+
+Outputs:
+    None. Provides reusable utility functions.
+
+Relationships:
+    - Used by all pipeline scripts and Config classes.
+    - Depends on constants.py for StageResult and other constants.
+    - Depends on logging_config.py for the logger.
 """
 
 import argparse

@@ -19,31 +19,6 @@ Execution modes:
        - A pre-built Model instance is received.
        - The argument parser is not used.
 
-CLI Arguments:
-    --plane (str, required)
-        Anatomical plane of the model ('axial', 'coronal', 'sagittal').
-
-    --modality (list[str], optional)
-        MRI modality or modalities ('T1', 'T2', 'FLAIR').
-        Defaults to all.
-
-    --num_slices (int_or_percentile, required)
-        Number of extracted slices (integer value or percentile, e.g. 50 or 'P75').
-
-    --enhancement (str, optional)
-        Image enhancement algorithm applied ('HE', 'CLAHE', 'GC', 'LT', or None).
-        Defaults to None.
-
-    --epochs (int, required)
-        Number of epochs of the trained model.
-
-    --k_folds (int, optional)
-        Number of folds for cross-validation.
-        Defaults to 5.
-
-    --clean (flag, optional)
-        Clean previous global results before computing new ones.
-
 CLI Usage:
     python -m yolo_mslesseg.scripts.average_folds \
         --plane coronal \
@@ -53,11 +28,11 @@ CLI Usage:
 
 Inputs:
     - JSON files with per-fold metrics: generated previously by `eval.py` in
-        results/<modality>_<num_slices>slices_<k_folds>folds_<epochs>epochs/foldX/foldX_<plane>_results.json.
+        results/<enhancement>/<modality>_<num_slices>slices_<k_folds>folds_<epochs>epochs/foldX/foldX_<plane>_results.json.
 
 Outputs:
     - JSON with global experiment metrics (mean and standard deviation) in
-        results/<modality>_<num_slices>slices_<k_folds>folds_<epochs>epochs/<plane>_global_results.json
+        results/<enhancement>/<modality>_<num_slices>slices_<k_folds>folds_<epochs>epochs/global_<plane>_results.json
 """
 
 import argparse

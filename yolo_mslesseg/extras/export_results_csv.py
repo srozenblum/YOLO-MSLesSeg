@@ -14,37 +14,6 @@ Description:
     but do not influence result filtering, since the final CSV always incorporates
     all planes and all enhancement algorithms available for that configuration.
 
-Execution mode:
-    This script must be run via CLI only. It is not part of the pipeline and is not
-    prepared for internal use.
-
-CLI Arguments:
-    --plane (str, required)
-        Anatomical plane of the model ('axial', 'coronal', 'sagittal').
-        Used only to build the Model object.
-        Does not filter the planes included in the final CSV.
-
-    --modality (list[str], optional)
-        MRI modality or modalities ('T1', 'T2', 'FLAIR').
-        Defaults to all. Used to locate the experiment.
-
-    --num_slices (int_or_percentile, required)
-        Number of extracted slices (integer value or percentile, e.g. 50 or 'P50').
-
-    --enhancement (str, optional)
-        Image enhancement algorithm applied ('HE', 'CLAHE', 'GC', 'LT', or None).
-        Defaults to None. Does not affect filtering; used only to locate the experiment.
-
-    --epochs (int, required)
-        Number of epochs of the trained model.
-
-    --k_folds (int, optional)
-        Number of folds used in cross-validation.
-        Defaults to 5.
-
-    --clean (flag, optional)
-        If present, deletes the existing output file before creating a new one.
-
 CLI Usage:
     python -m yolo_mslesseg.extras.export_results_csv \\
         --plane axial \\

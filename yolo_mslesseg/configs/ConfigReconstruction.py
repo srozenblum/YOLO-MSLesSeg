@@ -1,3 +1,27 @@
+"""
+Module: ConfigReconstruction
+
+Description:
+    Defines the ConfigReconstruction class, which manages configuration and
+    path resolution for the volume reconstruction stage (reconstruct_volume.py).
+
+Usage:
+    from yolo_mslesseg.configs.ConfigReconstruction import ConfigReconstruction
+    config = ConfigReconstruction(model=model, epochs=50, fold_test=1)
+
+Inputs:
+    None. Provides the ConfigReconstruction class definition.
+
+Outputs:
+    None. Provides the ConfigReconstruction class definition.
+
+Relationships:
+    - Used exclusively by reconstruct_volume.py.
+    - Subclasses ConfigBase.
+    - Depends on Model and Patient from utils/.
+    - Depends on constants.py for directory paths.
+"""
+
 from yolo_mslesseg.configs.ConfigBase import ConfigBase
 from yolo_mslesseg.utils.logging_config import get_logger
 from yolo_mslesseg.utils.Model import Model

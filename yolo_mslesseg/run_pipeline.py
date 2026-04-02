@@ -15,65 +15,42 @@ Description:
     computational cost and favours reproducibility when trained weights already
     exist. Training can be explicitly enabled via the CLI flag.
 
-Stages:
-    (0) Setup                   → downloads the MSLesSeg input dataset
-                                  and creates the directory structure.
-    (1) Extract dataset         → extracts the YOLO dataset and annotations.
-    (2) Train (optional)        → trains the YOLO model.
-    (3) Generate predictions    → predicts 2D segmentation masks.
-    (4) Reconstruct volumes     → reconstructs predicted 3D volumes.
-    (5) Eval                    → computes performance metrics.
-    (6) Generate consensus      → generates consensus volumes.
+    Pipeline stages (executed sequentially):
+        (0) Setup                → downloads the MSLesSeg input dataset
+                                   and creates the directory structure.
+        (1) Extract dataset      → extracts the YOLO dataset and annotations.
+        (2) Train (optional)     → trains the YOLO model.
+        (3) Generate predictions → predicts 2D segmentation masks.
+        (4) Reconstruct volumes  → reconstructs predicted 3D volumes.
+        (5) Eval                 → computes performance metrics.
+        (6) Generate consensus   → generates consensus volumes.
+        (7) Average folds        → computes global experiment metrics (full mode only).
 
-    # If running in full mode:
-        (7) Average folds       → computes global experiment metrics.
+Execution modes:
+    1. CLI (standalone):
+       - Arguments are read and parsed from the command line.
 
-CLI Arguments:
-    --plane (str, required)
-        Anatomical extraction plane ('axial', 'coronal', 'sagittal').
-
-    --modality (list[str], optional)
-        MRI modality or modalities ('T1', 'T2', 'FLAIR').
-        Defaults to all.
-
-    --num_slices (int_or_percentile, required)
-        Number of slices to extract (integer value or percentile, e.g. 50 or 'P75').
-
-    --enhancement (str, optional)
-        Image enhancement algorithm ('HE', 'CLAHE', 'GC', 'LT', or None).
-        Defaults to None.
-
-    --k_folds (int, optional)
-        Number of folds for cross-validation.
-        Defaults to 5.
-
-    --epochs (int, required)
-        Number of training epochs.
-
-    --consensus_threshold (int, optional)
-        Voting threshold for consensus (2 = majority, 3 = unanimity).
-        Defaults to 2.
-
-    --full (flag, mutually exclusive with --patient_id)
-        Execute the full workflow.
-
-    --patient_id (str, mutually exclusive with --full)
-        Execute the workflow only for the specified patient (e.g. 'P12').
-
-    --train (flag, optional)
-        Include the training stage. Omitted by default.
-
-    --clean (flag, optional)
-        Clean previous results before generating new ones.
+    2. Internal:
+       - Not applicable. This is the top-level orchestrator.
 
 CLI Usage:
-    python -m yolo_mslesseg.run_pipeline \
-        --plane axial \
-        --modality FLAIR \
-        --num_slices P50 \
-        --enhancement HE \
-        --epochs 50 \
+    python -m yolo_mslesseg.run_pipeline \\
+        --plane axial \\
+        --modality FLAIR \\
+        --num_slices P50 \\
+        --enhancement HE \\
+        --epochs 50 \\
         --full
+
+Inputs:
+    - MSLesSeg-Dataset/ directory (downloaded by setup if absent).
+    - Pre-trained YOLO weights (if --train is not specified).
+
+Outputs:
+    - YOLO datasets in datasets/.
+    - Trained model weights in trains/ (if --train is specified).
+    - Predicted 3D volumes in pred_vols/.
+    - Evaluation metrics in results/.
 """
 
 import argparse

@@ -1,5 +1,5 @@
 """
-Script: logging_config.py
+Module: logging_config.py
 
 Description:
     Configures the global logging system used throughout the pipeline.
@@ -11,14 +11,23 @@ Description:
         - Clean file logging ('pipeline.log') with ANSI codes stripped.
         - Unified get_logger() function for obtaining a per-script logger.
 
+    All configuration is performed once on module import. All scripts
+    must obtain their logger through get_logger(). The pipeline.log file
+    is overwritten on each new pipeline execution.
+
 Usage:
     from yolo_mslesseg.utils.logging_config import get_logger
     logger = get_logger(__file__)
 
-Conventions:
-    - All configuration is performed once in this module.
-    - All scripts must obtain their logger through get_logger().
-    - The pipeline.log file is overwritten on each new pipeline execution.
+Inputs:
+    None. Configuration is performed at import time.
+
+Outputs:
+    None. Registers handlers on the root logger.
+
+Relationships:
+    - Imported by all pipeline scripts and utility modules.
+    - Used by ConfigBase and its subclasses.
 """
 
 import logging
@@ -64,7 +73,20 @@ ANSI_ESCAPE = re.compile(r"\x1B\[[0-?][ -/][@-~]")
 
 
 class ColorFormatter(logging.Formatter):
-    """Formatter with ANSI colours for console output."""
+    """
+    Class: ColorFormatter
+
+    Description:
+        logging.Formatter subclass that wraps each log message in ANSI
+        colour codes based on the severity level. Used for the console
+        (stdout) handler to improve readability during pipeline execution.
+
+    Attributes:
+        COLORS (dict[int, str]):
+            Mapping from logging level integers to ANSI colour escape codes.
+        RESET (str):
+            ANSI reset sequence appended after every formatted message.
+    """
 
     COLORS = {
         logging.DEBUG: "\033[90m",        # Grey
@@ -85,7 +107,17 @@ class ColorFormatter(logging.Formatter):
 
 
 class NoColorFormatter(logging.Formatter):
-    """Formatter that strips ANSI codes before writing to a file."""
+    """
+    Class: NoColorFormatter
+
+    Description:
+        logging.Formatter subclass that removes ANSI escape sequences from
+        log messages before writing them to a file. Used for the file handler
+        (pipeline.log) to produce clean plain-text log output.
+
+    Attributes:
+        None beyond those inherited from logging.Formatter.
+    """
 
     def format(self, record: logging.LogRecord) -> str:
         raw = super().format(record)

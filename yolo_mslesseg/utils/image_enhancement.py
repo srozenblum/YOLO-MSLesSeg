@@ -7,6 +7,21 @@ Description:
     four concrete implementations: HE, CLAHE, GC, and LT. Each class
     implements its own 'apply' method, which executes the corresponding
     technique on an input image.
+
+Usage:
+    from yolo_mslesseg.utils.image_enhancement import get_algorithm
+    algo = get_algorithm("HE")
+    enhanced = algo.apply(image)
+
+Inputs:
+    - 2D or 3D float NumPy image arrays.
+
+Outputs:
+    - Enhanced uint8 NumPy image arrays.
+
+Relationships:
+    - Used by Patient (utils/Patient.py) to apply enhancements per slice.
+    - Enhancement names must match constants.ENHANCEMENTS.
 """
 
 from abc import ABC, abstractmethod
@@ -29,6 +44,9 @@ class Algorithm(ABC):
     Description:
         Abstract base class for 2D image enhancement techniques.
         Defines the common interface that all subclasses must implement.
+
+    Attributes:
+        None. Subclasses define their own algorithm-specific parameters.
     """
 
     @abstractmethod
@@ -56,6 +74,9 @@ class HE(Algorithm):
     Description:
         Implements Histogram Equalisation (HE), improving global contrast by
         redistributing pixel intensity uniformly across the histogram.
+
+    Attributes:
+        None. This algorithm has no configurable parameters.
     """
 
     def apply(self, image: np.ndarray) -> np.ndarray:
@@ -182,6 +203,9 @@ class LT(Algorithm):
     Description:
         Implements Logarithmic Transformation (LT), which enhances details in
         dark regions by compressing the dynamic intensity range.
+
+    Attributes:
+        None. This algorithm has no configurable parameters.
     """
 
     def apply(self, image: np.ndarray) -> np.ndarray:

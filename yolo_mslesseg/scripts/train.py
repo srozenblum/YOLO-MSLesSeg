@@ -26,33 +26,6 @@ Execution modes:
        - A pre-built Model instance is received, along with the remaining parameters.
        - The argument parser is not used.
 
-CLI Arguments:
-   --plane (str, required)
-        Anatomical plane of the model ('axial', 'coronal', 'sagittal').
-
-   --modality (list[str], optional)
-        MRI modality or modalities ('T1', 'T2', 'FLAIR'). Defaults to all.
-
-   --num_slices (int_or_percentile, required)
-        Number of slices to extract (integer value or percentile, e.g. 50 or 'P75').
-
-   --enhancement (str, optional)
-        Image enhancement algorithm ('HE', 'CLAHE', 'GC', 'LT'). Defaults to None.
-
-   --epochs (int, required)
-        Number of training epochs.
-
-   --k_folds (int, optional)
-        Number of folds for cross-validation. Defaults to 5.
-        If k_folds == 1, a single model is trained using train/ and test/.
-
-   --fold_test (int, optional)
-        Fold used as the test set (1, ..., k_folds).
-        Required only if k_folds > 1.
-
-   --clean (flag, optional)
-        Clean previous training results before starting a new run.
-
 CLI Usage:
     python -m yolo_mslesseg.scripts.train \
         --plane "sagittal" \

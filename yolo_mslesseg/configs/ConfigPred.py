@@ -1,3 +1,27 @@
+"""
+Module: ConfigPred
+
+Description:
+    Defines the ConfigPred class, which manages configuration and path
+    resolution for the prediction generation stage (generate_predictions.py).
+
+Usage:
+    from yolo_mslesseg.configs.ConfigPred import ConfigPred
+    config = ConfigPred(model=model, epochs=50, fold_test=1)
+
+Inputs:
+    None. Provides the ConfigPred class definition.
+
+Outputs:
+    None. Provides the ConfigPred class definition.
+
+Relationships:
+    - Used exclusively by generate_predictions.py.
+    - Subclasses ConfigBase.
+    - Depends on Model and Patient from utils/.
+    - Depends on constants.py for directory paths.
+"""
+
 from pathlib import Path
 
 from yolo_mslesseg.configs.ConfigBase import ConfigBase

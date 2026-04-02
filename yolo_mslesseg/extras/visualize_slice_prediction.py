@@ -8,39 +8,6 @@ Description:
     available slices, computes the DSC for each one, and visualizes only the
     slice with the best performance.
 
-CLI Arguments:
-    --patient_id (str, required)
-        ID of the patient to visualize.
-
-    --plane (str, required)
-        Anatomical extraction plane ('axial', 'coronal', 'sagittal').
-
-    --modality (list[str], optional)
-        MRI modality or modalities ('T1', 'T2', 'FLAIR').
-        Defaults to all.
-
-    --num_slices (int_or_percentile, required)
-        Number of extracted slices (integer value or percentile, e.g. 50 or 'P50').
-
-    --enhancement (str, optional)
-        Image enhancement algorithm applied ('HE', 'CLAHE', 'GC', 'LT', or None).
-        Defaults to None.
-
-    --epochs (int, required)
-        Number of epochs of the trained model.
-
-    --k_folds (int, optional)
-        Number of folds for cross-validation.
-        Defaults to 5.
-
-    --slice (int, optional)
-        Exact slice number to visualize.
-        If not specified, the script iterates over all patient slices
-        and automatically selects the one with maximum DSC.
-
-    --clean (flag, optional)
-        If a previous figure exists, deletes it before generating a new one.
-
 CLI Usage:
     python -m yolo_mslesseg.extras.visualize_slice_prediction \\
         --patient_id P14 \\

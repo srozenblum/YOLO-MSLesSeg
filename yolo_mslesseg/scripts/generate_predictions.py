@@ -20,38 +20,6 @@ Execution modes:
          along with the remaining parameters.
        - The argument parser is not used.
 
-CLI Arguments:
-    --plane (str, required)
-        Anatomical extraction plane ('axial', 'coronal', 'sagittal').
-
-    --modality (list[str], optional)
-        MRI modality or modalities ('T1', 'T2', 'FLAIR').
-        Defaults to all.
-
-    --num_slices (int_or_percentile, required)
-        Number of extracted slices (integer value or percentile, e.g. 50 or 'P75').
-
-    --enhancement (str, optional)
-        Image enhancement algorithm applied ('HE', 'CLAHE', 'GC', 'LT', or None).
-        Defaults to None.
-
-    --epochs (int, required)
-        Number of epochs of the trained model.
-
-    --k_folds (int, optional)
-        Number of folds for cross-validation.
-        Defaults to 5.
-
-    --fold_test (int, mutually exclusive with --patient_id)
-        Generate 2D predictions for all patients in the indicated fold,
-        used as the test set.
-
-    --patient_id (str, mutually exclusive with --fold_test)
-        Generate 2D predictions only for the specified patient.
-
-    --clean (flag, optional)
-        Clean the directory with binary 2D predictions before generating new ones.
-
 CLI Usage:
     python -m yolo_mslesseg.scripts.generate_predictions \
         --plane coronal \

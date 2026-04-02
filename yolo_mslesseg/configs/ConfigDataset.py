@@ -1,3 +1,26 @@
+"""
+Module: ConfigDataset
+
+Description:
+    Defines the ConfigDataset class, which manages configuration and path
+    resolution for the YOLO dataset extraction stage (extract_dataset.py).
+
+Usage:
+    from yolo_mslesseg.configs.ConfigDataset import ConfigDataset
+    config = ConfigDataset(model=model, patient=patient, full=True)
+
+Inputs:
+    None. Provides the ConfigDataset class definition.
+
+Outputs:
+    None. Provides the ConfigDataset class definition.
+
+Relationships:
+    - Used exclusively by extract_dataset.py.
+    - Depends on Model and Patient from utils/.
+    - Depends on constants.py for directory paths.
+"""
+
 from pathlib import Path
 
 from yolo_mslesseg.utils.logging_config import get_logger

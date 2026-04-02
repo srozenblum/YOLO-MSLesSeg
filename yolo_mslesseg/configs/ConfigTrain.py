@@ -1,3 +1,26 @@
+"""
+Module: ConfigTrain
+
+Description:
+    Defines the ConfigTrain class, which manages configuration and path
+    resolution for the YOLO model training stage (train.py).
+
+Usage:
+    from yolo_mslesseg.configs.ConfigTrain import ConfigTrain
+    config = ConfigTrain(model=model, epochs=50, fold_test=1)
+
+Inputs:
+    None. Provides the ConfigTrain class definition.
+
+Outputs:
+    None. Provides the ConfigTrain class definition.
+
+Relationships:
+    - Used exclusively by train.py.
+    - Depends on Model from utils/.
+    - Depends on constants.py for directory paths.
+"""
+
 from pathlib import Path
 
 from yolo_mslesseg.utils.logging_config import get_logger
@@ -48,14 +71,14 @@ class ConfigTrain:
         - k_folds == 1
             datasets/<base_path>/
                 ├── train/
-                │   └── <plane>/
-                │       └── PX/
+                │   └── PX/
+                │       └── <plane>/
                 │           ├── images/
                 │           ├── labels/
                 │           └── GT_masks/
                 └── test/
-                    └── <plane>/
-                        └── PX/
+                    └── PX/
+                        └── <plane>/
                             ├── images/
                             ├── labels/
                             └── GT_masks/

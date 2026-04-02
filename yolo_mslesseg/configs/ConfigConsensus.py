@@ -1,3 +1,27 @@
+"""
+Module: ConfigConsensus
+
+Description:
+    Defines the ConfigConsensus class, which manages configuration and path
+    resolution for the consensus generation stage (generate_consensus.py).
+
+Usage:
+    from yolo_mslesseg.configs.ConfigConsensus import ConfigConsensus
+    config = ConfigConsensus(model=model, epochs=50, fold_test=1)
+
+Inputs:
+    None. Provides the ConfigConsensus class definition.
+
+Outputs:
+    None. Provides the ConfigConsensus class definition.
+
+Relationships:
+    - Used exclusively by generate_consensus.py.
+    - Subclasses ConfigBase.
+    - Depends on Model and Patient from utils/.
+    - Depends on constants.py for directory paths.
+"""
+
 from yolo_mslesseg.configs.ConfigBase import ConfigBase
 from yolo_mslesseg.utils.logging_config import get_logger
 from yolo_mslesseg.utils.Model import Model
