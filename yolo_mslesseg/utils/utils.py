@@ -781,7 +781,6 @@ def AUC(y_true: np.ndarray, y_pred: np.ndarray) -> float:
         AUC score rounded to 3 decimal places, or NaN if undefined.
     """
     try:
-        # Flatten arrays
         y_true = y_true.flatten()
         y_pred = y_pred.flatten()
         if len(np.unique(y_true)) < 2:

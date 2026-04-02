@@ -61,7 +61,7 @@ def extract_plane_from_json(json_path: Path) -> str | None:
     stem = json_path.stem  # e.g. "P1_axial_results"
 
     # Skip consensus
-    if "consenso" in stem:
+    if "consensus" in stem:
         return None
 
     for plane in ANATOMICAL_PLANES:

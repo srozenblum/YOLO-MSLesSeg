@@ -92,13 +92,11 @@ class HE(Algorithm):
         # Convert the image to BGR if it is RGB or greyscale
         img_bgr = convert_to_bgr(image)
 
-        # Convert from BGR to YUV
         img_yuv = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2YUV)
 
         # Equalise the Y (luminance) channel
         img_yuv[:, :, 0] = cv2.equalizeHist(img_yuv[:, :, 0])
 
-        # Convert back to RGB
         img_rgb = cv2.cvtColor(img_yuv, cv2.COLOR_YUV2RGB)
 
         return img_rgb
@@ -135,13 +133,9 @@ class CLAHE(Algorithm):
         # Convert the image to BGR if it is RGB or greyscale
         img_bgr = convert_to_bgr(image)
 
-        # Convert from BGR to LAB
         lab = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2LAB)
-
-        # Split the L, A, B channels
         l, a, b = cv2.split(lab)
 
-        # Create the CLAHE object
         clahe = cv2.createCLAHE(
             clipLimit=self.clip_limit, tileGridSize=self.tile_grid_size
         )
@@ -149,10 +143,7 @@ class CLAHE(Algorithm):
         # Apply CLAHE only to the L (luminance) channel
         l_clahe = clahe.apply(l)
 
-        # Merge the modified L channel back with A and B
         img_merge = cv2.merge((l_clahe, a, b))
-
-        # Convert from LAB back to BGR
         image = cv2.cvtColor(img_merge, cv2.COLOR_LAB2BGR)
 
         return image
@@ -190,7 +181,6 @@ class GC(Algorithm):
         # Build the gamma correction lookup table
         table = np.array((np.linspace(0, 1, 256) ** self.gamma) * 255, dtype=np.uint8)
 
-        # Apply the lookup table to the image
         img_rgb = cv2.LUT(img_bgr, table)
 
         return img_rgb
@@ -227,7 +217,6 @@ class LT(Algorithm):
         # Compute the scaling constant c
         c = 255 / np.log(1 + img_bgr.max())
 
-        # Apply the logarithmic transformation
         img_log = c * np.log(1 + img_bgr)
 
         # Clip and convert the result to uint8 for compatibility with OpenCV
