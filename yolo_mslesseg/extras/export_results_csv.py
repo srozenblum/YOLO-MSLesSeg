@@ -15,11 +15,11 @@ Description:
     all planes and all enhancement algorithms available for that configuration.
 
 CLI Usage:
-    python -m yolo_mslesseg.extras.export_results_csv \\
-        --plane axial \\
-        --modality FLAIR \\
-        --num_slices P50 \\
-        --epochs 50 \\
+    python -m yolo_mslesseg.extras.export_results_csv \
+        --plane axial \
+        --modality FLAIR \
+        --num_slices P50 \
+        --epochs 50 \
         --k_folds 5
 
 Inputs:

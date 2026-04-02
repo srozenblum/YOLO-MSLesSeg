@@ -9,13 +9,13 @@ Description:
     slice with the best performance.
 
 CLI Usage:
-    python -m yolo_mslesseg.extras.visualize_slice_prediction \\
-        --patient_id P14 \\
-        --plane sagittal \\
-        --modality FLAIR \\
-        --num_slices P50 \\
-        --enhancement HE \\
-        --epochs 50 \\
+    python -m yolo_mslesseg.extras.visualize_slice_prediction \
+        --patient_id P14 \
+        --plane sagittal \
+        --modality FLAIR \
+        --num_slices P50 \
+        --enhancement HE \
+        --epochs 50 \
         --k_folds 5
 
 Inputs:

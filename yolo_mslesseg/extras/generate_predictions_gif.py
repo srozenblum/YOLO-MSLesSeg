@@ -6,13 +6,13 @@ Description:
     and overlays the prediction mask (red) and the ground truth mask (green).
 
 CLI Usage:
-    python -m yolo_mslesseg.extras.generate_predictions_gif \\
-        --patient_id P14 \\
-        --plane sagittal \\
-        --modality FLAIR \\
-        --num_slices P50 \\
-        --enhancement HE \\
-        --epochs 50 \\
+    python -m yolo_mslesseg.extras.generate_predictions_gif \
+        --patient_id P14 \
+        --plane sagittal \
+        --modality FLAIR \
+        --num_slices P50 \
+        --enhancement HE \
+        --epochs 50 \
         --k_folds 5
 
 Inputs:
