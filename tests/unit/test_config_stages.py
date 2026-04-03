@@ -104,3 +104,60 @@ class TestConfigConsensusPaths:
     def test_cv_no_patient_no_fold_test_raises(self, model_cv):
         with pytest.raises(ValueError):
             ConfigConsensus(model=model_cv, epochs=50)
+
+
+# ---------------------------------------------------------------------------
+# ConfigBase — __repr__
+# ---------------------------------------------------------------------------
+
+class TestConfigBaseRepr:
+    def test_single_repr_contains_group_label(self, model_single):
+        cfg = ConfigPred(model=model_single, epochs=50)
+        assert "group=test" in repr(cfg)
+
+
+# ---------------------------------------------------------------------------
+# ConfigPred — clean / verify_paths (k_folds == 1, fold-level)
+# ---------------------------------------------------------------------------
+
+class TestConfigPredSingleFoldBehaviour:
+    def test_clean_no_error_when_dirs_absent(self, model_single):
+        cfg = ConfigPred(model=model_single, epochs=50)
+        cfg.clean()  # dataset_fold_dir does not exist → silent no-op
+
+    def test_verify_paths_raises_file_not_found_no_weights(self, model_single):
+        # epochs=9999 guarantees no trained weights exist at that path
+        cfg = ConfigPred(model=model_single, epochs=9999)
+        with pytest.raises(FileNotFoundError):
+            cfg.verify_paths()
+
+
+# ---------------------------------------------------------------------------
+# ConfigReconstruction — clean (k_folds == 1, fold-level)
+# ---------------------------------------------------------------------------
+
+class TestConfigReconstructionSingleFoldBehaviour:
+    def test_clean_no_error_when_dirs_absent(self, model_single):
+        cfg = ConfigReconstruction(model=model_single, epochs=50)
+        cfg.clean()  # pred_vols_fold_dir does not exist → silent no-op
+
+
+# ---------------------------------------------------------------------------
+# ConfigConsensus — clean (k_folds == 1, fold-level)
+# ---------------------------------------------------------------------------
+
+class TestConfigConsensusSingleFoldBehaviour:
+    def test_clean_no_error_when_dirs_absent(self, model_single):
+        cfg = ConfigConsensus(model=model_single, epochs=50)
+        cfg.clean()  # pred_vols_fold_dir does not exist → silent no-op
+
+
+# ---------------------------------------------------------------------------
+# ConfigEval — clean (k_folds == 1, fold-level)
+# ---------------------------------------------------------------------------
+
+class TestConfigEvalSingleFoldBehaviour:
+    def test_clean_no_error_when_dirs_absent(self, model_single):
+        from yolo_mslesseg.configs.ConfigEval import ConfigEval
+        cfg = ConfigEval(model=model_single, epochs=50)
+        cfg.clean()  # results dirs do not exist → silent no-op

@@ -9,6 +9,10 @@ Focuses on:
 import pytest
 
 from yolo_mslesseg.utils.Model import Model
+from yolo_mslesseg.utils.Patient import Patient
+from yolo_mslesseg.configs.ConfigPred import ConfigPred
+from yolo_mslesseg.configs.ConfigReconstruction import ConfigReconstruction
+from yolo_mslesseg.configs.ConfigConsensus import ConfigConsensus
 from yolo_mslesseg.configs.ConfigEval import ConfigEval
 from yolo_mslesseg.utils.constants import (
     EXT_JSON,
@@ -31,6 +35,18 @@ def model_cv():
 def model_single():
     """Model with k_folds=1 (fixed train/test split mode)."""
     return Model(plane="axial", num_slices=50, modality=["FLAIR"], k_folds=1, enhancement="GC")
+
+
+@pytest.fixture(scope="module")
+def patient_train():
+    """P1 — belongs to the train split."""
+    return Patient(id="P1", plane="axial", modality=["FLAIR"])
+
+
+@pytest.fixture(scope="module")
+def patient_test():
+    """P54 — belongs to the test split."""
+    return Patient(id="P54", plane="axial", modality=["FLAIR"])
 
 
 # ---------------------------------------------------------------------------
@@ -110,3 +126,66 @@ class TestConfigBaseFoldSubdir:
     def test_fold_subdir_cv_fold5(self, model_cv):
         cfg = ConfigEval(model=model_cv, epochs=50, fold_test=5)
         assert cfg.fold_subdir == "fold5"
+
+
+# ---------------------------------------------------------------------------
+# ConfigPred — k_folds == 1, individual patient
+# ---------------------------------------------------------------------------
+
+class TestConfigPredSinglePatient:
+    def test_test_patient_sets_group_and_patient_dir(self, model_single, patient_test):
+        cfg = ConfigPred(model=model_single, epochs=50, patient=patient_test)
+        assert cfg.group == "test"
+        assert "images" in cfg.patient_dir
+        assert "pred_masks" in cfg.patient_dir
+
+    def test_train_patient_raises(self, model_single, patient_train):
+        with pytest.raises(ValueError):
+            ConfigPred(model=model_single, epochs=50, patient=patient_train)
+
+
+# ---------------------------------------------------------------------------
+# ConfigReconstruction — k_folds == 1, individual patient
+# ---------------------------------------------------------------------------
+
+class TestConfigReconstructionSinglePatient:
+    def test_test_patient_gt_dir_is_test_and_paths_set(self, model_single, patient_test):
+        cfg = ConfigReconstruction(model=model_single, epochs=50, patient=patient_test)
+        assert cfg.gt_dir.name == "test"
+        assert "pred_masks" in str(cfg.patient_pred_masks)
+        assert cfg.patient_pred_vol.suffix == ".gz"
+
+    def test_train_patient_raises(self, model_single, patient_train):
+        with pytest.raises(ValueError):
+            ConfigReconstruction(model=model_single, epochs=50, patient=patient_train)
+
+
+# ---------------------------------------------------------------------------
+# ConfigConsensus — k_folds == 1, individual patient
+# ---------------------------------------------------------------------------
+
+class TestConfigConsensusSinglePatient:
+    def test_test_patient_group_is_test_and_pred_vols_set(self, model_single, patient_test):
+        cfg = ConfigConsensus(model=model_single, epochs=50, patient=patient_test)
+        assert cfg.group == "test"
+        assert cfg.fold_test is None
+        assert "axial" in cfg.patient_pred_vols
+
+    def test_train_patient_raises(self, model_single, patient_train):
+        with pytest.raises(ValueError):
+            ConfigConsensus(model=model_single, epochs=50, patient=patient_train)
+
+
+# ---------------------------------------------------------------------------
+# ConfigEval — k_folds == 1, individual patient
+# ---------------------------------------------------------------------------
+
+class TestConfigEvalSinglePatient:
+    def test_train_patient_raises(self, model_single, patient_train):
+        with pytest.raises(ValueError):
+            ConfigEval(model=model_single, epochs=50, patient=patient_train)
+
+    def test_test_patient_sets_patient_paths(self, model_single, patient_test):
+        cfg = ConfigEval(model=model_single, epochs=50, patient=patient_test)
+        assert patient_test.id in cfg.patient_results_json.name
+        assert cfg.patient_pred_vol.suffix == ".gz"
