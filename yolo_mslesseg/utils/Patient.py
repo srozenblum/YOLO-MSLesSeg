@@ -402,7 +402,10 @@ class Patient:
         """
         channels = []
         for m in self.modality:
-            img_slice = self.get_image_slice(i, m).T  # transpose to match image axes
+            img_slice = self.get_image_slice(i, m)
+            if img_slice.ndim == 3:
+                img_slice = img_slice[:, :, 0]  # extract grayscale from BGR (channels identical)
+            img_slice = img_slice.T  # transpose to match image axes
             channels.append(normalize_to_uint8(img_slice))
 
         # Pad to exactly 3 channels by repeating the last one
