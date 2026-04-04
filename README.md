@@ -46,9 +46,9 @@ The following example corresponds to a reference patient (P1) and shows the over
 on the FLAIR image in the axial, coronal, and sagittal planes.
 
 <p align="center">
-  <img src="visualizations/LT/FLAIR_P50slices_5folds_50epochs/fold1/P1/axial/P1_FLAIR_103.png" height="270">
-  <img src="visualizations/LT/FLAIR_P50slices_5folds_50epochs/fold1/P1/coronal/P1_FLAIR_73.png" height="270">
-  <img src="visualizations/LT/FLAIR_P50slices_5folds_50epochs/fold1/P1/sagittal/P1_FLAIR_119.png" height="270">
+  <img src="docs/images/P1_FLAIR_103.png" height="270">
+  <img src="docs/images/P1_FLAIR_73.png" height="270">
+  <img src="docs/images/P1_FLAIR_119.png" height="270">
 </p>
 
 ### Complete patient sequence
@@ -57,7 +57,7 @@ The following animation shows the segmentation generated for another reference p
 of the volume in the axial plane.
 
 <p align="center">
-  <img src="visualizations/GC/FLAIR_P50slices_5folds_50epochs/fold4/P42/axial/P42_FLAIR.gif" width="350">
+  <img src="docs/images/P42_FLAIR.gif" width="350">
 </p>
 
 
@@ -254,13 +254,17 @@ and carrying out experiments for different configurations:
 | `--modality`            | No       | All        | MRI image modality or modalities: `T1`, `T2`, `FLAIR`                                                                |
 | `--num_slices`          | ✅ Yes    | —          | Number of slices (integer or `PXX` for percentile)                                                                   |
 | `--enhancement`         | No       | `None`     | Image enhancement algorithm: `HE`, `CLAHE`, `GC`, `LT`                                                               |
+| `--gamma`               | No       | `2.0`      | Gamma correction factor. Only applies when `--enhancement GC`                                                         |
 | `--k_folds`             | No       | `5`        | Number of folds. If `k_folds > 1`, uses cross-validation by folds; if `k_folds == 1`, uses a fixed train/test split. |
 | `--epochs`              | ✅ Yes    | —          | Number of training epochs                                                                                            |
 | `--consensus_threshold` | No       | `2`        | Voting threshold: `2` (majority) or `3` (unanimity)                                                                  |
-| `--full`                | ✅ Yes    | —          | Process all patients                                                                                                 |
-| `--patient_id`          | ✅ Yes    | —          | Process only the specified patient (e.g. `P1`)                                                                       |
+| `--full`                | ✅ One required | —     | Process all patients                                                                                                 |
+| `--patient_id`          | ✅ One required | —     | Process only the specified patient (e.g. `P1`)                                                                       |
 | `--train`               | No       | Not active | Include the training stage                                                                                           |
 | `--clean`               | No       | Not active | Clean all previous results                                                                                           |
+
+> [!NOTE]
+> `--gamma` is only effective when `--enhancement` is set to `GC`. It is silently ignored for all other enhancement algorithms.
 
 > [!NOTE]
 > When more than one modality is specified (e.g. `--modality T1 FLAIR`), their slices are fused into a
@@ -306,7 +310,7 @@ python -m yolo_mslesseg.scripts.reconstruct_volume --help
 
 The pipeline is evaluated on the MSLesSeg dataset using two complementary evaluation schemes and standard
 biomedical segmentation metrics. The full experimental design is documented in
-[`docs/metodologia_experimental.md`](docs/metodologia_experimental.md).
+[`docs/experimental_methodology.md`](docs/experimental_methodology.md).
 
 ---
 
@@ -332,8 +336,11 @@ publication.
 
 ```bibtex
 @article{rozenblum2026yolomslesseg,
-    author = {Rozenblum, Sebastián},
-    title = {YOLO-MSLesSeg: Automatic Multiple Sclerosis Lesion Segmentation with YOLO11-seg},
+    author = {Jiménez-Partinen, Ariadna and Rozenblum, Sebastián and
+              Pascual-González, Mario and Ordóñez-Walkowiak, María Paulina and
+              Guirado-Osorio, Víctor and Molina-Cabello, Miguel A.},
+    title = {YOLO-MSLesSeg: Automated Multiple Sclerosis Lesion Segmentation
+             in MRI with Image Enhancement Techniques},
     journal = {},
     year = {2026},
     doi = {}
