@@ -23,7 +23,6 @@ the variability associated with manual segmentation.
 - [Environment setup](#-environment-setup)
 - [Running the pipeline](#-running-the-pipeline)
 - [Stage-by-stage execution](#-stage-by-stage-execution)
-- [Project demo](#-project-demo)
 - [Experimental design](#-experimental-design)
 - [References](#-references)
 - [License](#-license)
@@ -134,7 +133,7 @@ The repository is organised as follows:
 │
 ├── 📁 GT/                                      # Ground truth volumes (*️⃣)
 │
-├── 📁 visualizations/                         # GIFs and figures of 2D predictions
+├── 📁 visualizations/                         # GIFs and figures of 2D predictions (*️⃣)
 │
 ├── requirements.txt
 └── README.md
