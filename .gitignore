@@ -92,6 +92,7 @@ __pycache__/
 #    MIGRATION SCRIPTS
 # ========================
 extras/migrate_sagital_dirs.py
+extras/migrate_gc_dirs.py
 
 # ========================
 #    DEMO
