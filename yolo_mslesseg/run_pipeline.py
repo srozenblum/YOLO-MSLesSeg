@@ -574,15 +574,24 @@ def run_pipeline(
     - Patient mode → executes the workflow for a single patient across all stages.
     - Full mode    → executes the workflow for all folds in the dataset across all stages.
     """
+    if model.enhancement == "GC":
+        enhancement_str = f"GC (γ={model.gamma})"
+    elif model.enhancement:
+        enhancement_str = model.enhancement
+    else:
+        enhancement_str = "None"
+
     if patient is not None:
         logger.header(
-            f"\n🚀 Starting individual pipeline for {patient.id} "
-            f"(model = {model.model_string}, epochs = {epochs})"
+            f"\n🚀 Starting individual pipeline · Patient: {patient.id}\n"
+            f"   Plane: {model.plane} · Modality: {model.modality_str} · Enhancement: {enhancement_str}\n"
+            f"   Slices: {model.num_slices} · Folds: {model.k_folds} · Epochs: {epochs}"
         )
     else:
         logger.header(
-            f"\n🚀 Starting full pipeline "
-            f"(model = {model.model_string}, epochs = {epochs})"
+            f"\n🚀 Starting full pipeline\n"
+            f"   Plane: {model.plane} · Modality: {model.modality_str} · Enhancement: {enhancement_str}\n"
+            f"   Slices: {model.num_slices} · Folds: {model.k_folds} · Epochs: {epochs}"
         )
 
     if clean:
