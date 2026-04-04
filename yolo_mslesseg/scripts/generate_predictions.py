@@ -504,9 +504,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--k_folds",
         type=int,
-        default=5,
+        default=1,
         metavar="<k_folds>",
-        help="Number of folds for cross-validation. Defaults to 5.",
+        help="Number of folds for cross-validation. Defaults to 1.",
     )
 
     group = parser.add_mutually_exclusive_group(required=False)

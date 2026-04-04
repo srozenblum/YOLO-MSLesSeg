@@ -582,9 +582,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--k_folds",
         type=int,
-        default=5,
+        default=1,
         metavar="<k_folds>",
-        help="Number of folds for cross-validation. Defaults to 5. If k_folds == 1, a single model is trained.",
+        help="Number of folds for cross-validation. Defaults to 1. If k_folds == 1, a single model is trained.",
     )
     parser.add_argument(
         "--fold_test",

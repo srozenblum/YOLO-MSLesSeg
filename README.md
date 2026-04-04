@@ -254,7 +254,7 @@ and carrying out experiments for different configurations:
 | `--num_slices`          | ✅ Yes    | —          | Number of slices (integer or `PXX` for percentile)                                                                   |
 | `--enhancement`         | No       | `None`     | Image enhancement algorithm: `HE`, `CLAHE`, `GC`, `LT`                                                               |
 | `--gamma`               | No       | `2.0`      | Gamma correction factor. Only applies when `--enhancement GC`                                                         |
-| `--k_folds`             | No       | `5`        | Number of folds. If `k_folds > 1`, uses cross-validation by folds; if `k_folds == 1`, uses a fixed train/test split. |
+| `--k_folds`             | No       | `1`        | Number of folds. If `k_folds > 1`, uses cross-validation by folds; if `k_folds == 1`, uses a fixed train/test split. |
 | `--epochs`              | ✅ Yes    | —          | Number of training epochs                                                                                            |
 | `--consensus_threshold` | No       | `2`        | Voting threshold: `2` (majority) or `3` (unanimity)                                                                  |
 | `--full`                | ✅ One required | —     | Process all patients                                                                                                 |
