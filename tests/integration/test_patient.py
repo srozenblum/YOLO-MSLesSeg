@@ -271,3 +271,28 @@ def test_lesion_slice_indices_nonempty(patient_train):
 def test_lesion_slice_indices_sorted(patient_train):
     indices = patient_train.lesion_slice_indices()
     assert indices == sorted(indices)
+
+
+# ---------------------------------------------------------------------------
+# apply_enhancement — gamma routing
+# ---------------------------------------------------------------------------
+
+
+def test_apply_enhancement_gc_custom_gamma_returns_uint8():
+    p = Patient(id="P1", plane="axial", modality=["FLAIR"], enhancement="GC", gamma=1.5)
+    vol = p.load_volume("FLAIR")
+    mid = vol.shape[2] // 2
+    raw_slice = vol[:, :, mid]
+    result = p.apply_enhancement(raw_slice)
+    assert result.dtype == np.uint8
+    assert result.shape[:2] == raw_slice.shape[:2]
+
+
+def test_apply_enhancement_non_gc_ignores_gamma():
+    p = Patient(id="P1", plane="axial", modality=["FLAIR"], enhancement="HE", gamma=1.5)
+    vol = p.load_volume("FLAIR")
+    mid = vol.shape[2] // 2
+    raw_slice = vol[:, :, mid]
+    result = p.apply_enhancement(raw_slice)
+    assert result.dtype == np.uint8
+    assert result.shape[:2] == raw_slice.shape[:2]

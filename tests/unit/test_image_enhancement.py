@@ -152,3 +152,16 @@ class TestGetAlgorithm:
     def test_invalid_name_raises_value_error(self):
         with pytest.raises(ValueError):
             get_algorithm("UNKNOWN")
+
+    def test_gc_default_gamma_is_two(self):
+        algo = get_algorithm("GC")
+        assert algo.gamma == 2.0
+
+    def test_gc_custom_gamma_is_forwarded(self):
+        algo = get_algorithm("GC", gamma=1.5)
+        assert isinstance(algo, GC)
+        assert algo.gamma == 1.5
+
+    def test_non_gc_algorithm_ignores_gamma_kwarg(self):
+        algo = get_algorithm("HE", gamma=1.5)
+        assert isinstance(algo, HE)

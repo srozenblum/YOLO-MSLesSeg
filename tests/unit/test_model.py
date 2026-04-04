@@ -136,3 +136,38 @@ def test_model_string_with_enhancement():
 def test_repr():
     m = Model(plane="axial", num_slices=50, modality=["FLAIR"], k_folds=5)
     assert "Model(" in repr(m)
+
+
+# ---------------------------------------------------------------------------
+# Gamma parameter
+# ---------------------------------------------------------------------------
+
+
+def test_invalid_gamma_zero():
+    with pytest.raises(ValueError, match="gamma"):
+        Model(plane="axial", num_slices=50, modality=["T1"], k_folds=1, enhancement="GC", gamma=0)
+
+
+def test_invalid_gamma_negative():
+    with pytest.raises(ValueError, match="gamma"):
+        Model(plane="axial", num_slices=50, modality=["T1"], k_folds=1, enhancement="GC", gamma=-1.0)
+
+
+def test_exp_string_gc_custom_gamma():
+    m = Model(plane="axial", num_slices=50, modality=["FLAIR"], k_folds=1, enhancement="GC", gamma=1.5)
+    assert m.exp_string == "GC/g1.5"
+
+
+def test_model_string_gc_custom_gamma():
+    m = Model(plane="axial", num_slices=50, modality=["FLAIR"], k_folds=1, enhancement="GC", gamma=1.5)
+    assert m.model_string == "axial_FLAIR_GC_g1.5_50slices_1fold"
+
+
+def test_base_path_gc_custom_gamma():
+    m = Model(plane="axial", num_slices=50, modality=["FLAIR"], k_folds=1, enhancement="GC", gamma=1.5)
+    assert m.base_path == Path("GC/g1.5") / "FLAIR_50slices_1fold"
+
+
+def test_non_gc_enhancement_with_custom_gamma_is_valid():
+    m = Model(plane="axial", num_slices=50, modality=["T1"], k_folds=1, enhancement="HE", gamma=1.5)
+    assert m.gamma == 1.5
