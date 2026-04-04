@@ -254,25 +254,35 @@ class ConfigEval(ConfigBase):
         self.pred_vols_base_dir = (
             PRED_VOLS_DIR / f"{self.model.base_path}_{self.epochs}epochs"
         )
-        self.pred_vols_fold_dir = self.pred_vols_base_dir / self.fold_subdir
+        self.pred_vols_fold_dir = (
+            self.pred_vols_base_dir / self.fold_subdir
+            if self.single_fold or self.fold_test is not None
+            else None
+        )
 
     def _resolve_results_paths(self) -> None:
         """Resolves the base, fold-specific, and global results directories and JSON paths."""
         self.results_base_dir = (
             RESULTS_DIR / f"{self.model.base_path}_{self.epochs}epochs"
         )
-        self.results_fold_dir = self.results_base_dir / self.fold_subdir
+        self.results_fold_dir = (
+            self.results_base_dir / self.fold_subdir
+            if self.single_fold or self.fold_test is not None
+            else None
+        )
 
         # Fold metrics JSON
         if self.single_fold:
             self.results_fold_json = (
                 self.results_base_dir / f"{RESULTS_GLOBAL_PREFIX}{self.plane}{RESULTS_SUFFIX}{EXT_JSON}"
             )
-        else:
+        elif self.fold_test is not None:
             self.results_fold_json = (
                 self.results_fold_dir
                 / f"fold{self.fold_test}_{self.plane}{RESULTS_SUFFIX}{EXT_JSON}"
             )
+        else:
+            self.results_fold_json = None
 
         # Global experiment metrics JSON (fold average)
         self.results_experiment_json = (
