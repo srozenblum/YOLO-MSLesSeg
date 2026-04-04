@@ -124,18 +124,6 @@ def verify_consensus_folds(model: Model, epochs: int, k_folds: int) -> tuple[lis
 # ======================================
 
 
-def run_setup(clean: bool) -> None:
-    """Downloads the official dataset and prepares the directory structure.
-
-    Args:
-        clean: If True, deletes the existing GT/ directory before running.
-    """
-    logger.header(
-        f"\n📦 Downloading MSLesSeg dataset and preparing directory structure"
-    )
-    run_setup_pipeline(clean=clean)
-
-
 def run_dataset(model: Model, patient: Patient | None, k_folds: int, clean: bool) -> None:
     """Executes the dataset generation stage.
 
@@ -598,29 +586,26 @@ def run_pipeline(
         logger.info("\n♻️ Cleaning previous run.")
 
     # --- STAGE 0 ---
-    run_setup(clean)
-
-    # --- STAGE 1 ---
     run_dataset(model, patient, k_folds, clean)
 
-    # --- STAGE 2 ---
+    # --- STAGE 1 ---
     run_train(model, epochs, k_folds, train_flag, clean)
 
-    # --- STAGE 3 ---
+    # --- STAGE 2 ---
     run_predictions(model, epochs, k_folds, patient, clean)
 
-    # --- STAGE 4 ---
+    # --- STAGE 3 ---
     run_reconstructions(model, epochs, k_folds, patient, clean)
 
-    # --- STAGE 5 ---
+    # --- STAGE 4 ---
     run_eval(model, epochs, k_folds, patient, clean)
 
-    # --- STAGE 6 ---
+    # --- STAGE 5 ---
     consensus_generated = run_consensus(
         model, epochs, k_folds, patient, consensus_threshold, clean
     )
 
-    # --- STAGE 7 ---
+    # --- STAGE 6 ---
     if full:
         run_average_folds(model, epochs, k_folds, consensus_generated, clean)
 
