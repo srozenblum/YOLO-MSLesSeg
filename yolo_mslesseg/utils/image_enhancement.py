@@ -237,11 +237,16 @@ _REGISTRY: dict[str, type[Algorithm]] = {
 }
 
 
-def get_algorithm(name: str) -> Algorithm:
+def get_algorithm(name: str, **kwargs) -> Algorithm:
     """Returns a new instance of the enhancement algorithm identified by name.
+
+    For the 'GC' algorithm, keyword arguments are forwarded to the constructor
+    (e.g. ``get_algorithm("GC", gamma=1.5)`` returns ``GC(gamma=1.5)``).
+    For all other algorithms, keyword arguments are silently ignored.
 
     Args:
         name: Algorithm key as stored in constants.ENHANCEMENTS ('HE', 'CLAHE', 'GC', 'LT').
+        **kwargs: Optional keyword arguments forwarded to the GC constructor.
 
     Returns:
         New instance of the requested Algorithm subclass.
@@ -255,4 +260,6 @@ def get_algorithm(name: str) -> Algorithm:
             f"Unknown enhancement algorithm: '{name}'. "
             f"Valid options: {list(_REGISTRY)}"
         )
+    if name == "GC":
+        return cls(**kwargs)
     return cls()

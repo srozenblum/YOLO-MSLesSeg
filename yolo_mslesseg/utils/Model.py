@@ -58,6 +58,10 @@ class Model:
             Enhancement algorithm applied. Must be one of the values defined
             in constants.ENHANCEMENTS ('HE', 'CLAHE', 'GC', 'LT'), or None.
             Defaults to None.
+
+        gamma (float):
+            Gamma correction factor used when enhancement is 'GC'. Must be
+            positive. Defaults to 2.0. Ignored when enhancement is not 'GC'.
     """
 
     def __init__(
@@ -67,6 +71,7 @@ class Model:
         modality: list[str],
         k_folds: int,
         enhancement: str | None = None,
+        gamma: float = 2.0,
     ) -> None:
         """Initialises a Model instance with the given experimental configuration.
 
@@ -76,12 +81,14 @@ class Model:
             modality: List of MRI modalities to include (e.g. ['T1', 'FLAIR']).
             k_folds: Number of cross-validation folds (1 for fixed split).
             enhancement: Image enhancement algorithm name, or None for no enhancement.
+            gamma: Gamma correction factor used when enhancement is 'GC'. Must be
+                positive. Defaults to 2.0.
 
         Raises:
-            ValueError: If plane, num_slices, or enhancement values are invalid.
+            ValueError: If plane, num_slices, enhancement, or gamma values are invalid.
         """
         # --- Argument validation ---
-        self._validate_args(plane, num_slices, enhancement)
+        self._validate_args(plane, num_slices, enhancement, gamma)
 
         # --- Core attributes ---
         self._set_core_attributes(
@@ -90,19 +97,27 @@ class Model:
             modality,
             k_folds,
             enhancement,
+            gamma,
         )
 
     # ======================================
     #        CONSTRUCTOR HELPERS
     # ======================================
 
-    def _validate_args(self, plane: str, num_slices: int | str, enhancement: str | None) -> None:
+    def _validate_args(
+        self,
+        plane: str,
+        num_slices: int | str,
+        enhancement: str | None,
+        gamma: float,
+    ) -> None:
         """Validates the constructor arguments before setting any attributes.
 
         Args:
             plane: Anatomical plane string to validate.
             num_slices: Slice count to validate (must be a positive integer if numeric).
             enhancement: Enhancement algorithm name to validate, or None.
+            gamma: Gamma correction factor to validate (must be positive).
 
         Raises:
             ValueError: If any argument is outside the set of accepted values.
@@ -115,6 +130,8 @@ class Model:
             raise ValueError(
                 f"Invalid enhancement '{enhancement}'. Must be one of {ENHANCEMENTS} or None."
             )
+        if gamma <= 0:
+            raise ValueError(f"gamma must be a positive number, got {gamma}.")
 
     def _set_core_attributes(
         self,
@@ -123,6 +140,7 @@ class Model:
         modality: list[str],
         k_folds: int,
         enhancement: str | None,
+        gamma: float,
     ) -> None:
         """Sets the core attributes of the model after validation.
 
@@ -132,12 +150,14 @@ class Model:
             modality: List of MRI modality strings.
             k_folds: Number of cross-validation folds.
             enhancement: Enhancement algorithm name (stored in uppercase), or None.
+            gamma: Gamma correction factor (used only when enhancement is 'GC').
         """
         self.plane = plane.lower()
         self.num_slices = num_slices
         self.modality = modality
         self.k_folds = k_folds
         self.enhancement = enhancement.upper() if enhancement else None
+        self.gamma = gamma
 
     # ======================================
     #           IDENTIFIERS
@@ -154,11 +174,14 @@ class Model:
 
     @property
     def exp_string(self) -> str:
-        """Short experiment name ('Base' or enhancement type).
+        """Short experiment name ('Base', enhancement type, or 'GC/g<gamma>' for GC).
 
         Returns:
-            Enhancement algorithm name if set, otherwise 'Base'.
+            'GC/g<gamma>' when enhancement is 'GC', enhancement algorithm name
+            for other enhancements, or 'Base' when no enhancement is set.
         """
+        if self.enhancement == "GC":
+            return f"GC/g{self.gamma}"
         return self.enhancement if self.enhancement else "Base"
 
     @property
@@ -188,14 +211,19 @@ class Model:
     def model_string(self) -> str:
         """Unique, human-readable model identifier based on plane, modality, and slice count.
 
+        When enhancement is 'GC', the gamma value is included in the identifier
+        (e.g. 'axial_FLAIR_GC_g2.0_P50slices_5folds').
+
         Returns:
             Canonical model identifier string including plane, modalities, enhancement
-            (if any), slice count, and fold scheme.
+            and gamma (if GC), slice count, and fold scheme.
         """
-        if not self.enhancement:
-            return f"{self.plane}_{self.modality_str}_{self.num_slices}slices_{self.folds_string}"
-        else:
+        if self.enhancement == "GC":
+            return f"{self.plane}_{self.modality_str}_GC_g{self.gamma}_{self.num_slices}slices_{self.folds_string}"
+        elif self.enhancement:
             return f"{self.plane}_{self.modality_str}_{self.enhancement}_{self.num_slices}slices_{self.folds_string}"
+        else:
+            return f"{self.plane}_{self.modality_str}_{self.num_slices}slices_{self.folds_string}"
 
     # ======================================
     #           REPRESENTATION

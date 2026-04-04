@@ -357,17 +357,21 @@ class Patient:
     #             PROCESSING
     # ======================================
 
-    def apply_enhancement(self, image: np.ndarray) -> np.ndarray:
+    def apply_enhancement(self, image: np.ndarray, gamma: float = 2.0) -> np.ndarray:
         """Applies the configured enhancement algorithm to an image slice.
 
         Args:
             image: 2D image array to enhance.
+            gamma: Gamma correction factor forwarded to the GC algorithm.
+                Only used when enhancement is 'GC'. Defaults to 2.0.
 
         Returns:
             Enhanced image array, or the original image if no enhancement is set.
         """
         if self.enhancement is None:
             return image
+        if self.enhancement == "GC":
+            return get_algorithm(self.enhancement, gamma=gamma).apply(image)
         return get_algorithm(self.enhancement).apply(image)
 
     # ======================================

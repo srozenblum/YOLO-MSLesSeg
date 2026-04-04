@@ -111,14 +111,14 @@ def test_base_path_with_enhancement():
     m = Model(
         plane="axial", num_slices=50, modality=["FLAIR"], k_folds=5, enhancement="GC"
     )
-    assert m.base_path == Path("GC") / "FLAIR_50slices_5folds"
+    assert m.base_path == Path("GC/g2.0") / "FLAIR_50slices_5folds"
 
 
 def test_base_path_percentile():
     m = Model(
         plane="axial", num_slices="P50", modality=["FLAIR"], k_folds=5, enhancement="GC"
     )
-    assert m.base_path == Path("GC") / "FLAIR_P50slices_5folds"
+    assert m.base_path == Path("GC/g2.0") / "FLAIR_P50slices_5folds"
 
 
 def test_model_string_no_enhancement():
@@ -130,7 +130,7 @@ def test_model_string_with_enhancement():
     m = Model(
         plane="axial", num_slices=50, modality=["FLAIR"], k_folds=5, enhancement="GC"
     )
-    assert m.model_string == "axial_FLAIR_GC_50slices_5folds"
+    assert m.model_string == "axial_FLAIR_GC_g2.0_50slices_5folds"
 
 
 def test_repr():
