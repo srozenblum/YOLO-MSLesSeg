@@ -54,7 +54,7 @@ from yolo_mslesseg.configs.ConfigEval import ConfigEval
 from yolo_mslesseg.utils.Model import Model
 from yolo_mslesseg.utils.Patient import Patient
 from yolo_mslesseg.utils.logging_config import get_logger
-from yolo_mslesseg.utils.constants import EXT_NIFTI, MASK_SUFFIX, EXT_JSON, ENHANCEMENTS
+from yolo_mslesseg.utils.constants import EXT_NIFTI, MASK_SUFFIX, EXT_JSON, ENHANCEMENTS, StageResult
 from yolo_mslesseg.utils.utils import (
     int_or_percentile,
     load_volume,
@@ -214,7 +214,7 @@ def build_paths(patient_id: str, config: ConfigEval) -> dict[str, Path]:
     }
 
 
-def compute_fold_metrics(input_dir: Path, config: ConfigEval) -> dict[str, dict[str, float]] | None:
+def compute_fold_metrics(input_dir: Path, config: ConfigEval) -> StageResult:
     """Computes per-patient metrics and aggregates them as a fold average.
 
     Skips computation if the fold results JSON already exists.
@@ -224,13 +224,13 @@ def compute_fold_metrics(input_dir: Path, config: ConfigEval) -> dict[str, dict[
         config: ConfigEval instance providing directory and plane settings.
 
     Returns:
-        Dictionary of fold-average metric statistics, or None if already computed.
+        StageResult.SKIPPED if results already existed, StageResult.COMPLETED otherwise.
     """
     output_path = config.results_fold_json
 
     # Skip if results already exist
     if path_exists(output_path):
-        return
+        return StageResult.SKIPPED
 
     patients = list_patients(input_dir)
     fold_metrics = {}
@@ -252,7 +252,7 @@ def compute_fold_metrics(input_dir: Path, config: ConfigEval) -> dict[str, dict[
     metrics_stats = compute_averages(fold_metrics)
     write_json(dic=metrics_stats, json_path=output_path)
 
-    return metrics_stats
+    return StageResult.COMPLETED
 
 
 # ======================================
@@ -306,9 +306,9 @@ def run_eval_flow(config: ConfigEval, clean: bool, verbose: bool = False) -> Non
         )
 
         if config.k_folds == 1:
-            if fold_metrics is None:
+            if fold_metrics is StageResult.SKIPPED:
                 logger.skip(f"⏩ Metrics already exist.")
-            elif isinstance(fold_metrics, (dict, list)):
+            elif fold_metrics is StageResult.COMPLETED:
                 logger.info(f"🆗 Metrics computed successfully.")
             else:
                 logger.warning("⚠️ Unknown status when computing metrics.")
