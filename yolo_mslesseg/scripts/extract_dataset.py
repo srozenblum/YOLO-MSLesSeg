@@ -313,6 +313,7 @@ def save_patient_slices(input_dir: Path, config: ConfigDataset, num_slices: int 
             plane=config.model.plane,
             modality=config.model.modality,
             enhancement=config.model.enhancement,
+            gamma=config.model.gamma,
         )
 
         paths_dir = build_paths(patient=patient, config=config, group=group)

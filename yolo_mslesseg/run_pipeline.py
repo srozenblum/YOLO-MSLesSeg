@@ -709,13 +709,25 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Include the training stage. Omitted by default.",
     )
     parser.add_argument(
+        "--gamma",
+        type=float,
+        default=2.0,
+        metavar="<gamma>",
+        help="Gamma correction factor. Only applies when --enhancement is GC. Defaults to 2.0.",
+    )
+    parser.add_argument(
         "--clean",
         action="store_true",
         default=False,
         help="Clean all previously generated results.",
     )
 
-    return parser.parse_args(argv)
+    args = parser.parse_args(argv)
+
+    if args.gamma != 2.0 and args.enhancement != "GC":
+        parser.error("--gamma is only valid when --enhancement is GC.")
+
+    return args
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -735,6 +747,7 @@ def main(argv: list[str] | None = None) -> None:
         modality=args.modality,
         k_folds=args.k_folds,
         enhancement=args.enhancement,
+        gamma=args.gamma,
     )
 
     # Ensure the dataset exists before instantiating Patient

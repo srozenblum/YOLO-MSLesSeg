@@ -90,6 +90,9 @@ class Patient:
             Image enhancement algorithm to apply ('HE', 'CLAHE', 'GC', 'LT', or None).
             Defaults to None.
 
+        gamma (float):
+            Gamma correction factor used when enhancement is 'GC'. Defaults to 2.0.
+
         base_dir (Path):
             Base path of the patient in the MSLesSeg dataset.
 
@@ -113,6 +116,7 @@ class Patient:
         timepoint: str = "T1",
         modality: list[str] | None = None,
         enhancement: str | None = None,
+        gamma: float = 2.0,
         gt_mask: np.ndarray | None = None,
     ) -> None:
         """Initialises a Patient instance for the given MRI configuration.
@@ -123,6 +127,8 @@ class Patient:
             timepoint: MRI acquisition timepoint. Defaults to 'T1'.
             modality: List of MRI modalities to use. Defaults to all modalities.
             enhancement: Enhancement algorithm name, or None for no enhancement.
+            gamma: Gamma correction factor forwarded to GC when enhancement is 'GC'.
+                Defaults to 2.0.
             gt_mask: Pre-loaded ground truth mask array. Loaded lazily if None.
 
         Raises:
@@ -136,7 +142,7 @@ class Patient:
 
         # --- Core attributes ---
         self._set_core_attributes(
-            id, plane, timepoint, modality, enhancement, gt_mask
+            id, plane, timepoint, modality, enhancement, gamma, gt_mask
         )
 
     # ======================================
@@ -217,6 +223,7 @@ class Patient:
         timepoint: str,
         modality: list[str],
         enhancement: str | None,
+        gamma: float,
         gt_mask: np.ndarray | None,
     ) -> None:
         """Sets the core attributes of the patient after validation.
@@ -227,6 +234,7 @@ class Patient:
             timepoint: MRI acquisition timepoint string.
             modality: List of MRI modality strings.
             enhancement: Enhancement algorithm name (stored in uppercase), or None.
+            gamma: Gamma correction factor used when enhancement is 'GC'.
             gt_mask: Pre-loaded ground truth mask array, or None for lazy loading.
         """
         self.id = id
@@ -237,6 +245,7 @@ class Patient:
             (self.base_dir / tp).exists() for tp in TIMEPOINTS
         )
         self.enhancement = enhancement.upper() if enhancement else None
+        self.gamma = gamma
         self._gt_mask = gt_mask
         self._volumes = {}  # Images by modality
 
@@ -357,13 +366,14 @@ class Patient:
     #             PROCESSING
     # ======================================
 
-    def apply_enhancement(self, image: np.ndarray, gamma: float = 2.0) -> np.ndarray:
+    def apply_enhancement(self, image: np.ndarray) -> np.ndarray:
         """Applies the configured enhancement algorithm to an image slice.
+
+        When enhancement is 'GC', the gamma factor stored in self.gamma is
+        forwarded to the algorithm.
 
         Args:
             image: 2D image array to enhance.
-            gamma: Gamma correction factor forwarded to the GC algorithm.
-                Only used when enhancement is 'GC'. Defaults to 2.0.
 
         Returns:
             Enhanced image array, or the original image if no enhancement is set.
@@ -371,7 +381,7 @@ class Patient:
         if self.enhancement is None:
             return image
         if self.enhancement == "GC":
-            return get_algorithm(self.enhancement, gamma=gamma).apply(image)
+            return get_algorithm(self.enhancement, gamma=self.gamma).apply(image)
         return get_algorithm(self.enhancement).apply(image)
 
     # ======================================
