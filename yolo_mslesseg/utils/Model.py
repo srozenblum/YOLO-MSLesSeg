@@ -24,7 +24,7 @@ Relationships:
 
 from pathlib import Path
 
-from yolo_mslesseg.utils.constants import ENHANCEMENTS, PLANES
+from yolo_mslesseg.utils.constants import ENHANCEMENTS, MODALITIES, PLANES
 
 
 class Model:
@@ -170,7 +170,7 @@ class Model:
         Returns:
             String of modality names joined without separators.
         """
-        return "".join(self.modality)
+        return "".join(m for m in MODALITIES if m in self.modality)
 
     @property
     def exp_string(self) -> str:
