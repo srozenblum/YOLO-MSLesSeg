@@ -67,7 +67,6 @@ allowing almost every aspect of the pipeline to be configured:
 - Image enhancement technique applied
 - Cross-validation scheme with any number of folds, or fixed train/test split
 - Number of training epochs
-- Consensus threshold value (2: majority voting across planes; 3: unanimity)
 
 This flexibility enables experiments with different configurations to be conducted
 in a systematic and reproducible manner.

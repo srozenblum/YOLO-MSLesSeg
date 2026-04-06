@@ -256,7 +256,6 @@ and carrying out experiments for different configurations:
 | `--gamma`               | No       | `2.0`      | Gamma correction factor. Only applies when `--enhancement GC`                                                         |
 | `--k_folds`             | No       | `1`        | Number of folds. If `k_folds > 1`, uses cross-validation by folds; if `k_folds == 1`, uses a fixed train/test split. |
 | `--epochs`              | ✅ Yes    | —          | Number of training epochs                                                                                            |
-| `--consensus_threshold` | No       | `2`        | Voting threshold: `2` (majority) or `3` (unanimity)                                                                  |
 | `--full`                | ✅ One required | —     | Process all patients                                                                                                 |
 | `--patient_id`          | ✅ One required | —     | Process only the specified patient (e.g. `P1`)                                                                       |
 | `--train`               | No       | Not active | Include the training stage                                                                                           |
