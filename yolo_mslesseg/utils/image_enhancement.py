@@ -172,7 +172,7 @@ class GC(Algorithm):
             image: 2D or 3D float image array to enhance.
 
         Returns:
-            Enhanced image as a uint8 RGB NumPy array.
+            Enhanced image as a uint8 BGR NumPy array.
         """
 
         # Convert the image to BGR if it is RGB or greyscale
@@ -181,9 +181,9 @@ class GC(Algorithm):
         # Build the gamma correction lookup table
         table = np.array((np.linspace(0, 1, 256) ** self.gamma) * 255, dtype=np.uint8)
 
-        img_rgb = cv2.LUT(img_bgr, table)
+        img_bgr = cv2.LUT(img_bgr, table)
 
-        return img_rgb
+        return img_bgr
 
 
 class LT(Algorithm):
@@ -205,7 +205,7 @@ class LT(Algorithm):
             image: 2D or 3D float image array to enhance.
 
         Returns:
-            Enhanced image as a uint8 RGB NumPy array.
+            Enhanced image as a uint8 BGR NumPy array.
         """
 
         # Convert the image to BGR if it is RGB or greyscale
@@ -220,9 +220,9 @@ class LT(Algorithm):
         img_log = c * np.log(1 + img_bgr)
 
         # Clip and convert the result to uint8 for compatibility with OpenCV
-        img_rgb = np.clip(img_log, 0, 255).astype(np.uint8)
+        img_bgr = np.clip(img_log, 0, 255).astype(np.uint8)
 
-        return img_rgb
+        return img_bgr
 
 
 # ======================================
