@@ -4,7 +4,7 @@ Script: generate_consensus.py
 Description:
     Combines the volumetric predictions obtained from the three anatomical planes
     (axial, coronal, and sagittal) to generate a 3D consensus volume in NIfTI format.
-    The consensus is computed through majority voting (threshold ≥ 2 or 3) and is
+    The consensus is computed through majority voting (threshold ≥ 2) and is
     automatically validated against the ground truth. Can be executed at patient or
     fold level.
 
@@ -73,23 +73,22 @@ logger = get_logger(__file__)
 # ======================================
 
 
-def combine_volumes(axial_vol: np.ndarray, coronal_vol: np.ndarray, sagittal_vol: np.ndarray, threshold: int = 2) -> np.ndarray:
+def combine_volumes(axial_vol: np.ndarray, coronal_vol: np.ndarray, sagittal_vol: np.ndarray) -> np.ndarray:
     """Combines three plane volumes into a binary consensus volume using majority voting.
 
     Args:
         axial_vol: Predicted volume from the axial plane.
         coronal_vol: Predicted volume from the coronal plane.
         sagittal_vol: Predicted volume from the sagittal plane.
-        threshold: Voting threshold (2 for majority, 3 for unanimity).
 
     Returns:
         Binary consensus volume as a uint8 NumPy array.
     """
-    consensus = ((axial_vol + coronal_vol + sagittal_vol) >= threshold).astype(np.uint8)
+    consensus = ((axial_vol + coronal_vol + sagittal_vol) >= 2).astype(np.uint8)
     return consensus
 
 
-def generate_consensus(axial_path: Path, coronal_path: Path, sagittal_path: Path, output_path: Path, threshold: int = 2) -> None:
+def generate_consensus(axial_path: Path, coronal_path: Path, sagittal_path: Path, output_path: Path) -> None:
     """Generates and saves a consensus NIfTI volume from three anatomical plane predictions.
 
     Args:
@@ -97,19 +96,17 @@ def generate_consensus(axial_path: Path, coronal_path: Path, sagittal_path: Path
         coronal_path: Path to the coronal plane predicted NIfTI volume.
         sagittal_path: Path to the sagittal plane predicted NIfTI volume.
         output_path: Path where the consensus NIfTI volume will be saved.
-        threshold: Voting threshold (2 for majority, 3 for unanimity).
     """
     axial_vol = load_volume(axial_path)
     coronal_vol = load_volume(coronal_path)
     sagittal_vol = load_volume(sagittal_path)
     affine = load_nifti_reference(axial_path)[1]
 
-    # Combine volumes by applying the threshold to generate the consensus
+    # Combine volumes by majority voting to generate the consensus
     consensus = combine_volumes(
         axial_vol=axial_vol,
         coronal_vol=coronal_vol,
         sagittal_vol=sagittal_vol,
-        threshold=threshold,
     )
 
     save_volume(volume=consensus, affine=affine, output_path=output_path)
@@ -123,7 +120,6 @@ def generate_consensus(axial_path: Path, coronal_path: Path, sagittal_path: Path
 def process_patient_consensus(
     config: ConfigConsensus,
     paths_dir: dict[str, Path] | None = None,
-    threshold: int = 2,
 ) -> StageResult:
     """Executes the consensus generation process for an individual patient.
 
@@ -134,7 +130,6 @@ def process_patient_consensus(
         config: ConfigConsensus instance providing model and directory settings.
         paths_dir: Dictionary of paths per plane plus 'gt'. Defaults to config
             patient paths if None.
-        threshold: Voting threshold (2 for majority, 3 for unanimity).
 
     Returns:
         StageResult.COMPLETED if the consensus was generated, StageResult.SKIPPED
@@ -162,7 +157,6 @@ def process_patient_consensus(
         coronal_path=paths_dir["coronal"],
         sagittal_path=paths_dir["sagittal"],
         output_path=output_path,
-        threshold=threshold,
     )
 
     if not is_valid_reconstruction(output_path, gt_vol):
@@ -193,13 +187,12 @@ def build_paths(patient_id: str, config: ConfigConsensus) -> dict[str, Path]:
     return paths
 
 
-def generate_consensus_for_patients(input_dir: Path, config: ConfigConsensus, threshold: int = 2) -> StageResult:
+def generate_consensus_for_patients(input_dir: Path, config: ConfigConsensus) -> StageResult:
     """Executes the consensus generation process for all patients in a directory.
 
     Args:
         input_dir: Directory containing patient subdirectories to process.
         config: ConfigConsensus instance providing model and directory settings.
-        threshold: Voting threshold (2 for majority, 3 for unanimity).
 
     Returns:
         StageResult.COMPLETED if all patients were processed, StageResult.SKIPPED
@@ -214,7 +207,6 @@ def generate_consensus_for_patients(input_dir: Path, config: ConfigConsensus, th
             consensus_result = process_patient_consensus(
                 config=config,
                 paths_dir=patient_paths_dir,
-                threshold=threshold,
             )
             results.append(consensus_result)
         except Exception as e:
@@ -231,13 +223,12 @@ def generate_consensus_for_patients(input_dir: Path, config: ConfigConsensus, th
 # ======================================
 
 
-def run_consensus_flow(config: ConfigConsensus, clean: bool, threshold: int = 2, verbose: bool = False) -> None:
+def run_consensus_flow(config: ConfigConsensus, clean: bool, verbose: bool = False) -> None:
     """Executes the main consensus generation flow.
 
     Args:
         config: ConfigConsensus instance defining the consensus configuration.
         clean: If True, deletes existing consensus volumes before regenerating.
-        threshold: Voting threshold (2 for majority, 3 for unanimity).
         verbose: If True, logs a header message at the start of execution.
     """
     if verbose:
@@ -261,7 +252,7 @@ def run_consensus_flow(config: ConfigConsensus, clean: bool, threshold: int = 2,
 
     # Patient execution
     if config.is_individual_patient:
-        consensus_generated = process_patient_consensus(config=config, threshold=threshold)
+        consensus_generated = process_patient_consensus(config=config)
         if consensus_generated is StageResult.SKIPPED:
             logger.skip(f"⏩ Consensus volume already exists.")
         elif consensus_generated is StageResult.COMPLETED:
@@ -272,7 +263,7 @@ def run_consensus_flow(config: ConfigConsensus, clean: bool, threshold: int = 2,
     # Fold execution
     else:
         consensus_results = generate_consensus_for_patients(
-            input_dir=config.pred_vols_fold_dir, config=config, threshold=threshold
+            input_dir=config.pred_vols_fold_dir, config=config
         )
         if config.k_folds == 1:
             if consensus_results is StageResult.SKIPPED:
@@ -349,14 +340,6 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         metavar="<k_folds>",
         help="Number of folds for cross-validation. Defaults to 1.",
     )
-    parser.add_argument(
-        "--threshold",
-        type=int,
-        default=2,
-        choices=[2, 3],
-        metavar="<threshold>",
-        help="Voting threshold for consensus generation. Defaults to 2.",
-    )
     group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument(
         "--fold_test",
@@ -421,12 +404,12 @@ def main(argv: list[str] | None = None) -> None:
         fold_test=args.fold_test,
     )
     run_consensus_flow(
-        config=config, threshold=args.threshold, clean=args.clean, verbose=True
+        config=config, clean=args.clean, verbose=True
     )
 
 
 def run_consensus_pipeline(
-    model: Model, patient: Patient | None = None, fold_test: int | None = None, epochs: int = 50, threshold: int = 2, clean: bool = False
+    model: Model, patient: Patient | None = None, fold_test: int | None = None, epochs: int = 50, clean: bool = False
 ) -> None:
     """Internal pipeline entry point: executes the consensus generation flow programmatically.
 
@@ -435,7 +418,6 @@ def run_consensus_pipeline(
         patient: Patient instance for individual execution, or None for fold mode.
         fold_test: Test fold index when using cross-validation, or None.
         epochs: Number of training epochs of the YOLO model.
-        threshold: Voting threshold (2 for majority, 3 for unanimity).
         clean: If True, deletes existing consensus volumes before regenerating.
     """
     config = ConfigConsensus(
@@ -446,7 +428,6 @@ def run_consensus_pipeline(
     )
     run_consensus_flow(
         config=config,
-        threshold=threshold,
         clean=clean,
     )
 

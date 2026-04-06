@@ -362,7 +362,6 @@ def run_consensus(
     epochs: int,
     k_folds: int,
     patient: Patient | None,
-    consensus_threshold: int,
     clean: bool,
 ) -> bool:
     """Executes the consensus volume generation and its metric computation,
@@ -373,7 +372,6 @@ def run_consensus(
         epochs: Number of training epochs of the YOLO model.
         k_folds: Number of cross-validation folds (1 for a fixed split).
         patient: Patient instance for individual execution, or None for full mode.
-        consensus_threshold: Voting threshold (2 for majority, 3 for unanimity).
         clean: If True, deletes existing consensus volumes before generating new ones.
 
     Returns:
@@ -402,7 +400,6 @@ def run_consensus(
         run_consensus_pipeline(
             model=model,
             epochs=epochs,
-            threshold=consensus_threshold,
             patient=patient,
             clean=clean,
         )
@@ -434,7 +431,6 @@ def run_consensus(
         run_consensus_pipeline(
             model=model,
             epochs=epochs,
-            threshold=consensus_threshold,
             fold_test=None,
             clean=clean,
         )
@@ -473,7 +469,6 @@ def run_consensus(
         run_consensus_pipeline(
             model=model,
             epochs=epochs,
-            threshold=consensus_threshold,
             fold_test=fold,
             clean=clean,
         )
@@ -548,7 +543,6 @@ def run_average_folds(
 def run_pipeline(
     model: Model,
     epochs: int,
-    consensus_threshold: int,
     k_folds: int = 5,
     patient: Patient | None = None,
     full: bool | None = None,
@@ -602,7 +596,7 @@ def run_pipeline(
 
     # --- STAGE 5 ---
     consensus_generated = run_consensus(
-        model, epochs, k_folds, patient, consensus_threshold, clean
+        model, epochs, k_folds, patient, clean
     )
 
     # --- STAGE 6 ---
@@ -676,14 +670,6 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         required=True,
         metavar="<epochs>",
         help="Number of training epochs.",
-    )
-    parser.add_argument(
-        "--consensus_threshold",
-        type=int,
-        default=2,
-        choices=[2, 3],
-        metavar="<consensus_threshold>",
-        help="Voting threshold for consensus generation (2 or 3). Defaults to 2.",
     )
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument(
@@ -768,7 +754,6 @@ def main(argv: list[str] | None = None) -> None:
         run_pipeline(
             model=model,
             epochs=args.epochs,
-            consensus_threshold=args.consensus_threshold,
             k_folds=args.k_folds,
             patient=patient,
             full=args.full,

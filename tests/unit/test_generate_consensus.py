@@ -2,7 +2,7 @@
 Unit tests for combine_volumes in generate_consensus.py.
 
 The function implements voxel-wise majority voting across three binary volumes
-(axial, coronal, sagittal) with a configurable threshold (2 or 3).
+(axial, coronal, sagittal) with a fixed threshold of 2 (majority voting).
 """
 
 import numpy as np
@@ -15,56 +15,32 @@ SHAPE = (4, 5, 6)
 
 
 # ---------------------------------------------------------------------------
-# Threshold 2 — majority vote
+# Majority vote (threshold = 2, fixed)
 # ---------------------------------------------------------------------------
 
 
-def test_all_active_threshold2_gives_ones():
+def test_all_active_gives_ones():
     a = np.ones(SHAPE, dtype=np.uint8)
-    np.testing.assert_array_equal(combine_volumes(a, a, a, threshold=2), a)
+    np.testing.assert_array_equal(combine_volumes(a, a, a), a)
 
 
-def test_two_active_threshold2_gives_ones():
+def test_two_active_gives_ones():
     active = np.ones(SHAPE, dtype=np.uint8)
     inactive = np.zeros(SHAPE, dtype=np.uint8)
-    result = combine_volumes(active, active, inactive, threshold=2)
+    result = combine_volumes(active, active, inactive)
     np.testing.assert_array_equal(result, active)
 
 
-def test_one_active_threshold2_gives_zeros():
+def test_one_active_gives_zeros():
     active = np.ones(SHAPE, dtype=np.uint8)
     inactive = np.zeros(SHAPE, dtype=np.uint8)
-    result = combine_volumes(active, inactive, inactive, threshold=2)
+    result = combine_volumes(active, inactive, inactive)
     np.testing.assert_array_equal(result, inactive)
 
 
-def test_all_inactive_threshold2_gives_zeros():
+def test_all_inactive_gives_zeros():
     z = np.zeros(SHAPE, dtype=np.uint8)
-    np.testing.assert_array_equal(combine_volumes(z, z, z, threshold=2), z)
-
-
-# ---------------------------------------------------------------------------
-# Threshold 3 — unanimity
-# ---------------------------------------------------------------------------
-
-
-def test_all_active_threshold3_gives_ones():
-    a = np.ones(SHAPE, dtype=np.uint8)
-    np.testing.assert_array_equal(combine_volumes(a, a, a, threshold=3), a)
-
-
-def test_two_active_threshold3_gives_zeros():
-    active = np.ones(SHAPE, dtype=np.uint8)
-    inactive = np.zeros(SHAPE, dtype=np.uint8)
-    result = combine_volumes(active, active, inactive, threshold=3)
-    np.testing.assert_array_equal(result, inactive)
-
-
-def test_one_active_threshold3_gives_zeros():
-    active = np.ones(SHAPE, dtype=np.uint8)
-    inactive = np.zeros(SHAPE, dtype=np.uint8)
-    result = combine_volumes(active, inactive, inactive, threshold=3)
-    np.testing.assert_array_equal(result, inactive)
+    np.testing.assert_array_equal(combine_volumes(z, z, z), z)
 
 
 # ---------------------------------------------------------------------------
@@ -72,30 +48,16 @@ def test_one_active_threshold3_gives_zeros():
 # ---------------------------------------------------------------------------
 
 
-def test_per_voxel_voting_threshold2():
+def test_per_voxel_voting():
     """Only the voxel with two active planes should be 1."""
     axial = np.zeros(SHAPE, dtype=np.uint8)
     coronal = np.zeros(SHAPE, dtype=np.uint8)
     sagittal = np.zeros(SHAPE, dtype=np.uint8)
     axial[1, 2, 3] = 1
     coronal[1, 2, 3] = 1
-    result = combine_volumes(axial, coronal, sagittal, threshold=2)
+    result = combine_volumes(axial, coronal, sagittal)
     assert result[1, 2, 3] == 1
     assert result[0, 0, 0] == 0
-
-
-def test_per_voxel_voting_threshold3():
-    """Only the voxel with all three planes active should be 1."""
-    axial = np.zeros(SHAPE, dtype=np.uint8)
-    coronal = np.zeros(SHAPE, dtype=np.uint8)
-    sagittal = np.zeros(SHAPE, dtype=np.uint8)
-    axial[1, 2, 3] = 1
-    coronal[1, 2, 3] = 1
-    sagittal[1, 2, 3] = 1
-    result_3 = combine_volumes(axial, coronal, sagittal, threshold=3)
-    result_2 = combine_volumes(axial, coronal, sagittal, threshold=2)
-    assert result_3[1, 2, 3] == 1
-    assert result_2[1, 2, 3] == 1
 
 
 # ---------------------------------------------------------------------------
@@ -106,7 +68,7 @@ def test_per_voxel_voting_threshold3():
 def test_output_is_binary():
     a = np.ones(SHAPE, dtype=np.uint8)
     b = np.zeros(SHAPE, dtype=np.uint8)
-    result = combine_volumes(a, b, a, threshold=2)
+    result = combine_volumes(a, b, a)
     assert set(np.unique(result)).issubset({0, 1})
 
 
