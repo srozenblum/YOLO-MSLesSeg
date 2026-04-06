@@ -344,8 +344,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--plane",
         type=str,
         required=True,
-        choices=["axial", "coronal", "sagittal", "consenso"],
-        metavar="[axial, coronal, sagittal, consenso]",
+        choices=["axial", "coronal", "sagittal", "consensus"],
+        metavar="[axial, coronal, sagittal, consensus]",
         help="Anatomical plane of the model.",
     )
     parser.add_argument(
