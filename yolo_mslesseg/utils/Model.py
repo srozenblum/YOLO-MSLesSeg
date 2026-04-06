@@ -154,7 +154,7 @@ class Model:
         """
         self.plane = plane.lower()
         self.num_slices = num_slices
-        self.modality = modality
+        self.modality = list(dict.fromkeys(modality))
         self.k_folds = k_folds
         self.enhancement = enhancement.upper() if enhancement else None
         self.gamma = gamma
