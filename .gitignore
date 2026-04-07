@@ -89,6 +89,12 @@ __pycache__/
 *.ipynb_checkpoints/
 
 # ========================
+#    LOCAL DOCS / NOTES
+# ========================
+test_executions.md
+SOTA.md
+
+# ========================
 #    MIGRATION SCRIPTS
 # ========================
 extras/migrate_sagital_dirs.py
