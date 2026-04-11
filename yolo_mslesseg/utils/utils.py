@@ -76,7 +76,6 @@ from PIL import Image
 from sklearn.metrics import roc_auc_score
 from ultralytics import YOLO
 
-from yolo_mslesseg.utils.logging_config import get_logger
 from yolo_mslesseg.utils.constants import (
     EXT_PNG,
     ANATOMICAL_PLANES,
@@ -86,12 +85,12 @@ from yolo_mslesseg.utils.constants import (
     N_TRAIN_PATIENTS,
     StageResult,
 )
+from yolo_mslesseg.utils.logging_config import get_logger
 
 if TYPE_CHECKING:
     from yolo_mslesseg.utils.Model import Model
     from yolo_mslesseg.utils.Patient import Patient
 
-# Configure logger
 logger = get_logger(__file__)
 
 
@@ -142,11 +141,7 @@ def is_ignorable_file(name: str) -> bool:
         True if the file starts with '.' or '~', or ends with '.tmp'.
     """
     name_lower = name.lower()
-    return (
-        name.startswith(".")
-        or name.startswith("~")
-        or name_lower.endswith(".tmp")
-    )
+    return name.startswith(".") or name.startswith("~") or name_lower.endswith(".tmp")
 
 
 def build_config_name(model: "Model", epochs: int) -> str:
@@ -263,7 +258,9 @@ def load_volume(vol_path: str | Path) -> np.ndarray:
         raise
 
 
-def load_nifti_reference(reference_path: str | Path) -> tuple[tuple[int, ...], np.ndarray]:
+def load_nifti_reference(
+    reference_path: str | Path,
+) -> tuple[tuple[int, ...], np.ndarray]:
     """Loads a NIfTI file and returns its shape and affine transform.
 
     Args:
@@ -286,7 +283,9 @@ def load_nifti_reference(reference_path: str | Path) -> tuple[tuple[int, ...], n
         raise ValueError(f"Invalid file: {reference_path}") from e
 
 
-def save_volume(volume: np.ndarray, affine: np.ndarray, output_path: str | Path) -> None:
+def save_volume(
+    volume: np.ndarray, affine: np.ndarray, output_path: str | Path
+) -> None:
     """Saves a NIfTI volume to the given output path.
 
     Args:
