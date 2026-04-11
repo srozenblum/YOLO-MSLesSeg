@@ -210,7 +210,9 @@ def patient_base_dir(patient: "Patient", model: "Model") -> Path:
     return base_root / DATASETS_DIR / model.base_path / group / patient_id / plane
 
 
-def patient_paths(patient: "Patient", model: "Model", slice_idx: int) -> dict[str, Path]:
+def patient_paths(
+    patient: "Patient", model: "Model", slice_idx: int
+) -> dict[str, Path]:
     """Builds a dictionary of paths for a specific slice of the patient.
 
     Args:
@@ -227,8 +229,12 @@ def patient_paths(patient: "Patient", model: "Model", slice_idx: int) -> dict[st
     base_dir = patient_base_dir(patient=patient, model=model)
 
     return {
-        "img": base_dir / "images" / f"{patient_id}_{slice_idx}{EXT_PNG}",
-        "pred": base_dir / "pred_masks" / f"{patient_id}_{slice_idx}{EXT_PNG}",
+        "img": base_dir
+        / "images"
+        / f"{patient_id}_{patient.modality_str}_{slice_idx}{EXT_PNG}",
+        "pred": base_dir
+        / "pred_masks"
+        / f"{patient_id}_{patient.modality_str}_{slice_idx}{EXT_PNG}",
         "gt": base_dir / "GT_masks" / f"{patient_id}_{slice_idx}{EXT_PNG}",
     }
 
