@@ -25,6 +25,7 @@ Relationships:
 """
 
 from abc import ABC, abstractmethod
+from typing import Any
 
 import cv2
 import numpy as np
@@ -51,7 +52,14 @@ class Algorithm(ABC):
 
     @abstractmethod
     def apply(self, image: np.ndarray) -> np.ndarray:
-        """Apply the enhancement algorithm to a 2D image and return the result."""
+        """Apply the enhancement algorithm to a 2D image and return the result.
+
+        Args:
+            image: 2D or 3D float image array to enhance.
+
+        Returns:
+            Enhanced uint8 NumPy image array.
+        """
 
     def __repr__(self) -> str:
         """Returns the class name as the string representation.
@@ -116,6 +124,12 @@ class CLAHE(Algorithm):
     """
 
     def __init__(self, clip_limit: float = 2.0, tile_grid_size: tuple[int, int] = (8, 8)) -> None:
+        """Initialises CLAHE with configurable clip limit and tile grid size.
+
+        Args:
+            clip_limit: Contrast limit for histogram equalisation. Defaults to 2.0.
+            tile_grid_size: Grid size for local adaptive processing. Defaults to (8, 8).
+        """
         super().__init__()
         self.clip_limit = clip_limit
         self.tile_grid_size = tile_grid_size
@@ -162,6 +176,11 @@ class GC(Algorithm):
     """
 
     def __init__(self, gamma: float = 2.0) -> None:
+        """Initialises GC with a configurable gamma correction factor.
+
+        Args:
+            gamma: Gamma correction exponent applied to pixel intensities. Defaults to 2.0.
+        """
         super().__init__()
         self.gamma = gamma
 
@@ -237,7 +256,7 @@ _REGISTRY: dict[str, type[Algorithm]] = {
 }
 
 
-def get_algorithm(name: str, **kwargs) -> Algorithm:
+def get_algorithm(name: str, **kwargs: Any) -> Algorithm:
     """Returns a new instance of the enhancement algorithm identified by name.
 
     For the 'GC' algorithm, keyword arguments are forwarded to the constructor

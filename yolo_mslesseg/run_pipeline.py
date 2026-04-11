@@ -77,7 +77,6 @@ from yolo_mslesseg.utils.utils import (
     compute_fold,
 )
 
-# Configure logger
 configure_logging(level=logging.INFO, log_file="pipeline.log")
 logger = get_logger(__file__)
 
@@ -209,9 +208,6 @@ def run_predictions(model: Model, epochs: int, k_folds: int, patient: Patient | 
         k_folds: Number of cross-validation folds (1 for a fixed split).
         patient: Patient instance for individual execution, or None for full mode.
         clean: If True, deletes existing predictions before generating new ones.
-
-    Returns:
-        None
     """
     logger.header(f"\n🎯 Generating predictions")
 
@@ -261,9 +257,6 @@ def run_reconstructions(model: Model, epochs: int, k_folds: int, patient: Patien
         k_folds: Number of cross-validation folds (1 for a fixed split).
         patient: Patient instance for individual execution, or None for full mode.
         clean: If True, deletes existing reconstructions before generating new ones.
-
-    Returns:
-        None
     """
     # =========================
     # 1) PATIENT MODE
@@ -315,9 +308,6 @@ def run_eval(model: Model, epochs: int, k_folds: int, patient: Patient | None, c
         k_folds: Number of cross-validation folds (1 for a fixed split).
         patient: Patient instance for individual execution, or None for full mode.
         clean: If True, deletes existing results before computing new ones.
-
-    Returns:
-        None
     """
     logger.header(f"\n📈 Computing metrics ({model.plane})")
 
@@ -502,9 +492,6 @@ def run_average_folds(
         k_folds: Number of cross-validation folds (1 for a fixed split).
         consensus_generated: True if the consensus stage completed successfully.
         clean: If True, deletes existing fold averages before computing new ones.
-
-    Returns:
-        None
     """
     # =========================
     # 1) NOT APPLICABLE IF k_folds == 1
@@ -549,12 +536,20 @@ def run_pipeline(
     train_flag: bool = False,
     clean: bool = False,
 ) -> None:
-    """
-    Executes the full workflow. Includes setup, dataset extraction, training,
-    prediction, reconstruction, evaluation, consensus, and fold averaging.
+    """Executes the full pipeline: setup, dataset extraction, training, prediction,
+    reconstruction, evaluation, consensus, and fold averaging.
 
-    - Patient mode → executes the workflow for a single patient across all stages.
-    - Full mode    → executes the workflow for all folds in the dataset across all stages.
+    Patient mode executes the workflow for a single patient across all applicable stages.
+    Full mode executes the workflow for all folds in the dataset.
+
+    Args:
+        model: Model instance defining the plane, modalities, and configuration.
+        epochs: Number of training epochs for YOLO training.
+        k_folds: Number of cross-validation folds (1 for a fixed split). Defaults to 5.
+        patient: Patient instance for individual execution, or None for full mode.
+        full: If True, runs in full mode over all patients; None defers to patient.
+        train_flag: If True, includes the training stage in the pipeline run.
+        clean: If True, deletes existing intermediate files before each stage.
     """
     if model.enhancement == "GC":
         enhancement_str = f"GC (γ={model.gamma})"

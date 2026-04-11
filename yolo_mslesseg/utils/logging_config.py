@@ -34,6 +34,7 @@ import logging
 import re
 import sys
 from pathlib import Path
+from typing import Any
 
 # ============================================================
 #                   CUSTOM LEVELS
@@ -52,7 +53,7 @@ def register_custom_level(value: int, name: str) -> int:
     """
     logging.addLevelName(value, name)
 
-    def log_method(self, message: str, *args, **kwargs) -> None:
+    def log_method(self, message: str, *args: Any, **kwargs: Any) -> None:
         if self.isEnabledFor(value):
             self._log(value, message, args, **kwargs)
 
@@ -101,6 +102,14 @@ class ColorFormatter(logging.Formatter):
     RESET = "\033[0m"
 
     def format(self, record: logging.LogRecord) -> str:
+        """Formats a log record by wrapping the message in the appropriate ANSI colour codes.
+
+        Args:
+            record: Log record to format.
+
+        Returns:
+            Formatted log message string with ANSI colour prefix and reset suffix.
+        """
         color = self.COLORS.get(record.levelno, self.RESET)
         msg = super().format(record)
         return f"{color}{msg}{self.RESET}"
@@ -120,6 +129,14 @@ class NoColorFormatter(logging.Formatter):
     """
 
     def format(self, record: logging.LogRecord) -> str:
+        """Formats a log record by stripping all ANSI escape sequences from the message.
+
+        Args:
+            record: Log record to format.
+
+        Returns:
+            Formatted log message string with ANSI codes removed.
+        """
         raw = super().format(record)
         return ANSI_ESCAPE.sub("", raw)
 
@@ -171,14 +188,11 @@ def configure_logging(level: int = logging.INFO, log_file: str | Path | None = N
     return logger
 
 
-# Configure logging when this module is imported
 configure_logging()
 
 
 def configure_demo_logging() -> None:
-    """
-    Configure logging for demo execution.
-    """
+    """Configures logging for demo execution by replacing the pipeline.log handler with demo.log."""
     logger = logging.getLogger()
 
     # Remove only the FileHandler pointing to pipeline.log
