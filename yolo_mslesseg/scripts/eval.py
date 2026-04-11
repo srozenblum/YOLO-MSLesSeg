@@ -236,10 +236,14 @@ def compute_fold_metrics(input_dir: Path, config: ConfigEval) -> StageResult:
     fold_metrics = {}
 
     for patient_id in patients:
-        patient_paths = build_paths(patient_id, config)
-        patient_metrics = process_patient_eval(
-            config=config, paths_dir=patient_paths, fold_mode=True
-        )
+        try:
+            patient_paths = build_paths(patient_id, config)
+            patient_metrics = process_patient_eval(
+                config=config, paths_dir=patient_paths, fold_mode=True
+            )
+        except Exception as e:
+            logger.warning(f"⚠️ Error computing metrics for {patient_id}, skipping: {e}.")
+            continue
         if not patient_metrics:
             logger.warning(f"⚠️ No metrics found for patient {patient_id}.")
             continue

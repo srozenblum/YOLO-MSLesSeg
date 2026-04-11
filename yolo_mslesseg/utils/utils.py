@@ -388,7 +388,7 @@ def load_model(model_path: str | Path) -> YOLO:
     try:
         return YOLO(model_path)
     except Exception as e:
-        raise RuntimeError(f"Failed to load YOLO model: {e}")
+        raise RuntimeError(f"Failed to load YOLO model from {model_path}: {e}") from e
 
 
 def trained_model_exists(model: "Model", epochs: int, fold_test: int | None) -> bool:
@@ -430,8 +430,11 @@ def write_json(dic: dict, json_path: str | Path) -> None:
         dic: Dictionary to serialise.
         json_path: Destination file path.
     """
-    with open(json_path, "w") as f:
-        json.dump(dic, f)
+    try:
+        with open(json_path, "w") as f:
+            json.dump(dic, f)
+    except Exception as e:
+        raise OSError(f"Failed to write JSON to {json_path}: {e}") from e
 
 
 def read_json(json_path: str | Path) -> dict:

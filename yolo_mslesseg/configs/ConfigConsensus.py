@@ -274,7 +274,7 @@ class ConfigConsensus(ConfigBase):
             try:
                 consensus_path.unlink()
             except Exception as e:
-                logger.warning(f"⚠️ Could not delete consensus volume: {e}")
+                logger.warning(f"⚠️ Could not delete {consensus_path}: {e}")
 
     def clean(self) -> None:
         """Cleans consensus volumes for the active execution mode.

@@ -365,7 +365,10 @@ class ConfigEval(ConfigBase):
 
         elif self.is_individual_patient:
             if path_exists(self.patient_results_json):
-                self.patient_results_json.unlink()
+                try:
+                    self.patient_results_json.unlink()
+                except Exception as e:
+                    logger.warning(f"⚠️ Could not delete {self.patient_results_json}: {e}")
 
         else:  # experiment mode
             self._clean_experiment_results()

@@ -155,7 +155,9 @@ def save_prediction(pred: np.ndarray, image_filename: str, output_dir: Path) -> 
     output_path = output_dir / f"{image_filename}{EXT_PNG}"
 
     if not path_exists(output_path):
-        cv2.imwrite(output_path, pred, [cv2.IMWRITE_PNG_COMPRESSION, 3])
+        success = cv2.imwrite(str(output_path), pred, [cv2.IMWRITE_PNG_COMPRESSION, 3])
+        if not success:
+            raise OSError(f"Failed to write prediction mask to {output_path}")
     return output_path
 
 

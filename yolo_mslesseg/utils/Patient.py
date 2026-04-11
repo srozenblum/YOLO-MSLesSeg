@@ -328,7 +328,7 @@ class Patient:
         if modality not in self._volumes:
             vol_path = self.volume_path(modality)
             if not path_exists(vol_path):
-                raise FileNotFoundError(f"Volume not found for modality {modality}.")
+                raise FileNotFoundError(f"Volume not found: {vol_path}")
             self._volumes[modality] = nib.load(vol_path).get_fdata()
         return self._volumes[modality]
 

@@ -303,7 +303,7 @@ class ConfigReconstruction(ConfigBase):
             try:
                 self.patient_pred_vol.unlink()
             except Exception as e:
-                logger.warning(f"⚠️ Could not delete volume: {e}")
+                logger.warning(f"⚠️ Could not delete {self.patient_pred_vol}: {e}")
 
     def clean(self) -> None:
         """Cleans reconstructed volumes for the active execution mode.
