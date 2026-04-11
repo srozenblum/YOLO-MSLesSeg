@@ -69,7 +69,6 @@ from yolo_mslesseg.utils.utils import (
     compute_fold,
 )
 
-# Configure logger
 logger = get_logger(__file__)
 
 # Suppress ultralytics logging

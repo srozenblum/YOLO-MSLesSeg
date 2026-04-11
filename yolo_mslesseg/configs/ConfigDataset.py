@@ -40,7 +40,6 @@ from yolo_mslesseg.utils.utils import (
     compute_fold,
 )
 
-# Configure logger
 logger = get_logger(__file__)
 
 
@@ -200,7 +199,6 @@ class ConfigDataset:
         else:
             self.input_dir = Path(input_dir)
 
-        # Output directory
         self.output_dir = DATASETS_DIR / f"{self.model.base_path}"
 
     def _resolve_execution_mode(self) -> None:
@@ -246,7 +244,7 @@ class ConfigDataset:
                 )
 
         elif self.is_full:
-            pass  # nothing extra
+            pass
 
         else:
             raise ValueError(

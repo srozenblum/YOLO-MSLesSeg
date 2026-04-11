@@ -418,7 +418,7 @@ class Patient:
         for m in self.modality:
             img_slice = self.get_image_slice(i, m)
             if img_slice.ndim == 3:
-                img_slice = img_slice[:, :, 0]  # extract grayscale channel (B=G=R for BGR; R=G=B for RGB — channels identical)
+                img_slice = img_slice[:, :, 0]  # extract grayscale channel (all channels identical)
             img_slice = img_slice.T  # transpose to match image axes
             channels.append(normalize_to_uint8(img_slice))
 

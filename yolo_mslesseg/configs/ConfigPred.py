@@ -38,7 +38,6 @@ from yolo_mslesseg.utils.utils import (
     compute_fold,
 )
 
-# Configure logger
 logger = get_logger(__file__)
 
 
@@ -223,7 +222,6 @@ class ConfigPred(ConfigBase):
                 TRAINS_DIR / f"{self.model.base_path}_{self.epochs}epochs" / self.plane
             )
 
-            # Trained YOLO model weights file
             self.model_path = self.train_base_dir / "weights" / WEIGHTS_FILE
             return
 
@@ -234,7 +232,6 @@ class ConfigPred(ConfigBase):
             / f"fold{self.fold_test}"
         )
 
-        # Trained YOLO model weights file
         self.model_path = self.train_base_dir / "weights" / WEIGHTS_FILE
 
     def _resolve_patient_paths(self) -> None:
@@ -323,16 +320,12 @@ class ConfigPred(ConfigBase):
                 patient_images_subdir = patient_dir_path / "images"
                 patient_pred_masks_subdir = patient_dir_path / "pred_masks"
 
-                # images_dir
-                if not path_exists(
-                    patient_images_subdir
-                ):  # Raises exception if not found
+                if not path_exists(patient_images_subdir):
                     raise FileNotFoundError(
                         f"Images directory not found for patient {patient_id}: {patient_images_subdir}."
                     )
 
-                # pred_masks_dir
-                create_directory(patient_pred_masks_subdir)  # Ensure output exists
+                create_directory(patient_pred_masks_subdir)
 
     def _verify_patient_paths(self) -> None:
         """Verifies input and output paths for an individual patient.
@@ -340,16 +333,12 @@ class ConfigPred(ConfigBase):
         Raises:
             FileNotFoundError: If the patient's images directory does not exist.
         """
-        # patient_dir["images"]
-        if not path_exists(
-            self.patient_dir["images"]
-        ):  # Raises exception if not found
+        if not path_exists(self.patient_dir["images"]):
             raise FileNotFoundError(
                 f"Images directory not found for patient {self.patient.id}: {self.patient_dir['images']}."
             )
 
-        # patient_dir["pred_masks"]
-        create_directory(self.patient_dir["pred_masks"])  # Ensure output exists
+        create_directory(self.patient_dir["pred_masks"])
 
     def _verify_model_path(self) -> None:
         """Verifies that the trained YOLO model weights file exists.

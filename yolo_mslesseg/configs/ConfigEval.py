@@ -46,7 +46,6 @@ from yolo_mslesseg.utils.utils import (
     compute_fold,
 )
 
-# Configure logger
 logger = get_logger(__file__)
 
 
@@ -321,9 +320,7 @@ class ConfigEval(ConfigBase):
     # ======================================
 
     def _clean_fold_results(self) -> None:
-        """
-        Cleans the fold metrics JSON and the individual JSON files for all patients.
-        """
+        """Cleans the fold metrics JSON and the individual JSON files for all patients."""
         # Fold metrics JSON
         if path_exists(self.results_fold_json):
             try:
@@ -352,9 +349,7 @@ class ConfigEval(ConfigBase):
                             logger.warning(f"⚠️ Could not delete {file}: {e}")
 
     def _clean_experiment_results(self) -> None:
-        """
-        Cleans the global experiment metrics JSON.
-        """
+        """Cleans the global experiment metrics JSON."""
         if path_exists(self.results_experiment_json):
             try:
                 self.results_experiment_json.unlink()
@@ -398,22 +393,17 @@ class ConfigEval(ConfigBase):
             )
             results_root_patient = self.results_fold_dir / patient_id
 
-            # gt_dir
-            if not path_exists(patient_gt_dir):  # Raises exception if not found
+            if not path_exists(patient_gt_dir):
                 raise FileNotFoundError(
                     f"Ground truth volume not found for patient {patient_id}: {patient_gt_dir}."
                 )
 
-            # pred_vol_dir
-            if not path_exists(
-                patient_pred_vol_dir
-            ):  # Raises exception if not found
+            if not path_exists(patient_pred_vol_dir):
                 raise FileNotFoundError(
                     f"Prediction not found for patient {patient_id}: {patient_pred_vol_dir}."
                 )
 
-            # results_root
-            create_directory(results_root_patient)  # Ensure output directory exists
+            create_directory(results_root_patient)
 
     def _verify_patient_paths(self) -> None:
         """Verifies input and output paths for an individual patient.
@@ -421,20 +411,17 @@ class ConfigEval(ConfigBase):
         Raises:
             FileNotFoundError: If the patient's GT or predicted volume does not exist.
         """
-        # patient_gt_vol
-        if not path_exists(self.patient_gt_vol):  # Raises exception if not found
+        if not path_exists(self.patient_gt_vol):
             raise FileNotFoundError(
                 f"GT not found for patient {self.patient.id}: {self.patient_gt_vol}."
             )
 
-        # patient_pred_vol
-        if not path_exists(self.patient_pred_vol):  # Raises exception if not found
+        if not path_exists(self.patient_pred_vol):
             raise FileNotFoundError(
                 f"Prediction not found for patient {self.patient.id}: {self.patient_pred_vol}."
             )
 
-        # patient_results_root
-        create_directory(self.patient_results_root)  # Ensure output directory exists
+        create_directory(self.patient_results_root)
 
     def _verify_experiment_paths(self) -> None:
         """Verifies that per-fold metrics JSON files exist for the experiment-level average.
@@ -463,7 +450,7 @@ class ConfigEval(ConfigBase):
 
         missing = [f for f in expected_folds if f not in found_folds]
 
-        if missing:  # Raises exception if any fold is missing
+        if missing:
             raise FileNotFoundError(
                 f"❌ Results JSON not found for the following folds: {missing}"
             )

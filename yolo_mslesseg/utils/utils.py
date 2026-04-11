@@ -470,7 +470,7 @@ def get_id(patient: str) -> int | float:
     match = re.search(r"P(\d+)", patient)
     return (
         int(match.group(1)) if match else float("inf")
-    )  # Returns a very large value if no number is found
+    )
 
 
 def list_patients(input_dir: str | Path) -> list[str]:
@@ -508,13 +508,11 @@ def compute_fold(patient_id: str, k_folds: int = 5) -> int:
         ValueError: If the patient ID cannot be assigned to any fold.
     """
 
-    # Convert patient ID to number
     number = int(patient_id[1:])
 
     # Only train-split patients (P1–P53) are used in CV mode
     all_ids = list(range(1, N_TRAIN_PATIENTS + 1))
 
-    # Split consecutively into k_folds
     folds = np.array_split(all_ids, k_folds)
 
     # Find which fold the patient belongs to

@@ -38,7 +38,6 @@ from yolo_mslesseg.utils.constants import (
 )
 from yolo_mslesseg.utils.utils import path_exists, list_patients, compute_fold
 
-# Configure logger
 logger = get_logger(__file__)
 
 
@@ -311,7 +310,7 @@ class ConfigConsensus(ConfigBase):
             # Volume per anatomical plane
             for plane in ANATOMICAL_PLANES:
                 vol_path = patient_root / f"{patient_id}_{plane}{EXT_NIFTI}"
-                if not path_exists(vol_path):  # Raises exception if not found
+                if not path_exists(vol_path):
                     raise FileNotFoundError(
                         f"Missing {plane} volume for patient {patient_id}: {vol_path}."
                     )
@@ -325,7 +324,7 @@ class ConfigConsensus(ConfigBase):
         # patient_pred_vols per anatomical plane
         for plane in ANATOMICAL_PLANES:
             vol_path = self.patient_vol_root / f"{self.patient.id}_{plane}{EXT_NIFTI}"
-            if not path_exists(vol_path):  # Raises exception if not found
+            if not path_exists(vol_path):
                 raise FileNotFoundError(
                     f"Missing predicted {plane} volume for patient {self.patient.id}: {vol_path}."
                 )
@@ -336,7 +335,7 @@ class ConfigConsensus(ConfigBase):
         Raises:
             FileNotFoundError: If the GT directory does not exist.
         """
-        if not path_exists(self.gt_dir):  # Raises exception if not found
+        if not path_exists(self.gt_dir):
             raise FileNotFoundError(f"GT directory not found: {self.gt_dir}")
 
     def verify_paths(self) -> None:

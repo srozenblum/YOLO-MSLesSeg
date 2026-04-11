@@ -351,7 +351,7 @@ def visualize_specific_slice(
     )
 
     if clean and path_exists(output_path):
-        logger.warning(f"♻️ Cleaning previous figure.")
+        logger.info(f"♻️ Cleaning previous figure.")
         output_path.unlink(missing_ok=True)
 
     generate_figure(

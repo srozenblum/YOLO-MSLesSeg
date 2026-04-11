@@ -42,7 +42,6 @@ from yolo_mslesseg.utils.utils import (
     compute_fold,
 )
 
-# Configure logger
 logger = get_logger(__file__)
 
 
@@ -345,14 +344,12 @@ class ConfigReconstruction(ConfigBase):
             patient_pred_masks_subdir = patient_dir_path / "pred_masks"
             patient_pred_vols_fold_dir = self.pred_vols_fold_dir / patient_id
 
-            # pred_masks_dir
             if not path_exists(patient_pred_masks_subdir):
                 raise FileNotFoundError(
                     f"pred_masks directory not found for patient {patient_id}: {patient_pred_masks_subdir}."
                 )
 
-            # pred_vols_fold_dir
-            create_directory(patient_pred_vols_fold_dir)  # Ensure output exists
+            create_directory(patient_pred_vols_fold_dir)
 
     def _verify_patient_paths(self) -> None:
         """Verifies input and output paths for an individual patient.
@@ -360,11 +357,11 @@ class ConfigReconstruction(ConfigBase):
         Raises:
             FileNotFoundError: If the patient's pred_masks directory does not exist.
         """
-        if not path_exists(self.patient_pred_masks):  # Raises exception if not found
+        if not path_exists(self.patient_pred_masks):
             raise FileNotFoundError(
                 f"pred_masks not found for patient: {self.patient_pred_masks}"
             )
-        create_directory(self.patient_vol_root)  # Ensure output exists
+        create_directory(self.patient_vol_root)
 
     def _verify_gt_paths(self) -> None:
         """Verifies that the ground truth directory exists.

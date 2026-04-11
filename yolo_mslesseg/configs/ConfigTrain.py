@@ -272,18 +272,15 @@ class ConfigTrain:
         Raises:
             FileNotFoundError: If the dataset base directory does not exist.
         """
-        # dataset_base_dir
-        if not path_exists(self.dataset_base_dir):  # Raises exception if not found
+        if not path_exists(self.dataset_base_dir):
             raise FileNotFoundError(
                 f"Dataset base directory not found: {self.dataset_base_dir}"
             )
 
-        # yaml_dir
         yaml_dir = self.yaml_path.parent
         create_directory(yaml_dir)
 
-        # train_output_dir
-        create_directory(self.train_output_dir)  # Ensure output directory exists
+        create_directory(self.train_output_dir)
 
     # ======================================
     #            REPRESENTATION

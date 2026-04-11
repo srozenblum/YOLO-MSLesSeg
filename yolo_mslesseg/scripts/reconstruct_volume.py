@@ -280,10 +280,8 @@ def process_patient_volume(patient_id: str, config: ConfigReconstruction, paths_
             )
             reconstruction_needed = True
         else:
-            # If valid, no reconstruction needed
             return StageResult.SKIPPED
     else:
-        # If the volume does not exist, reconstruct
         reconstruction_needed = True
 
     # Reconstruct and validate the result
