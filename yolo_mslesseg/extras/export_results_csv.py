@@ -168,7 +168,7 @@ def sort_dataframe(df: pd.DataFrame) -> None:
     Args:
         df: DataFrame to sort; must contain 'Plane' and 'Enhancement' columns.
     """
-    plane_order = ["Axial", "Coronal", "Sagital", "Consenso"]
+    plane_order = ["Axial", "Coronal", "Sagittal", "Consensus"]
     enhancement_order = ["Base", "HE", "CLAHE", "GC", "LT"]
 
     df["Plane"] = pd.Categorical(df["Plane"], categories=plane_order, ordered=True)
