@@ -435,7 +435,7 @@ def run_dataset_flow(config: ConfigDataset, clean: bool, verbose: bool = False) 
     elif processed_train is StageResult.PARTIAL or processed_test is StageResult.PARTIAL:
         logger.info("🔁 YOLO dataset partially updated.")
     else:
-        logger.warning("⚠️ Unknown status when extracting YOLO train/ dataset.")
+        logger.info("🔁 YOLO dataset partially updated.")
 
 
 # ======================================

@@ -340,6 +340,12 @@ def visualize_specific_slice(
         output_dir: Directory where the output figure will be saved.
         clean: If True, deletes the previous figure before generating a new one.
     """
+    str_enhancement = patient.enhancement if patient.enhancement is not None else "Base"
+    logger.info(
+        f"🖼️ Visualising slice {slice_num} for patient {patient.id} "
+        f"({str_enhancement}, {patient.plane})."
+    )
+
     img_array, pred_array, gt_array, dsc = load_and_process_slice(
         patient=patient, model=model, slice_num=slice_num
     )

@@ -208,6 +208,7 @@ def run_flow(model: Model, epochs: int) -> None:
     analyze_experiment(
         results_dir=RESULTS_DIR, global_config=global_config
     )
+    logger.info("✅ Analysis completed.")
 
 
 # ======================================

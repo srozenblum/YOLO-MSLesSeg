@@ -189,7 +189,7 @@ def run_train(model: Model, epochs: int, k_folds: int, train_flag: bool, clean: 
         if trained_model_exists(model, epochs, fold_test):
             logger.skip(f"⏩ Trained model for fold {fold_test} already exists.")
         else:
-            print(f"\n--- Fold {fold_test} ---\n")
+            logger.header(f"\n--- Fold {fold_test} ---")
             run_train_pipeline(
                 model=model,
                 fold_test=fold_test,
