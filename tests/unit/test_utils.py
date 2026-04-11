@@ -397,6 +397,7 @@ class TestGetPatientSlices:
 
     @pytest.fixture()
     def stub_model(self):
+        """CV model stub — only plane and k_folds are read before monkeypatching."""
         return Model(plane="axial", num_slices=50, modality=["FLAIR"], k_folds=5)
 
     def test_returns_sorted_slice_indices(self, monkeypatch, tmp_path, stub_patient, stub_model):

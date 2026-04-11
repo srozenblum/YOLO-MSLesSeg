@@ -18,7 +18,7 @@ class TestComputeAverages:
         with pytest.raises(ValueError):
             compute_averages({})
 
-    def test_single_metric_single_value_has_media_and_std_keys(self):
+    def test_single_metric_single_value_has_mean_and_std_keys(self):
         result = compute_averages({"DSC": [0.8]})
         assert "mean" in result["DSC"]
         assert "std" in result["DSC"]
@@ -26,9 +26,9 @@ class TestComputeAverages:
     def test_single_metric_multiple_values_correct_stats(self):
         values = [0.6, 0.7, 0.8]
         result = compute_averages({"DSC": values})
-        expected_media = float(np.round(np.mean(values), 3))
+        expected_mean = float(np.round(np.mean(values), 3))
         expected_std = float(np.round(np.std(values, ddof=1), 3))
-        assert result["DSC"]["mean"] == pytest.approx(expected_media, abs=1e-3)
+        assert result["DSC"]["mean"] == pytest.approx(expected_mean, abs=1e-3)
         assert result["DSC"]["std"] == pytest.approx(expected_std, abs=1e-3)
 
     def test_multiple_metrics_all_keys_present(self):
@@ -46,7 +46,7 @@ class TestComputeAverages:
 # ---------------------------------------------------------------------------
 
 class TestAggregateFoldMetrics:
-    def test_fold_format_appends_media_value(self, tmp_path):
+    def test_fold_format_appends_mean_value(self, tmp_path):
         f = tmp_path / "fold1.json"
         f.write_text(json.dumps({"DSC": {"mean": 0.8, "std": 0.05}}))
         total = {}
@@ -81,16 +81,16 @@ class TestAggregateFoldMetrics:
 # ---------------------------------------------------------------------------
 
 class TestComputeExperimentSummary:
-    def test_single_fold_single_metric_has_media_and_std_keys(self):
+    def test_single_fold_single_metric_has_mean_and_std_keys(self):
         result = compute_experiment_summary({"DSC": [0.8]})
         assert "mean" in result["DSC"]
         assert "std" in result["DSC"]
 
-    def test_two_folds_single_metric_media_is_mean(self):
+    def test_two_folds_single_metric_mean_is_correct(self):
         values = [0.6, 0.8]
         result = compute_experiment_summary({"DSC": values})
-        expected_media = float(np.round(np.mean(values), 3))
-        assert result["DSC"]["mean"] == pytest.approx(expected_media, abs=1e-3)
+        expected_mean = float(np.round(np.mean(values), 3))
+        assert result["DSC"]["mean"] == pytest.approx(expected_mean, abs=1e-3)
 
     def test_multiple_metrics_all_keys_present(self):
         fold_metrics = {"DSC": [0.8, 0.9], "AUC": [0.7, 0.75], "Precision": [0.6, 0.65], "Recall": [0.5, 0.55]}

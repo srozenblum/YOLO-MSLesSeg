@@ -85,7 +85,7 @@ class TestConfigReconstructionPaths:
 # ---------------------------------------------------------------------------
 
 class TestConfigConsensusPaths:
-    def test_cv_plane_is_consenso(self, model_cv):
+    def test_cv_plane_is_consensus(self, model_cv):
         cfg = ConfigConsensus(model=model_cv, epochs=50, fold_test=1)
         assert cfg.plane == "consensus"
 

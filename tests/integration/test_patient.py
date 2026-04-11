@@ -18,11 +18,13 @@ from yolo_mslesseg.utils.constants import SPLIT_TEST, SPLIT_TRAIN
 
 @pytest.fixture(scope="module")
 def patient_train():
+    """P1 — belongs to the train split."""
     return Patient(id="P1", plane="axial", modality=["FLAIR"])
 
 
 @pytest.fixture(scope="module")
 def patient_test():
+    """P54 — belongs to the test split."""
     return Patient(id="P54", plane="axial", modality=["FLAIR"])
 
 
@@ -150,7 +152,7 @@ def test_plane_index_sagittal_maps_to_x_axis():
     assert p.plane_index(2) == (2, slice(None), slice(None))
 
 
-def test_plane_index_consenso_raises():
+def test_plane_index_consensus_raises():
     p = Patient(id="P1", plane="consensus", modality=["FLAIR"])
     with pytest.raises(ValueError):
         p.plane_index(0)
@@ -163,11 +165,13 @@ def test_plane_index_consenso_raises():
 
 @pytest.fixture(scope="module")
 def patient_coronal():
+    """P1 loaded with the coronal plane."""
     return Patient(id="P1", plane="coronal", modality=["FLAIR"])
 
 
 @pytest.fixture(scope="module")
 def patient_sagittal():
+    """P1 loaded with the sagittal plane."""
     return Patient(id="P1", plane="sagittal", modality=["FLAIR"])
 
 

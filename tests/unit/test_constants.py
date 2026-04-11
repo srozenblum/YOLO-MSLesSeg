@@ -18,11 +18,11 @@ def test_anatomical_planes_subset_of_planes():
     assert all(p in PLANES for p in ANATOMICAL_PLANES)
 
 
-def test_consenso_not_in_anatomical_planes():
+def test_consensus_not_in_anatomical_planes():
     assert "consensus" not in ANATOMICAL_PLANES
 
 
-def test_consenso_in_planes():
+def test_consensus_in_planes():
     assert "consensus" in PLANES
 
 

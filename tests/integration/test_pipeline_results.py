@@ -75,7 +75,7 @@ class TestPredictedVolumesOnDisk:
     def test_p1_fold1_sagittal_volume_exists(self):
         assert (PRED_VOLS_FOLD1_P1 / "P1_sagittal.nii.gz").exists()
 
-    def test_p1_fold1_consenso_volume_exists(self):
+    def test_p1_fold1_consensus_volume_exists(self):
         assert (PRED_VOLS_FOLD1_P1 / "P1_consensus.nii.gz").exists()
 
     def test_predicted_volumes_complete_for_p1_fold1(self):
@@ -99,14 +99,14 @@ class TestFoldMetricsOnDisk:
     def test_global_sagittal_results_json_exists(self):
         assert (RESULTS_BASE_DIR / "global_sagittal_results.json").exists()
 
-    def test_global_consenso_results_json_exists(self):
+    def test_global_consensus_results_json_exists(self):
         assert (RESULTS_BASE_DIR / "global_consensus_results.json").exists()
 
     def test_global_axial_results_has_expected_metric_keys(self):
         data = read_json(RESULTS_BASE_DIR / "global_axial_results.json")
         assert set(data.keys()) == {"DSC", "AUC", "Precision", "Recall"}
 
-    def test_global_axial_dsc_has_media_and_std(self):
+    def test_global_axial_dsc_has_mean_and_std(self):
         data = read_json(RESULTS_BASE_DIR / "global_axial_results.json")
         assert "mean" in data["DSC"]
         assert "std" in data["DSC"]
@@ -123,6 +123,7 @@ _GT_VOL = Path("GT/train/P1/P1_MASK.nii.gz")
 class TestComputeMetricsWithRealData:
     @pytest.fixture(scope="class")
     def metrics(self):
+        """Computed metrics for P1 fold1 axial predicted vs ground truth volume."""
         return compute_metrics(gt_vol_path=_GT_VOL, pred_vol_path=_PRED_VOL)
 
     def test_returns_non_empty_dict(self, metrics):

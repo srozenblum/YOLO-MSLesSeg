@@ -28,7 +28,12 @@ def sample_image() -> np.ndarray:
 # ---------------------------------------------------------------------------
 
 def _assert_output_contract(output: np.ndarray, input_image: np.ndarray) -> None:
-    """Assert spatial dims match, dtype is uint8, and values are in [0, 255]."""
+    """Assert spatial dims match, dtype is uint8, and values are in [0, 255].
+
+    Args:
+        output: Enhanced image array produced by an algorithm.
+        input_image: Original input image passed to the algorithm.
+    """
     # All algorithms convert greyscale → BGR, so output is (H, W, 3).
     assert output.shape[:2] == input_image.shape[:2]
     assert output.dtype == np.uint8
