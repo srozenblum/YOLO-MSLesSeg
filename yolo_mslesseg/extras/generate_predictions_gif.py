@@ -36,8 +36,8 @@ from matplotlib.colors import ListedColormap
 
 from yolo_mslesseg.utils.Model import Model
 from yolo_mslesseg.utils.Patient import Patient
-from yolo_mslesseg.utils.logging_config import get_logger
 from yolo_mslesseg.utils.constants import VISUALIZATIONS_DIR
+from yolo_mslesseg.utils.logging_config import get_logger
 from yolo_mslesseg.utils.utils import (
     int_or_percentile,
     compute_fold,
@@ -76,7 +76,9 @@ def normalize_img_global(img_array: np.ndarray, vmin: float, vmax: float) -> np.
     return (img_array - vmin) / (denom + 1e-8)
 
 
-def load_slice_series(patient: Patient, model: Model) -> tuple[list[tuple[int, np.ndarray]], list[np.ndarray], list[np.ndarray]]:
+def load_slice_series(
+    patient: Patient, model: Model
+) -> tuple[list[tuple[int, np.ndarray]], list[np.ndarray], list[np.ndarray]]:
     """Loads and validates all available slices of a patient for the given model.
 
     Args:
@@ -94,9 +96,7 @@ def load_slice_series(patient: Patient, model: Model) -> tuple[list[tuple[int, n
     slices = get_patient_slices(patient, model)
 
     if not slices:
-        raise RuntimeError(
-            f"No PNG slices found for patient {patient.id}."
-        )
+        raise RuntimeError(f"No PNG slices found for patient {patient.id}.")
 
     images, preds, gts = [], [], []
 
@@ -327,9 +327,7 @@ def generate_gif(patient: Patient, model: Model, output_path: Path) -> None:
     )
 
     if not frames:
-        raise RuntimeError(
-            f"Could not generate frames for patient {patient.id}."
-        )
+        raise RuntimeError(f"Could not generate frames for patient {patient.id}.")
 
     # Set duration
     fps = max(3, min(12, len(frames) // 4))
