@@ -392,7 +392,7 @@ def process_gt_directory(dataset_root: Path, gt_root: Path) -> None:
 # ======================================
 
 
-def run_flow(url: str, clean: bool, verbose: bool = False) -> None:
+def run_setup_flow(url: str, clean: bool, verbose: bool = False) -> None:
     """Executes the main setup flow: downloads the dataset and generates the GT/ directory.
 
     Args:
@@ -462,7 +462,7 @@ def main() -> None:
     """CLI entry point: parses arguments and executes the full setup flow."""
     args = parse_args()
 
-    run_flow(
+    run_setup_flow(
         url="https://springernature.figshare.com/ndownloader/files/52771814",
         clean=args.clean,
         verbose=True,
@@ -475,7 +475,7 @@ def run_setup_pipeline(clean: bool = False) -> None:
     Args:
         clean: If True, deletes the existing GT/ directory before running.
     """
-    run_flow(
+    run_setup_flow(
         url="https://springernature.figshare.com/ndownloader/files/52771814",
         clean=clean,
     )

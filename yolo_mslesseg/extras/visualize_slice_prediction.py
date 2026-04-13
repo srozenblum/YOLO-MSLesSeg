@@ -237,7 +237,7 @@ def generate_figure(
             color="white",
             fontsize=38,
             fontweight="bold",
-            fontname="Arial",
+            family="Arial",
         )
 
     # Slice number
@@ -251,7 +251,7 @@ def generate_figure(
         color="white",
         fontsize=18,
         fontweight="bold",
-        fontname="Arial",
+        family="Arial",
     )
 
     # Legend
@@ -377,7 +377,7 @@ def visualize_specific_slice(
 # ======================================
 
 
-def run_flow(
+def run_visualization_flow(
     patient: Patient,
     model: Model,
     epochs: int,
@@ -566,7 +566,7 @@ def main(argv: list[str] | None = None) -> None:
         enhancement=model.enhancement,
     )
 
-    run_flow(
+    run_visualization_flow(
         patient=patient,
         model=model,
         epochs=args.epochs,

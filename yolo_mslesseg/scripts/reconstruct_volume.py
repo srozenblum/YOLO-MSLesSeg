@@ -338,10 +338,10 @@ def reconstruct_volumes_for_patients(input_dir: Path, config: ConfigReconstructi
     for patient_id in patients:
         patient_paths = build_paths(patient_id, config)
         try:
-            reconstructed = process_patient_volume(
+            result = process_patient_volume(
                 patient_id=patient_id, config=config, paths_dir=patient_paths
             )
-            results.append(reconstructed)
+            results.append(result)
         except Exception as e:
             logger.warning(
                 f"⚠️ Error reconstructing volumes for {patient_id}, skipping: {e}.",

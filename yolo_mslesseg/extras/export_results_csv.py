@@ -240,7 +240,7 @@ def compose_results(global_config: str) -> pd.DataFrame | None:
 # ======================================
 
 
-def run_flow(model: Model, epochs: int, clean: bool) -> None:
+def run_export_flow(model: Model, epochs: int, clean: bool) -> None:
     """Executes the results composition flow.
 
     Args:
@@ -343,7 +343,7 @@ def main() -> None:
         enhancement=args.enhancement,
     )
 
-    run_flow(
+    run_export_flow(
         model=model,
         epochs=args.epochs,
         clean=args.clean,

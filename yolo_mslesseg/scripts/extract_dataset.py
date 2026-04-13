@@ -348,10 +348,9 @@ def run_dataset_flow(config: ConfigDataset, clean: bool, verbose: bool = False) 
         verbose: If True, logs a header message at the start of execution.
     """
     if verbose:
-        str_full = "full patient set"
-        str_patient = f"patient {config.patient}"
+        str_header = f"patient {config.patient}" if config.is_individual_patient else "full patient set"
         logger.header(
-            f"\n🧩 Preparing YOLO dataset for the {str_patient if config.is_individual_patient else str_full}."
+            f"\n🧩 Preparing YOLO dataset for the {str_header}."
         )
 
     if clean:

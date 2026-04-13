@@ -347,7 +347,7 @@ def generate_gif(patient: Patient, model: Model, output_path: Path) -> None:
 # ======================================
 
 
-def run_flow(patient: Patient, model: Model, epochs: int, clean: bool) -> None:
+def run_gif_flow(patient: Patient, model: Model, epochs: int, clean: bool) -> None:
     """Generates the full GIF combining all slices of the patient.
 
     Args:
@@ -523,7 +523,7 @@ def main(argv: list[str] | None = None) -> None:
         enhancement=model.enhancement,
     )
 
-    run_flow(
+    run_gif_flow(
         patient=patient,
         model=model,
         epochs=args.epochs,

@@ -194,7 +194,7 @@ def analyze_experiment(results_dir: Path, global_config: str) -> None:
 # ======================================
 
 
-def run_flow(model: Model, epochs: int) -> None:
+def run_ranking_flow(model: Model, epochs: int) -> None:
     """Executes the full patient analysis flow.
 
     Args:
@@ -285,7 +285,7 @@ def main() -> None:
         enhancement=args.enhancement,
     )
 
-    run_flow(model=model, epochs=args.epochs)
+    run_ranking_flow(model=model, epochs=args.epochs)
 
 
 if __name__ == "__main__":

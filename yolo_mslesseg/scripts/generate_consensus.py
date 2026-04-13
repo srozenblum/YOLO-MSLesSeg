@@ -202,13 +202,13 @@ def generate_consensus_for_patients(input_dir: Path, config: ConfigConsensus) ->
     results = []
 
     for patient_id in patients:
-        patient_paths_dir = build_paths(patient_id, config)
+        paths_dir = build_paths(patient_id, config)
         try:
-            consensus_result = process_patient_consensus(
+            result = process_patient_consensus(
                 config=config,
-                paths_dir=patient_paths_dir,
+                paths_dir=paths_dir,
             )
-            results.append(consensus_result)
+            results.append(result)
         except Exception as e:
             logger.warning(
                 f"⚠️ Error generating consensus for {patient_id}, skipping: {e}."

@@ -158,9 +158,9 @@ class CLAHE(Algorithm):
         l_clahe = clahe.apply(l)
 
         img_merge = cv2.merge((l_clahe, a, b))
-        image = cv2.cvtColor(img_merge, cv2.COLOR_LAB2BGR)
+        img_result = cv2.cvtColor(img_merge, cv2.COLOR_LAB2BGR)
 
-        return image
+        return img_result
 
 
 class GC(Algorithm):

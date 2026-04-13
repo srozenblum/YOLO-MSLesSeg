@@ -403,7 +403,7 @@ def train_fold(config: ConfigTrain) -> None:
     Args:
         config: ConfigTrain instance providing training parameters and paths.
     """
-    model_yolo = load_model(config.weights_path)
+    yolo_model = load_model(config.weights_path)
 
     common_kwargs = dict(
         data=config.yaml_path,
@@ -416,13 +416,13 @@ def train_fold(config: ConfigTrain) -> None:
     )
 
     if config.single_fold:
-        model_yolo.train(
+        yolo_model.train(
             **common_kwargs,
             name=".",
             exist_ok=True,
         )
     else:
-        model_yolo.train(
+        yolo_model.train(
             **common_kwargs,
             name=f"fold{config.fold_test}",
         )

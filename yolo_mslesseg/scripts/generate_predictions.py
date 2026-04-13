@@ -351,15 +351,15 @@ def generate_predictions_for_patients(input_dir: Path, config: ConfigPred) -> St
     results = []
 
     for patient_id in tqdm(patients, desc=f"Patients {input_dir.name}", unit="pat"):
-        patient_paths_dir = build_paths(patient_id, config)
+        paths_dir = build_paths(patient_id, config)
         try:
-            pred_result = process_patient_predictions(
+            result = process_patient_predictions(
                 patient_id=patient_id,
                 config=config,
-                paths_dir=patient_paths_dir,
+                paths_dir=paths_dir,
                 yolo_model=yolo_model,
             )
-            results.append(pred_result)
+            results.append(result)
         except Exception as e:
             logger.warning(
                 f"⚠️ Error generating predictions for {patient_id}, skipping: {e}."

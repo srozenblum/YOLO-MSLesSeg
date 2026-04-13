@@ -185,14 +185,14 @@ def run_train(model: Model, epochs: int, k_folds: int, train_flag: bool, clean: 
     # =========================
     # 3) FULL MODE (k_folds > 1)
     # =========================
-    for fold_test in range(1, k_folds + 1):
-        if trained_model_exists(model, epochs, fold_test):
-            logger.skip(f"⏩ Trained model for fold {fold_test} already exists.")
+    for fold in range(1, k_folds + 1):
+        if trained_model_exists(model, epochs, fold):
+            logger.skip(f"⏩ Trained model for fold {fold} already exists.")
         else:
-            logger.header(f"\n--- Fold {fold_test} ---")
+            logger.header(f"\n--- Fold {fold} ---")
             run_train_pipeline(
                 model=model,
-                fold_test=fold_test,
+                fold_test=fold,
                 epochs=epochs,
                 clean=clean,
             )
@@ -552,22 +552,22 @@ def run_pipeline(
         clean: If True, deletes existing intermediate files before each stage.
     """
     if model.enhancement == "GC":
-        enhancement_str = f"GC (γ={model.gamma})"
+        str_enhancement = f"GC (γ={model.gamma})"
     elif model.enhancement:
-        enhancement_str = model.enhancement
+        str_enhancement = model.enhancement
     else:
-        enhancement_str = "None"
+        str_enhancement = "None"
 
     if patient is not None:
         logger.header(
             f"\n🚀 Starting individual pipeline · Patient: {patient.id}\n"
-            f"   Plane: {model.plane} · Modality: {model.modality_str} · Enhancement: {enhancement_str}\n"
+            f"   Plane: {model.plane} · Modality: {model.modality_str} · Enhancement: {str_enhancement}\n"
             f"   Slices: {model.num_slices} · Folds: {model.k_folds} · Epochs: {epochs}"
         )
     else:
         logger.header(
             f"\n🚀 Starting full pipeline\n"
-            f"   Plane: {model.plane} · Modality: {model.modality_str} · Enhancement: {enhancement_str}\n"
+            f"   Plane: {model.plane} · Modality: {model.modality_str} · Enhancement: {str_enhancement}\n"
             f"   Slices: {model.num_slices} · Folds: {model.k_folds} · Epochs: {epochs}"
         )
 
