@@ -28,6 +28,8 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 import cv2
+
+from yolo_mslesseg.utils.constants import DEFAULT_GAMMA
 import numpy as np
 
 from yolo_mslesseg.utils.utils import convert_to_bgr
@@ -175,11 +177,11 @@ class GC(Algorithm):
         gamma (float): gamma correction factor (default 2.0).
     """
 
-    def __init__(self, gamma: float = 2.0) -> None:
+    def __init__(self, gamma: float = DEFAULT_GAMMA) -> None:
         """Initialises GC with a configurable gamma correction factor.
 
         Args:
-            gamma: Gamma correction exponent applied to pixel intensities. Defaults to 2.0.
+            gamma: Gamma correction exponent applied to pixel intensities. Defaults to DEFAULT_GAMMA.
         """
         super().__init__()
         self.gamma = gamma

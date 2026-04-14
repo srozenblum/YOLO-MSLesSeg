@@ -35,6 +35,7 @@ from yolo_mslesseg.utils.constants import (
     PLANES,
     EXT_NIFTI,
     MASK_SUFFIX,
+    PLANE_CONSENSUS,
 )
 from yolo_mslesseg.utils.utils import path_exists, list_patients, compute_fold
 
@@ -139,7 +140,7 @@ class ConfigConsensus(ConfigBase):
         )
 
         # Override: consensus stage always uses the 'consensus' plane label
-        self.plane = "consensus"
+        self.plane = PLANE_CONSENSUS
 
         # GT directory (depends on single_fold, already initialised in base)
         self.gt_dir = GT_DIR / (SPLIT_TEST if self.single_fold else SPLIT_TRAIN)
@@ -179,17 +180,17 @@ class ConfigConsensus(ConfigBase):
         if self.is_individual_patient:
             if self.single_fold:
                 # In single-fold mode, the patient must belong to 'test'
-                if getattr(self.patient, "split", None) != "test":
+                if getattr(self.patient, "split", None) != SPLIT_TEST:
                     raise ValueError(
                         f"Cannot generate consensus for patient {self.patient.id} with k_folds == 1 "
                         "if they belong to 'train'. The model was trained on that subset."
                     )
-                self.group = "test"
+                self.group = SPLIT_TEST
                 self.fold_test = None
                 return
 
             # Test patient → not valid in CV mode
-            if getattr(self.patient, "split", None) == "test":
+            if getattr(self.patient, "split", None) == SPLIT_TEST:
                 raise ValueError(
                     f"Patient {self.patient.id} belongs to 'test'. "
                     "With k_folds > 1, only patients from the 'train' split (P1-P53) are allowed."
@@ -205,7 +206,7 @@ class ConfigConsensus(ConfigBase):
             return
 
         if self.is_group:
-            self.group = "test"
+            self.group = SPLIT_TEST
             self.fold_test = None
             return
 
@@ -259,7 +260,7 @@ class ConfigConsensus(ConfigBase):
 
                 # Delete only consensus NIfTI files
                 for file in patient_dir.iterdir():
-                    if "consensus" in file.name.lower() and file.name.endswith(
+                    if PLANE_CONSENSUS in file.name.lower() and file.name.endswith(
                         f"{EXT_NIFTI}"
                     ):
                         try:
@@ -269,7 +270,7 @@ class ConfigConsensus(ConfigBase):
 
     def _clean_patient_consensus_volume(self) -> None:
         """Cleans the consensus NIfTI file for an individual patient."""
-        consensus_path = self.patient_pred_vols["consensus"]
+        consensus_path = self.patient_pred_vols[PLANE_CONSENSUS]
         if path_exists(consensus_path):
             try:
                 consensus_path.unlink()

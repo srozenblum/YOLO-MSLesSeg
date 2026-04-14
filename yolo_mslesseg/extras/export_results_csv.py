@@ -45,7 +45,7 @@ import pandas as pd
 
 from yolo_mslesseg.utils.Model import Model
 from yolo_mslesseg.utils.logging_config import get_logger
-from yolo_mslesseg.utils.constants import EXT_JSON, PLANES, RESULTS_DIR, EXT_CSV, ENHANCEMENTS
+from yolo_mslesseg.utils.constants import EXT_JSON, PLANES, RESULTS_DIR, EXT_CSV, ENHANCEMENTS, ENHANCEMENT_BASE
 from yolo_mslesseg.utils.utils import (
     read_json,
     path_exists,
@@ -98,7 +98,7 @@ def parse_experiment(filepath: Path) -> tuple[str, str]:
 
     for parent in filepath.parents:
         name = parent.name.upper()
-        if name in {e.upper() for e in ENHANCEMENTS} | {"BASE"}:
+        if name in {e.upper() for e in ENHANCEMENTS} | {ENHANCEMENT_BASE.upper()}:
             return plane, name
 
     raise ValueError(f"Could not infer enhancement from path: {filepath}")
@@ -169,7 +169,7 @@ def sort_dataframe(df: pd.DataFrame) -> None:
         df: DataFrame to sort; must contain 'Plane' and 'Enhancement' columns.
     """
     plane_order = ["Axial", "Coronal", "Sagittal", "Consensus"]
-    enhancement_order = ["Base", "HE", "CLAHE", "GC", "LT"]
+    enhancement_order = [ENHANCEMENT_BASE, "HE", "CLAHE", "GC", "LT"]
 
     df["Plane"] = pd.Categorical(df["Plane"], categories=plane_order, ordered=True)
     df["Enhancement"] = pd.Categorical(df["Enhancement"], categories=enhancement_order, ordered=True)
@@ -227,7 +227,7 @@ def compose_results(global_config: str) -> pd.DataFrame | None:
 
     df = pd.DataFrame(rows)
     sort_dataframe(df)
-    df["Enhancement"] = df["Enhancement"].replace("CONTROL", "Base").fillna("Base")
+    df["Enhancement"] = df["Enhancement"].replace("CONTROL", ENHANCEMENT_BASE).fillna(ENHANCEMENT_BASE)
 
     df.to_csv(output_path, index=False)
     logger.info(f"✅ Summary exported to {output_path}")

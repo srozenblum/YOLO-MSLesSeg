@@ -30,6 +30,7 @@ from yolo_mslesseg.utils.constants import (
     SPLIT_TRAIN,
     TRAINS_DIR,
     WEIGHTS_FILE,
+    WEIGHTS_SUBDIR,
     EXT_YAML,
     SPLIT_TEST,
 )
@@ -222,17 +223,17 @@ class ConfigTrain:
                 / "yaml_files"
                 / f"dataset_{self.model.model_string}{EXT_YAML}"
             )
-            self.model_path = self.train_output_dir / "weights" / WEIGHTS_FILE
+            self.model_path = self.train_output_dir / WEIGHTS_SUBDIR / WEIGHTS_FILE
         else:
             self.yaml_path = (
-                Path("datasets")
+                DATASETS_DIR
                 / "yaml_files"
                 / f"dataset_{self.model.model_string}_fold{self.fold_test}{EXT_YAML}"
             )
             self.model_path = (
                 self.train_output_dir
                 / f"fold{self.fold_test}"
-                / "weights"
+                / WEIGHTS_SUBDIR
                 / WEIGHTS_FILE
             )
 

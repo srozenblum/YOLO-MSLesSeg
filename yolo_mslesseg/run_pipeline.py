@@ -68,7 +68,7 @@ from yolo_mslesseg.scripts.train import run_train_pipeline
 from yolo_mslesseg.utils.Model import Model
 from yolo_mslesseg.utils.Patient import Patient
 from yolo_mslesseg.utils.logging_config import configure_logging, get_logger
-from yolo_mslesseg.utils.constants import ENHANCEMENTS, SPLIT_TEST, SPLIT_TRAIN, PRED_VOLS_DIR
+from yolo_mslesseg.utils.constants import ENHANCEMENTS, SPLIT_TEST, SPLIT_TRAIN, PRED_VOLS_DIR, PLANE_CONSENSUS, DEFAULT_GAMMA
 from yolo_mslesseg.utils.utils import (
     int_or_percentile,
     predicted_volumes_complete,
@@ -377,7 +377,7 @@ def run_consensus(
         pred_vols_root = (
             PRED_VOLS_DIR
             / f"{model.base_path}_{epochs}epochs"
-            / ("test" if k_folds == 1 else f"fold{compute_fold(patient.id, k_folds)}")
+            / (SPLIT_TEST if k_folds == 1 else f"fold{compute_fold(patient.id, k_folds)}")
             / patient.id
         ).resolve()
 
@@ -397,7 +397,7 @@ def run_consensus(
         logger.header("\n📈 Computing metrics (consensus)")
         run_eval_pipeline(
             model=model,
-            plane="consensus",
+            plane=PLANE_CONSENSUS,
             epochs=epochs,
             patient=patient,
             clean=clean,
@@ -428,7 +428,7 @@ def run_consensus(
         logger.header("\n📈 Computing metrics (consensus)")
         run_eval_pipeline(
             model=model,
-            plane="consensus",
+            plane=PLANE_CONSENSUS,
             epochs=epochs,
             fold_test=None,
             clean=clean,
@@ -467,7 +467,7 @@ def run_consensus(
     for fold in valid_folds:
         run_eval_pipeline(
             model=model,
-            plane="consensus",
+            plane=PLANE_CONSENSUS,
             epochs=epochs,
             fold_test=fold,
             clean=clean,
@@ -516,7 +516,7 @@ def run_average_folds(
         logger.header(f"\n🧮 Averaging folds (consensus)")
         run_average_folds_pipeline(
             model=model,
-            plane="consensus",
+            plane=PLANE_CONSENSUS,
             epochs=epochs,
             clean=clean,
         )
@@ -686,9 +686,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--gamma",
         type=float,
-        default=2.0,
+        default=DEFAULT_GAMMA,
         metavar="<gamma>",
-        help="Gamma correction factor. Only applies when --enhancement is GC. Defaults to 2.0.",
+        help="Gamma correction factor. Only applies when --enhancement is GC. Defaults to DEFAULT_GAMMA.",
     )
     parser.add_argument(
         "--clean",

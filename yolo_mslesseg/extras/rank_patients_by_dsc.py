@@ -33,7 +33,7 @@ from pathlib import Path
 
 from yolo_mslesseg.utils.Model import Model
 from yolo_mslesseg.utils.logging_config import get_logger
-from yolo_mslesseg.utils.constants import ANATOMICAL_PLANES, EXT_JSON, RESULTS_DIR
+from yolo_mslesseg.utils.constants import ANATOMICAL_PLANES, EXT_JSON, RESULTS_DIR, SPLIT_TEST, PLANE_CONSENSUS
 from yolo_mslesseg.utils.utils import (
     path_exists,
     read_json,
@@ -61,7 +61,7 @@ def extract_plane_from_json(json_path: Path) -> str | None:
     stem = json_path.stem  # e.g. "P1_axial_results"
 
     # Skip consensus
-    if "consensus" in stem:
+    if PLANE_CONSENSUS in stem:
         return None
 
     for plane in ANATOMICAL_PLANES:
@@ -154,7 +154,7 @@ def analyze_experiment(results_dir: Path, global_config: str) -> None:
                 continue
 
             # Accept foldX or test
-            if not (group_dir.name.startswith("fold") or group_dir.name == "test"):
+            if not (group_dir.name.startswith("fold") or group_dir.name == SPLIT_TEST):
                 continue
 
             # Patients

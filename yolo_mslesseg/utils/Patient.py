@@ -38,6 +38,8 @@ from yolo_mslesseg.utils.constants import (
     SPLIT_TEST,
     EXT_NIFTI,
     MASK_SUFFIX,
+    DEFAULT_GAMMA,
+    PLANE_CONSENSUS,
 )
 from yolo_mslesseg.utils.image_enhancement import get_algorithm
 from yolo_mslesseg.utils.utils import normalize_to_uint8, path_exists
@@ -116,7 +118,7 @@ class Patient:
         timepoint: str = "T1",
         modality: list[str] | None = None,
         enhancement: str | None = None,
-        gamma: float = 2.0,
+        gamma: float = DEFAULT_GAMMA,
         gt_mask: np.ndarray | None = None,
     ) -> None:
         """Initialises a Patient instance for the given MRI configuration.
@@ -128,7 +130,7 @@ class Patient:
             modality: List of MRI modalities to use. Defaults to all modalities.
             enhancement: Enhancement algorithm name, or None for no enhancement.
             gamma: Gamma correction factor forwarded to GC when enhancement is 'GC'.
-                Defaults to 2.0.
+                Defaults to DEFAULT_GAMMA.
             gt_mask: Pre-loaded ground truth mask array. Loaded lazily if None.
 
         Raises:
@@ -465,7 +467,7 @@ class Patient:
             ValueError: If the current plane is 'consensus', which does not
                 support index extraction.
         """
-        if self.plane == "consensus":
+        if self.plane == PLANE_CONSENSUS:
             raise ValueError(
                 "'consensus' is not an anatomical plane and does not support index extraction."
             )

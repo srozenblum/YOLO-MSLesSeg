@@ -223,7 +223,7 @@ class ConfigEval(ConfigBase):
             self.fold_test = None
 
             if self.is_individual_patient:
-                if getattr(self.patient, "split", None) != "test":
+                if getattr(self.patient, "split", None) != SPLIT_TEST:
                     raise ValueError(
                         f"Cannot evaluate patient {self.patient.id} with k_folds == 1 "
                         "if they belong to 'train'. The model was trained on that subset."
@@ -236,7 +236,7 @@ class ConfigEval(ConfigBase):
 
         if self.is_individual_patient:
             # Test patient → not valid in CV mode
-            if getattr(self.patient, "split", None) == "test":
+            if getattr(self.patient, "split", None) == SPLIT_TEST:
                 raise ValueError(
                     f"Patient {self.patient.id} belongs to 'test'. "
                     "With k_folds > 1, only patients from the 'train' split (P1-P53) are allowed."

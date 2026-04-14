@@ -197,7 +197,7 @@ class ConfigReconstruction(ConfigBase):
             if self.single_fold:
                 self.group = self.patient.split
 
-                if self.group == "train":
+                if self.group == SPLIT_TRAIN:
                     raise ValueError(
                         f"Patient {self.patient.id} belongs to 'train'. "
                         "With k_folds == 1, individual reconstruction is only allowed "
@@ -208,7 +208,7 @@ class ConfigReconstruction(ConfigBase):
                 return
 
             # Test patient → not valid in CV mode
-            if getattr(self.patient, "split", None) == "test":
+            if getattr(self.patient, "split", None) == SPLIT_TEST:
                 raise ValueError(
                     f"Patient {self.patient.id} belongs to 'test'. "
                     "With k_folds > 1, only patients from the 'train' split (P1-P53) are allowed."

@@ -220,16 +220,16 @@ class ConfigDataset:
                 # Cross-validation:
                 # - Train patients → assigned to their corresponding fold
                 # - Test patients  → do not belong to any fold
-                if self.patient.split == "train":
+                if self.patient.split == SPLIT_TRAIN:
                     self.patient_fold = compute_fold(
                         patient_id=self.patient.id,
                         k_folds=self.k_folds,
                     )
                     self.input_dir = self.mslesseg_train_dir
                 else:
-                    self.patient_group = "test"
+                    self.patient_group = SPLIT_TEST
                     self.input_dir = self.mslesseg_test_dir
-                self.patient_is_train: bool = self.patient.split == "train"
+                self.patient_is_train: bool = self.patient.split == SPLIT_TRAIN
 
             else:
                 # k_folds == 1:
@@ -272,7 +272,7 @@ class ConfigDataset:
                 )
             else:
                 self.patient_root = (
-                    self.output_dir / "test" / self.patient.id / self.plane
+                    self.output_dir / SPLIT_TEST / self.patient.id / self.plane
                 )
 
         # --- k_folds == 1 ---
@@ -294,7 +294,7 @@ class ConfigDataset:
     #               INPUTS
     # ======================================
 
-    def get_input_dir(self, group: str = "train") -> Path:
+    def get_input_dir(self, group: str = SPLIT_TRAIN) -> Path:
         """Returns the MSLesSeg input directory for the given group.
 
         When k_folds > 1, always returns the train directory (the group
@@ -313,9 +313,9 @@ class ConfigDataset:
         if self.k_folds > 1:
             return self.mslesseg_train_dir
 
-        if group == "train":
+        if group == SPLIT_TRAIN:
             return self.mslesseg_train_dir
-        if group == "test":
+        if group == SPLIT_TEST:
             return self.mslesseg_test_dir
 
         raise ValueError("group must be 'train' or 'test'.")
@@ -366,7 +366,7 @@ class ConfigDataset:
                 if fold_dir.is_dir() and fold_dir.name.lower().startswith("fold"):
                     self._clean_patients_root(fold_dir)
         else:
-            for group in ["train", "test"]:
+            for group in [SPLIT_TRAIN, SPLIT_TEST]:
                 group_dir = self.output_dir / group
                 if path_exists(group_dir):
                     self._clean_patients_root(group_dir)
@@ -455,12 +455,12 @@ class ConfigDataset:
         else:
             # train
             train_patients = list_patients(self.mslesseg_train_dir)
-            self._create_output_structure(train_patients, self.output_dir / "train")
+            self._create_output_structure(train_patients, self.output_dir / SPLIT_TRAIN)
 
             # test (optional: only created if the test split exists in the dataset)
             if self.mslesseg_test_dir.is_dir():
                 test_patients = list_patients(self.mslesseg_test_dir)
-                self._create_output_structure(test_patients, self.output_dir / "test")
+                self._create_output_structure(test_patients, self.output_dir / SPLIT_TEST)
 
     def _verify_patient_paths(self) -> None:
         """Verifies input and output paths for an individual patient.

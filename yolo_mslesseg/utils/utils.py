@@ -82,7 +82,11 @@ from yolo_mslesseg.utils.constants import (
     EXT_NIFTI,
     WEIGHTS_FILE,
     DATASETS_DIR,
+    TRAINS_DIR,
     N_TRAIN_PATIENTS,
+    SPLIT_TEST,
+    WEIGHTS_SUBDIR,
+    METRIC_DECIMAL_PLACES,
     StageResult,
 )
 from yolo_mslesseg.utils.logging_config import get_logger
@@ -196,7 +200,7 @@ def patient_base_dir(patient: "Patient", model: "Model") -> Path:
     # k_folds == 1 → group (test/train)
     group = patient.split
 
-    if patient.split != "test":
+    if patient.split != SPLIT_TEST:
         raise ValueError(
             f"Patient {patient_id} belongs to 'train'. "
             "With k_folds == 1, only visualizations for 'test' patients are allowed."
@@ -406,14 +410,14 @@ def trained_model_exists(model: "Model", epochs: int, fold_test: int | None) -> 
     Returns:
         True if the weights file exists and has a non-zero size, False otherwise.
     """
-    train_base = Path("trains") / f"{model.base_path}_{epochs}epochs" / model.plane
+    train_base = TRAINS_DIR / f"{model.base_path}_{epochs}epochs" / model.plane
 
     if fold_test is None:
         # k_folds == 1: flat structure without fold subdirectory
-        model_path = train_base / "weights" / WEIGHTS_FILE
+        model_path = train_base / WEIGHTS_SUBDIR / WEIGHTS_FILE
     else:
         # k_folds > 1: structure with fold subdirectory
-        model_path = train_base / f"fold{fold_test}" / "weights" / WEIGHTS_FILE
+        model_path = train_base / f"fold{fold_test}" / WEIGHTS_SUBDIR / WEIGHTS_FILE
 
     return model_path.exists() and model_path.stat().st_size > 0
 
@@ -739,7 +743,7 @@ def DSC(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     intersection = np.sum(y_true * y_pred)
     dsc = (2.0 * intersection) / (np.sum(y_true) + np.sum(y_pred) + 1e-8)
 
-    return float(np.round(dsc, 3))
+    return float(np.round(dsc, METRIC_DECIMAL_PLACES))
 
 
 def precision(y_true: np.ndarray, y_pred: np.ndarray) -> float:
@@ -756,7 +760,7 @@ def precision(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     fp = np.sum((y_true == 0) & (y_pred == 1))
     prec = tp / (tp + fp + 1e-8)
 
-    return float(np.round(prec, 3))
+    return float(np.round(prec, METRIC_DECIMAL_PLACES))
 
 
 def recall(y_true: np.ndarray, y_pred: np.ndarray) -> float:
@@ -773,7 +777,7 @@ def recall(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     fn = np.sum((y_true == 1) & (y_pred == 0))
     rec = tp / (tp + fn + 1e-8)
 
-    return float(np.round(rec, 3))
+    return float(np.round(rec, METRIC_DECIMAL_PLACES))
 
 
 def AUC(y_true: np.ndarray, y_pred: np.ndarray) -> float:
@@ -792,7 +796,7 @@ def AUC(y_true: np.ndarray, y_pred: np.ndarray) -> float:
         if len(np.unique(y_true)) < 2:
             logger.warning("⚠️ AUC undefined: y_true contains only one class.")
             return np.nan
-        auc = float(np.round(roc_auc_score(y_true, y_pred), 3))
+        auc = float(np.round(roc_auc_score(y_true, y_pred), METRIC_DECIMAL_PLACES))
         return auc
 
     except Exception as e:

@@ -28,7 +28,7 @@ from yolo_mslesseg.configs.ConfigBase import ConfigBase
 from yolo_mslesseg.utils.logging_config import get_logger
 from yolo_mslesseg.utils.Model import Model
 from yolo_mslesseg.utils.Patient import Patient
-from yolo_mslesseg.utils.constants import DATASETS_DIR, TRAINS_DIR, WEIGHTS_FILE
+from yolo_mslesseg.utils.constants import DATASETS_DIR, TRAINS_DIR, WEIGHTS_FILE, SPLIT_TRAIN, WEIGHTS_SUBDIR
 from yolo_mslesseg.utils.utils import (
     path_exists,
     create_directory,
@@ -172,7 +172,7 @@ class ConfigPred(ConfigBase):
         if self.is_individual_patient:
 
             if self.k_folds > 1:
-                if self.patient.split == "train":
+                if self.patient.split == SPLIT_TRAIN:
                     # Train patient → belongs to a fold
                     self.fold_test = compute_fold(
                         patient_id=self.patient.id,
@@ -189,7 +189,7 @@ class ConfigPred(ConfigBase):
                 # k_folds == 1 → direct train/test split
                 self.group = self.patient.split
 
-                if self.group == "train":
+                if self.group == SPLIT_TRAIN:
                     raise ValueError(
                         f"Cannot generate predictions for patient {self.patient.id} with "
                         "k_folds == 1 if they belong to 'train'. The model was trained on that subset."
@@ -222,7 +222,7 @@ class ConfigPred(ConfigBase):
                 TRAINS_DIR / f"{self.model.base_path}_{self.epochs}epochs" / self.plane
             )
 
-            self.model_path = self.train_base_dir / "weights" / WEIGHTS_FILE
+            self.model_path = self.train_base_dir / WEIGHTS_SUBDIR / WEIGHTS_FILE
             return
 
         self.train_base_dir = (
@@ -232,7 +232,7 @@ class ConfigPred(ConfigBase):
             / f"fold{self.fold_test}"
         )
 
-        self.model_path = self.train_base_dir / "weights" / WEIGHTS_FILE
+        self.model_path = self.train_base_dir / WEIGHTS_SUBDIR / WEIGHTS_FILE
 
     def _resolve_patient_paths(self) -> None:
         """Resolves the input images and output pred_masks paths for an individual patient.

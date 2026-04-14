@@ -37,7 +37,7 @@ from matplotlib.colors import ListedColormap
 
 from yolo_mslesseg.utils.Model import Model
 from yolo_mslesseg.utils.Patient import Patient
-from yolo_mslesseg.utils.constants import EXT_PNG, VISUALIZATIONS_DIR
+from yolo_mslesseg.utils.constants import EXT_PNG, VISUALIZATIONS_DIR, SPLIT_TEST, ENHANCEMENT_BASE
 from yolo_mslesseg.utils.logging_config import get_logger
 from yolo_mslesseg.utils.utils import (
     compute_fold,
@@ -293,7 +293,7 @@ def visualize_best_slice(
         output_dir: Directory where the output figure will be saved.
         clean: If True, deletes the previous figure before generating a new one.
     """
-    str_enhancement = patient.enhancement if patient.enhancement is not None else "Base"
+    str_enhancement = patient.enhancement if patient.enhancement is not None else ENHANCEMENT_BASE
     logger.info(
         f"🔎 Searching for best slice for patient {patient.id} ({str_enhancement}, {patient.plane})."
     )
@@ -340,7 +340,7 @@ def visualize_specific_slice(
         output_dir: Directory where the output figure will be saved.
         clean: If True, deletes the previous figure before generating a new one.
     """
-    str_enhancement = patient.enhancement if patient.enhancement is not None else "Base"
+    str_enhancement = patient.enhancement if patient.enhancement is not None else ENHANCEMENT_BASE
     logger.info(
         f"🖼️ Visualising slice {slice_num} for patient {patient.id} "
         f"({str_enhancement}, {patient.plane})."
@@ -403,7 +403,7 @@ def run_visualization_flow(
 
     patient_id = patient.id
     plane = patient.plane
-    enhancement = patient.enhancement if patient.enhancement else "Base"
+    enhancement = patient.enhancement if patient.enhancement else ENHANCEMENT_BASE
 
     # k_folds > 1 → use fold
     if model.k_folds > 1:
@@ -423,7 +423,7 @@ def run_visualization_flow(
     else:
         group = patient.split
 
-        if getattr(patient, "split", None) != "test":
+        if getattr(patient, "split", None) != SPLIT_TEST:
             raise ValueError(
                 f"Patient {patient_id} belongs to 'train'. "
                 "With k_folds == 1, visualizations are only allowed for 'test' patients."

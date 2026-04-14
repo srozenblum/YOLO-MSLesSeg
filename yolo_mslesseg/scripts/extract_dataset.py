@@ -60,7 +60,7 @@ from yolo_mslesseg.configs.ConfigDataset import ConfigDataset
 from yolo_mslesseg.utils.Model import Model
 from yolo_mslesseg.utils.Patient import Patient
 from yolo_mslesseg.utils.logging_config import get_logger
-from yolo_mslesseg.utils.constants import EXT_PNG, ENHANCEMENTS, StageResult
+from yolo_mslesseg.utils.constants import EXT_PNG, ENHANCEMENTS, SPLIT_TRAIN, SPLIT_TEST, StageResult
 from yolo_mslesseg.utils.utils import (
     list_patients,
     normalize_binary_mask,
@@ -168,7 +168,7 @@ def build_paths(patient: Patient, config: ConfigDataset, group: str | None = Non
     else:
         if group is None:
             path_norm = str(config.input_dir).replace("\\", "/").lower()
-            group = "test" if path_norm.endswith("/test") else "train"
+            group = SPLIT_TEST if path_norm.endswith("/test") else SPLIT_TRAIN
         root = config.output_dir / group / patient.id / patient.plane
 
     return {
@@ -397,7 +397,7 @@ def run_dataset_flow(config: ConfigDataset, clean: bool, verbose: bool = False) 
     # k_folds > 1 → train only (folds)
     if config.k_folds > 1:
         processed = save_patient_slices(
-            input_dir=config.get_input_dir("train"),
+            input_dir=config.get_input_dir(SPLIT_TRAIN),
             config=config,
             num_slices=num_slices,
         )
@@ -414,17 +414,17 @@ def run_dataset_flow(config: ConfigDataset, clean: bool, verbose: bool = False) 
 
     # k_folds == 1 → train + test
     processed_train = save_patient_slices(
-        input_dir=config.get_input_dir("train"),
+        input_dir=config.get_input_dir(SPLIT_TRAIN),
         config=config,
         num_slices=num_slices,
-        group="train",
+        group=SPLIT_TRAIN,
     )
 
     processed_test = save_patient_slices(
-        input_dir=config.get_input_dir("test"),
+        input_dir=config.get_input_dir(SPLIT_TEST),
         config=config,
         num_slices=num_slices,
-        group="test",
+        group=SPLIT_TEST,
     )
 
     if processed_train is StageResult.SKIPPED and processed_test is StageResult.SKIPPED:

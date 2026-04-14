@@ -25,6 +25,7 @@ Relationships:
 
 from abc import ABC, abstractmethod
 
+from yolo_mslesseg.utils.constants import SPLIT_TEST
 from yolo_mslesseg.utils.logging_config import get_logger
 from yolo_mslesseg.utils.Model import Model
 from yolo_mslesseg.utils.Patient import Patient
@@ -93,7 +94,7 @@ class ConfigBase(ABC):
         self.patient = patient
         self.fold_test = fold_test
         self.single_fold: bool = model.k_folds == 1
-        self.group: str | None = "test" if self.single_fold else None
+        self.group: str | None = SPLIT_TEST if self.single_fold else None
 
     # ======================================
     #          FOLD SUBDIRECTORY

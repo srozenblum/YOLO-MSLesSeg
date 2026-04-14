@@ -24,7 +24,7 @@ Relationships:
 
 from pathlib import Path
 
-from yolo_mslesseg.utils.constants import ENHANCEMENTS, MODALITIES, PLANES
+from yolo_mslesseg.utils.constants import ENHANCEMENTS, MODALITIES, PLANES, DEFAULT_GAMMA, ENHANCEMENT_BASE
 
 
 class Model:
@@ -71,7 +71,7 @@ class Model:
         modality: list[str],
         k_folds: int,
         enhancement: str | None = None,
-        gamma: float = 2.0,
+        gamma: float = DEFAULT_GAMMA,
     ) -> None:
         """Initialises a Model instance with the given experimental configuration.
 
@@ -82,7 +82,7 @@ class Model:
             k_folds: Number of cross-validation folds (1 for fixed split).
             enhancement: Image enhancement algorithm name, or None for no enhancement.
             gamma: Gamma correction factor used when enhancement is 'GC'. Must be
-                positive. Defaults to 2.0.
+                positive. Defaults to DEFAULT_GAMMA.
 
         Raises:
             ValueError: If plane, num_slices, enhancement, or gamma values are invalid.
@@ -182,7 +182,7 @@ class Model:
         """
         if self.enhancement == "GC":
             return f"GC/g{self.gamma}"
-        return self.enhancement if self.enhancement else "Base"
+        return self.enhancement if self.enhancement else ENHANCEMENT_BASE
 
     @property
     def folds_string(self) -> str:

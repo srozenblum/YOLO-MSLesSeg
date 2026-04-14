@@ -51,7 +51,7 @@ from yolo_mslesseg.configs.ConfigConsensus import ConfigConsensus
 from yolo_mslesseg.utils.Model import Model
 from yolo_mslesseg.utils.Patient import Patient
 from yolo_mslesseg.utils.logging_config import get_logger
-from yolo_mslesseg.utils.constants import EXT_NIFTI, MASK_SUFFIX, ENHANCEMENTS, ANATOMICAL_PLANES, StageResult
+from yolo_mslesseg.utils.constants import EXT_NIFTI, MASK_SUFFIX, ENHANCEMENTS, ANATOMICAL_PLANES, PLANE_CONSENSUS, CONSENSUS_THRESHOLD, StageResult
 from yolo_mslesseg.utils.utils import (
     load_volume,
     save_volume,
@@ -84,7 +84,7 @@ def combine_volumes(axial_vol: np.ndarray, coronal_vol: np.ndarray, sagittal_vol
     Returns:
         Binary consensus volume as a uint8 NumPy array.
     """
-    consensus = ((axial_vol + coronal_vol + sagittal_vol) >= 2).astype(np.uint8)
+    consensus = ((axial_vol + coronal_vol + sagittal_vol) >= CONSENSUS_THRESHOLD).astype(np.uint8)
     return consensus
 
 
@@ -142,11 +142,11 @@ def process_patient_consensus(
     if paths_dir is None:
         paths_dir = config.patient_pred_vols
         gt_vol = config.patient_gt_vol
-        output_path = paths_dir["consensus"]
+        output_path = paths_dir[PLANE_CONSENSUS]
     else:
         gt_vol = paths_dir["gt"]
         patient_id = paths_dir["axial"].parent.name
-        output_path = config.pred_vols_fold_dir / patient_id / f"{patient_id}_consensus{EXT_NIFTI}"
+        output_path = config.pred_vols_fold_dir / patient_id / f"{patient_id}_{PLANE_CONSENSUS}{EXT_NIFTI}"
 
     # Skip if the consensus volume already exists
     if path_exists(output_path):
@@ -382,7 +382,7 @@ def main(argv: list[str] | None = None) -> None:
     args = parse_args(argv)
 
     model = Model(
-        plane="consensus",
+        plane=PLANE_CONSENSUS,
         num_slices=args.num_slices,
         modality=args.modality,
         k_folds=args.k_folds,

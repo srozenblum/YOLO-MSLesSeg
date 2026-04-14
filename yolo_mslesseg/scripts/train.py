@@ -63,7 +63,7 @@ from ultralytics.utils import LOGGER
 from yolo_mslesseg.configs.ConfigTrain import ConfigTrain
 from yolo_mslesseg.utils.Model import Model
 from yolo_mslesseg.utils.logging_config import get_logger
-from yolo_mslesseg.utils.constants import WEIGHTS_FILE, EXT_PNG, EXT_TXT, EXT_YAML, ENHANCEMENTS
+from yolo_mslesseg.utils.constants import WEIGHTS_FILE, WEIGHTS_SUBDIR, EXT_PNG, EXT_TXT, EXT_YAML, ENHANCEMENTS
 from yolo_mslesseg.utils.utils import (
     int_or_percentile,
     delete_directory,
@@ -92,8 +92,8 @@ def training_successful(root_dir: Path) -> bool:
     Returns:
         True if all expected output files exist, False otherwise.
     """
-    best = root_dir / "weights" / WEIGHTS_FILE
-    last = root_dir / "weights" / "last.pt"
+    best = root_dir / WEIGHTS_SUBDIR / WEIGHTS_FILE
+    last = root_dir / WEIGHTS_SUBDIR / "last.pt"
     results = root_dir / "results.csv"
     return best.is_file() and last.is_file() and results.is_file()
 

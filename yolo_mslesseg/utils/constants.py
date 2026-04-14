@@ -86,6 +86,14 @@ WEIGHTS_FILE = "best.pt"
 RESULTS_SUFFIX = "_results"
 RESULTS_GLOBAL_PREFIX = "global_"
 
+# Pipeline defaults
+CONSENSUS_THRESHOLD = 2
+DEFAULT_GAMMA = 2.0
+METRIC_DECIMAL_PLACES = 3
+WEIGHTS_SUBDIR = "weights"
+ENHANCEMENT_BASE = "Base"
+PLANE_CONSENSUS = "consensus"
+
 
 class StageResult(Enum):
     """Enum representing the execution status of a pipeline stage.

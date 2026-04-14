@@ -43,7 +43,7 @@ import numpy as np
 
 from yolo_mslesseg.configs.ConfigEval import ConfigEval
 from yolo_mslesseg.utils.Model import Model
-from yolo_mslesseg.utils.constants import EXT_JSON, ENHANCEMENTS, RESULTS_SUFFIX, RESULTS_GLOBAL_PREFIX
+from yolo_mslesseg.utils.constants import EXT_JSON, ENHANCEMENTS, RESULTS_SUFFIX, RESULTS_GLOBAL_PREFIX, METRIC_DECIMAL_PLACES
 from yolo_mslesseg.utils.logging_config import get_logger
 from yolo_mslesseg.utils.utils import (
     int_or_percentile,
@@ -125,8 +125,8 @@ def compute_experiment_summary(fold_metrics: dict[str, list[float]]) -> dict[str
     results = {}
     for metric, values in fold_metrics.items():
         results[metric] = {
-            "mean": float(np.round(np.mean(values), 3)),
-            "std": float(np.round(np.std(values, ddof=1), 3)),
+            "mean": float(np.round(np.mean(values), METRIC_DECIMAL_PLACES)),
+            "std": float(np.round(np.std(values, ddof=1), METRIC_DECIMAL_PLACES)),
         }
     return results
 

@@ -54,7 +54,7 @@ from yolo_mslesseg.configs.ConfigEval import ConfigEval
 from yolo_mslesseg.utils.Model import Model
 from yolo_mslesseg.utils.Patient import Patient
 from yolo_mslesseg.utils.logging_config import get_logger
-from yolo_mslesseg.utils.constants import EXT_NIFTI, MASK_SUFFIX, EXT_JSON, ENHANCEMENTS, StageResult
+from yolo_mslesseg.utils.constants import EXT_NIFTI, MASK_SUFFIX, EXT_JSON, ENHANCEMENTS, METRIC_DECIMAL_PLACES, PLANE_CONSENSUS, StageResult
 from yolo_mslesseg.utils.utils import (
     int_or_percentile,
     load_volume,
@@ -137,8 +137,8 @@ def compute_averages(metrics_dict: dict[str, list[float]]) -> dict[str, dict[str
 
     averages = {
         metric: {
-            "mean": float(np.round(np.mean(value), 3)),
-            "std": float(np.round(np.std(value, ddof=1), 3)),
+            "mean": float(np.round(np.mean(value), METRIC_DECIMAL_PLACES)),
+            "std": float(np.round(np.std(value, ddof=1), METRIC_DECIMAL_PLACES)),
         }
         for metric, value in metrics_dict.items()
     }
@@ -348,7 +348,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--plane",
         type=str,
         required=True,
-        choices=["axial", "coronal", "sagittal", "consensus"],
+        choices=["axial", "coronal", "sagittal", PLANE_CONSENSUS],
         metavar="[axial, coronal, sagittal, consensus]",
         help="Anatomical plane of the model.",
     )

@@ -36,7 +36,7 @@ from matplotlib.colors import ListedColormap
 
 from yolo_mslesseg.utils.Model import Model
 from yolo_mslesseg.utils.Patient import Patient
-from yolo_mslesseg.utils.constants import VISUALIZATIONS_DIR
+from yolo_mslesseg.utils.constants import VISUALIZATIONS_DIR, SPLIT_TEST, ENHANCEMENT_BASE
 from yolo_mslesseg.utils.logging_config import get_logger
 from yolo_mslesseg.utils.utils import (
     int_or_percentile,
@@ -168,7 +168,7 @@ def create_frame(
     Returns:
         PIL Image of the rendered frame.
     """
-    str_enhancement = enhancement if enhancement is not None else "Base"
+    str_enhancement = enhancement if enhancement is not None else ENHANCEMENT_BASE
 
     # Global normalisation
     norm = (img_array - vmin) / (vmax - vmin + 1e-8)
@@ -366,11 +366,11 @@ def run_gif_flow(patient: Patient, model: Model, epochs: int, clean: bool) -> No
 
     patient_id = patient.id
     plane = patient.plane
-    enhancement = patient.enhancement if patient.enhancement else "Base"
+    enhancement = patient.enhancement if patient.enhancement else ENHANCEMENT_BASE
 
     # k_folds == 1 → save to test/ (only test patients allowed)
     if model.k_folds == 1:
-        if getattr(patient, "split", None) != "test":
+        if getattr(patient, "split", None) != SPLIT_TEST:
             raise ValueError(
                 f"Patient {patient_id} belongs to 'train'. "
                 "With k_folds == 1, GIFs can only be generated for 'test' patients."
@@ -381,7 +381,7 @@ def run_gif_flow(patient: Patient, model: Model, epochs: int, clean: bool) -> No
             / VISUALIZATIONS_DIR
             / enhancement
             / global_config
-            / "test"
+            / SPLIT_TEST
             / patient_id
             / plane
         )
