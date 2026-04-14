@@ -500,8 +500,8 @@ class ConfigDataset:
 
         Returns:
             String including the class name, model identifier, and either the
-            full-mode flag or the patient identifier with k_folds.
+            execution mode with k_folds or the patient identifier.
         """
         if self.is_full:
-            return f"{self.__class__.__name__}(model={self.model.model_string}, full={self.full}, k_folds={self.k_folds})"
-        return f"{self.__class__.__name__}(model={self.model.model_string}, patient={self.patient.id}, k_folds={self.k_folds})"
+            return f"{self.__class__.__name__}(model={self.model.model_string}, mode=full, k_folds={self.k_folds})"
+        return f"{self.__class__.__name__}(model={self.model.model_string}, patient={self.patient.id})"

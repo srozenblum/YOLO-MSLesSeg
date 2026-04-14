@@ -230,17 +230,9 @@ class Model:
     # ======================================
 
     def __repr__(self) -> str:
-        """Internal representation of the Model instance.
+        """String representation of the Model instance.
 
         Returns:
             String of the form 'Model(<model_string>)'.
         """
         return f"Model({self.model_string})"
-
-    def __str__(self) -> str:
-        """Human-readable representation of the Model instance.
-
-        Returns:
-            The model_string identifier.
-        """
-        return f"{self.model_string}"

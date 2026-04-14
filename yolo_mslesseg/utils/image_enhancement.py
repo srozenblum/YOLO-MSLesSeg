@@ -164,6 +164,14 @@ class CLAHE(Algorithm):
 
         return img_result
 
+    def __repr__(self) -> str:
+        """Returns the class name with clip limit and tile grid size.
+
+        Returns:
+            String of the form 'CLAHE(clip_limit=<value>, tile_grid_size=<value>)'.
+        """
+        return f"CLAHE(clip_limit={self.clip_limit}, tile_grid_size={self.tile_grid_size})"
+
 
 class GC(Algorithm):
     """
@@ -205,6 +213,14 @@ class GC(Algorithm):
         img_bgr = cv2.LUT(img_bgr, table)
 
         return img_bgr
+
+    def __repr__(self) -> str:
+        """Returns the class name and gamma value.
+
+        Returns:
+            String of the form 'GC(gamma=<value>)'.
+        """
+        return f"GC(gamma={self.gamma})"
 
 
 class LT(Algorithm):
