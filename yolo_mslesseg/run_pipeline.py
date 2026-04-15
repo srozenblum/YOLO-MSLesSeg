@@ -551,6 +551,7 @@ def run_pipeline(
         train_flag: If True, includes the training stage in the pipeline run.
         clean: If True, deletes existing intermediate files before each stage.
     """
+    # GC is the only parametric enhancement; include gamma so the log distinguishes GC(γ=2.0) from GC(γ=0.5).
     if model.enhancement == "GC":
         str_enhancement = f"GC (γ={model.gamma})"
     elif model.enhancement:
@@ -574,27 +575,15 @@ def run_pipeline(
     if clean:
         logger.info("\n♻️ Cleaning previous run.")
 
-    # --- STAGE 0 ---
+    # Stages run in dependency order; each stage is idempotent.
     run_dataset(model, patient, k_folds, clean)
-
-    # --- STAGE 1 ---
     run_train(model, epochs, k_folds, train_flag, clean)
-
-    # --- STAGE 2 ---
     run_predictions(model, epochs, k_folds, patient, clean)
-
-    # --- STAGE 3 ---
     run_reconstructions(model, epochs, k_folds, patient, clean)
-
-    # --- STAGE 4 ---
     run_eval(model, epochs, k_folds, patient, clean)
-
-    # --- STAGE 5 ---
     consensus_generated = run_consensus(
         model, epochs, k_folds, patient, clean
     )
-
-    # --- STAGE 6 ---
     if full:
         run_average_folds(model, epochs, k_folds, consensus_generated, clean)
 

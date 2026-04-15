@@ -61,9 +61,13 @@ def register_custom_level(value: int, name: str) -> int:
     return value
 
 
-# Additional levels
-SKIP_LEVEL = register_custom_level(23, "SKIP")    # ⏩ results already exist
-HEADER_LEVEL = register_custom_level(35, "HEADER")  # Stage headers
+# SKIP (23): sits between INFO (20) and WARNING (30) — visible at INFO level
+# but visually distinct, used to indicate that a result already exists.
+SKIP_LEVEL = register_custom_level(23, "SKIP")
+
+# HEADER (35): sits between WARNING (30) and ERROR (40) — always visible,
+# used to print bold stage headers that stand out in the log.
+HEADER_LEVEL = register_custom_level(35, "HEADER")
 
 # Regular expression for stripping ANSI codes
 ANSI_ESCAPE = re.compile(r"\x1B\[[0-?][ -/][@-~]")
@@ -188,11 +192,16 @@ def configure_logging(level: int = logging.INFO, log_file: str | Path | None = N
     return logger
 
 
+# Initialise logging automatically on import so all scripts share the same
+# root-logger configuration without an explicit setup call. Duplicate handlers
+# are prevented because configure_logging() clears handlers before adding new ones.
 configure_logging()
 
 
 def configure_demo_logging() -> None:
-    """Configures logging for demo execution by replacing the pipeline.log handler with demo.log."""
+    """Replaces the first FileHandler whose path ends with 'pipeline.log' with a new
+    handler writing to demo.log in the current working directory. If no such handler
+    exists, demo.log is simply appended."""
     logger = logging.getLogger()
 
     # Remove only the FileHandler pointing to pipeline.log

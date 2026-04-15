@@ -104,7 +104,8 @@ class HE(Algorithm):
 
         img_yuv = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2YUV)
 
-        # Equalise the Y (luminance) channel
+        # Convert to YUV to isolate luminance (Y). Equalising Y while leaving U and V
+        # unchanged prevents colour distortion in multi-channel (multi-modality) images.
         img_yuv[:, :, 0] = cv2.equalizeHist(img_yuv[:, :, 0])
 
         img_rgb = cv2.cvtColor(img_yuv, cv2.COLOR_YUV2RGB)
@@ -207,7 +208,8 @@ class GC(Algorithm):
         # Convert the image to BGR if it is RGB or greyscale
         img_bgr = convert_to_bgr(image)
 
-        # Build the gamma correction lookup table
+        # Build a 256-entry lookup table for gamma correction. Applying via cv2.LUT
+        # is significantly faster than per-pixel exponentiation on large images.
         table = np.array((np.linspace(0, 1, 256) ** self.gamma) * 255, dtype=np.uint8)
 
         img_bgr = cv2.LUT(img_bgr, table)
@@ -248,7 +250,8 @@ class LT(Algorithm):
         # Convert the image to BGR if it is RGB or greyscale
         img_bgr = convert_to_bgr(image)
 
-        # Convert to uint16 to avoid issues with large values
+        # Upcast to uint16 before the log transform: c*log(1+x)
+        # can exceed 255 for uint8 inputs and would wrap around silently.
         img_bgr = img_bgr.astype(np.uint16)
 
         # Compute the scaling constant c

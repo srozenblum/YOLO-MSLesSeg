@@ -278,7 +278,7 @@ class ConfigReconstruction(ConfigBase):
     # ======================================
 
     def _clean_fold_volumes(self) -> None:
-        """Cleans the reconstructed NIfTI volumes for the current plane across all patients in the fold."""
+        """Deletes the reconstructed NIfTI file for self.plane for every patient in the active fold directory."""
         if path_exists(self.pred_vols_fold_dir):
             patients = list_patients(self.pred_vols_fold_dir)
 

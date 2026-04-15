@@ -353,6 +353,7 @@ def run_dataset_flow(config: ConfigDataset, clean: bool, verbose: bool = False) 
             f"\n🧩 Preparing YOLO dataset for the {str_header}."
         )
 
+    # --- Setup: clean, verify paths, resolve slice count ---
     if clean:
         if verbose:
             logger.info("♻️ Cleaning previous YOLO dataset.")
@@ -372,6 +373,7 @@ def run_dataset_flow(config: ConfigDataset, clean: bool, verbose: bool = False) 
     else:
         logger.info(f"📊 Number of slices to extract: {num_slices} (P{percentile}).")
 
+    # --- Process patients ---
     # =========================
     #   INDIVIDUAL PATIENT MODE
     # =========================

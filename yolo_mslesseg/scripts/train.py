@@ -408,13 +408,15 @@ def train_fold(config: ConfigTrain) -> None:
     common_kwargs = dict(
         data=config.yaml_path,
         epochs=config.epochs,
-        batch=-1,
+        batch=-1,  # YOLO auto-selects batch size based on available GPU memory.
         cache=True,
         val=True,
         project=config.train_output_dir,
         verbose=False,
     )
 
+    # name="." writes outputs directly into config.train_output_dir rather than
+    # creating a subdirectory. exist_ok=True allows resuming into the same directory.
     if config.single_fold:
         yolo_model.train(
             **common_kwargs,
@@ -454,8 +456,10 @@ def train(config: ConfigTrain) -> None:
     Raises:
         RuntimeError: If the train or validation YOLO subset is empty or invalid.
     """
+    # 1. Prepare train/val subsets
     train_dir, val_dir = build_training_subsets(config)
 
+    # 2. Validate subsets
     if not is_valid_yolo_subset(train_dir):
         raise RuntimeError(f"Train YOLO subset is empty or invalid: {train_dir}")
 
@@ -465,11 +469,15 @@ def train(config: ConfigTrain) -> None:
             "If there is no test set, create MSLesSeg-Dataset/test or disable val."
         )
 
+    # 3. Generate YAML configuration
     yolo_dict = generate_yaml(config, train_dir=train_dir, val_dir=val_dir)
     save_yaml(yolo_dict, config)
 
+    # 4. Run training
     train_fold(config)
     copy_yaml(config)
+
+    # 5. Cleanup
     delete_temp_files(train_dir.parent, val_dir.parent)
 
 

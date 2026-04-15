@@ -84,6 +84,9 @@ def combine_volumes(axial_vol: np.ndarray, coronal_vol: np.ndarray, sagittal_vol
     Returns:
         Binary consensus volume as a uint8 NumPy array.
     """
+    # Majority vote: voxel is lesion if at least CONSENSUS_THRESHOLD (default 2) of
+    # the 3 planes agree. Change CONSENSUS_THRESHOLD in constants.py to 3 for
+    # unanimity voting (more conservative, fewer false positives).
     consensus = ((axial_vol + coronal_vol + sagittal_vol) >= CONSENSUS_THRESHOLD).astype(np.uint8)
     return consensus
 

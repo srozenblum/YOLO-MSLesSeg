@@ -166,7 +166,7 @@ def download_file(url: str, destination: Path) -> None:
         requests.HTTPError: If the download request fails.
         ValueError: If the direct Figshare URL cannot be resolved via the API.
     """
-    headers = {"User-Agent": "Mozilla/5.0"}
+    headers = {"User-Agent": "Mozilla/5.0"}  # Figshare rejects downloads without a browser-like User-Agent (returns 403).
 
     # 1) First attempt: original URL
     response = requests.get(
@@ -235,7 +235,7 @@ def extract_zip(zip_file: Path, destination: Path) -> None:
 
             # Skip info_dataset folder and all its contents
             if "info_dataset/" in name:
-                continue
+                continue  # Skip the info_dataset/ folder in the MSLesSeg archive (documentation, not MRI data). Update this name if the archive structure changes in a future release.
 
             # Strip root folder if present
             new_name = name

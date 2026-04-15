@@ -139,7 +139,9 @@ class ConfigConsensus(ConfigBase):
             fold_test=fold_test,
         )
 
-        # Override: consensus stage always uses the 'consensus' plane label
+        # The model carries one of the anatomical planes (axial/coronal/sagittal), but
+        # the consensus stage produces a single output labelled 'consensus', independent
+        # of any single plane. Override self.plane so all path construction uses this tag.
         self.plane = PLANE_CONSENSUS
 
         # GT directory (depends on single_fold, already initialised in base)

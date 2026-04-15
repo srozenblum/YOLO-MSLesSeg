@@ -170,7 +170,7 @@ class Model:
         Returns:
             String of modality names joined without separators.
         """
-        return "".join(m for m in MODALITIES if m in self.modality)
+        return "".join(m for m in MODALITIES if m in self.modality)  # Iterate over MODALITIES (canonical order) to produce a deterministic string regardless of the order the user specified.
 
     @property
     def exp_string(self) -> str:
@@ -197,7 +197,8 @@ class Model:
 
     @property
     def base_path(self) -> Path:
-        """Base path for the model.
+        """Root directory segment shared by all pipeline output directories (datasets/,
+        trains/, pred_vols/, results/) for this experiment configuration.
 
         Returns:
             Path combining the experiment string and the modality/slices/folds identifier.

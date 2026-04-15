@@ -42,6 +42,9 @@ class ConfigBase(ABC):
         folds and patients: ConfigPred, ConfigReconstruction, ConfigEval,
         and ConfigConsensus. Defines the common attribute contract, the
         fold_subdir property, and the abstract methods verify_paths() and clean().
+        Contract: every subclass must implement verify_paths() (validate paths and
+        create output directories) and clean() (delete stage outputs for re-runs).
+        Callers always invoke them in order: clean() → verify_paths() → run stage.
 
     Attributes:
         model (Model):

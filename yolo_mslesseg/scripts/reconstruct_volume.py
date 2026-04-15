@@ -126,7 +126,7 @@ def load_and_preprocess_image(img_path: Path) -> np.ndarray:
     img = Image.open(img_path)
     img_array = np.array(img)
 
-    if len(img_array.shape) > 2:  # RGB → greyscale
+    if len(img_array.shape) > 2:  # Predicted masks are single-class binary; all channels are identical, so channel 0 suffices.
         img_array = img_array[:, :, 0]
 
     if np.max(img_array) > 1:  # Binarise if not already normalised
@@ -156,6 +156,8 @@ def validate_slice(idx: int, img_array: np.ndarray, shape_original: tuple[int, .
     if idx < 0 or idx >= max_indices[plane]:
         raise ValueError(f"Index {idx} out of range for plane {plane}.")
 
+    # NIfTI axes: (x, y, z) = (sagittal, coronal, axial).
+    # Slicing along the plane axis leaves the other two: axial→(x,y), coronal→(x,z), sagittal→(y,z).
     # 2. Validate slice dimensions
     expected_shapes = {
         "axial": (shape_original[0], shape_original[1]),
@@ -178,6 +180,7 @@ def insert_slice(volume: np.ndarray, img_array: np.ndarray, idx: int, plane: str
         idx: Slice index along the axis corresponding to the plane.
         plane: Anatomical plane ('axial', 'coronal', 'sagittal').
     """
+    # Inverse of Patient.plane_index — must remain consistent with Patient's axis mapping.
     if plane == "axial":
         volume[:, :, idx] = img_array
     elif plane == "coronal":

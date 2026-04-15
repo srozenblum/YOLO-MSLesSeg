@@ -213,6 +213,11 @@ class ConfigDataset:
         self.is_individual_patient = self.patient is not None
         self.is_full = (not self.is_individual_patient) and self.full
 
+        # Four cases:
+        #   1. Individual patient, k_folds > 1 → assign to fold or test group
+        #   2. Individual patient, k_folds == 1 → use the patient's native split
+        #   3. Full mode                        → no per-patient logic needed
+        #   4. Neither patient nor full         → configuration error
         if self.is_individual_patient:
             original_input_dir = self.input_dir
 
@@ -325,10 +330,8 @@ class ConfigDataset:
     # ======================================
 
     def _clean_patients_root(self, root_dir: Path) -> None:
-        """Cleans the plane subdirectories for all patients under a root directory.
-
-        Removes images/, GT_masks/, and labels/ for the current plane across
-        all patients under root_dir (e.g. a foldX/ or train/test directory).
+        """Deletes the images/, GT_masks/, and labels/ subdirectories for
+        self.plane across all patients under root_dir.
 
         Args:
             root_dir: Root directory containing patient subdirectories.
@@ -483,8 +486,9 @@ class ConfigDataset:
     def verify_paths(self) -> None:
         """Verifies that the input and output directories exist for dataset extraction.
 
-        Delegates to _verify_full_paths for full mode, or to
-        _verify_patient_paths for individual patient mode.
+        Ensures the MSLesSeg input dataset exists and creates the YOLO output
+        directory structure (images/, GT_masks/, labels/) for all relevant patients.
+        Raises FileNotFoundError if the input dataset is missing.
         """
         if self.is_full:
             self._verify_full_paths()

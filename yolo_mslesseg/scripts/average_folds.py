@@ -75,7 +75,7 @@ def aggregate_fold_metrics(total_dict: dict[str, list[float]], file: Path) -> No
         # Case 2: patient format {"metric": value}
         elif isinstance(v, (int, float)):
             total_dict.setdefault(k, []).append(float(v))
-        else:
+        else:  # Unexpected format — log and skip to avoid silently corrupting the average.
             logger.warning(
                 f"⚠️ Unexpected format for metric '{k}' in {file}: {v}"
             )

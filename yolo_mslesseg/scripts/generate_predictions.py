@@ -131,6 +131,8 @@ def normalize_prediction(pred: np.ndarray) -> np.ndarray:
     Returns:
         Transposed mask array scaled to the 0–255 range.
     """
+    # Transpose from YOLO's (width, height) mask layout to (height, width) voxel
+    # convention, then scale to 0–255 for PNG storage.
     pred_normalised = pred.T.copy()
     pred_normalised *= 255
     return pred_normalised

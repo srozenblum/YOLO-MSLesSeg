@@ -185,7 +185,7 @@ def patient_base_dir(patient: "Patient", model: "Model") -> Path:
     patient_id = patient.id
     plane = patient.plane
 
-    # k_folds > 1 → fold
+    # CV mode uses fold-based subdirectories; single-split mode uses train/test groups.
     if model.k_folds > 1:
         fold = compute_fold(patient_id, model.k_folds)
         return (
@@ -197,7 +197,6 @@ def patient_base_dir(patient: "Patient", model: "Model") -> Path:
             / plane
         )
 
-    # k_folds == 1 → group (test/train)
     group = patient.split
 
     if patient.split != SPLIT_TEST:
@@ -359,7 +358,8 @@ def verify_group_volumes(root_dir: Path) -> bool:
         root_dir: Directory containing patient subdirectories.
 
     Returns:
-        True if all patients have complete volumes, False otherwise.
+        True if every patient has predicted volumes for all three anatomical
+        planes, False if any patient is missing at least one plane volume.
     """
     patients = list_patients(root_dir)
     incomplete_patients = []
@@ -520,6 +520,8 @@ def compute_fold(patient_id: str, k_folds: int = 5) -> int:
     # Only train-split patients (P1–P53) are used in CV mode
     all_ids = list(range(1, N_TRAIN_PATIENTS + 1))
 
+    # Patients are assigned to folds in sequential order (contiguous blocks).
+    # No shuffling is applied — order is deterministic for reproducibility.
     folds = np.array_split(all_ids, k_folds)
 
     # Find which fold the patient belongs to
@@ -533,8 +535,8 @@ def compute_fold(patient_id: str, k_folds: int = 5) -> int:
 def get_patient_slices(patient: "Patient", model: "Model") -> list[int]:
     """Returns a sorted list of available slice indices for a patient.
 
-    Indices are extracted from PNG filenames in the images/ subdirectory of
-    the patient's YOLO dataset directory.
+    Returns only the slice indices written to disk, so downstream stages skip
+    slices that were filtered out during dataset extraction.
 
     Args:
         patient: Patient instance defining the ID and plane.
@@ -741,6 +743,8 @@ def DSC(y_true: np.ndarray, y_pred: np.ndarray) -> float:
         DSC score rounded to 3 decimal places.
     """
     intersection = np.sum(y_true * y_pred)
+    # Small epsilon prevents division by zero when both masks are all-background.
+    # At 1e-8 the effect on DSC magnitude is negligible for any real mask.
     dsc = (2.0 * intersection) / (np.sum(y_true) + np.sum(y_pred) + 1e-8)
 
     return float(np.round(dsc, METRIC_DECIMAL_PLACES))
@@ -758,7 +762,7 @@ def precision(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     """
     tp = np.sum((y_true == 1) & (y_pred == 1))
     fp = np.sum((y_true == 0) & (y_pred == 1))
-    prec = tp / (tp + fp + 1e-8)
+    prec = tp / (tp + fp + 1e-8)  # Epsilon avoids division by zero; returns ~0 when no positives are predicted.
 
     return float(np.round(prec, METRIC_DECIMAL_PLACES))
 
@@ -775,7 +779,7 @@ def recall(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     """
     tp = np.sum((y_true == 1) & (y_pred == 1))
     fn = np.sum((y_true == 1) & (y_pred == 0))
-    rec = tp / (tp + fn + 1e-8)
+    rec = tp / (tp + fn + 1e-8)  # Epsilon avoids division by zero; returns ~0 when the GT mask is all-background.
 
     return float(np.round(rec, METRIC_DECIMAL_PLACES))
 

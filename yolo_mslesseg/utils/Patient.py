@@ -263,20 +263,12 @@ class Patient:
 
     @property
     def is_train(self) -> bool:
-        """Returns True if the patient belongs to the training split.
-
-        Returns:
-            True if the patient's split is 'train', False otherwise.
-        """
+        """True if the patient belongs to the training split ('train'), False for 'test'."""
         return self.split == SPLIT_TRAIN
 
     @property
     def is_test(self) -> bool:
-        """Returns True if the patient belongs to the test split.
-
-        Returns:
-            True if the patient's split is 'test', False otherwise.
-        """
+        """True if the patient belongs to the test split ('test'), False for 'train'."""
         return self.split == SPLIT_TEST
 
     def volume_path(self, modality: str) -> Path:
@@ -359,7 +351,7 @@ class Patient:
         Raises:
             ValueError: If the current plane is not 'axial', 'coronal', or 'sagittal'.
         """
-        mapping = {"axial": 2, "coronal": 1, "sagittal": 0}
+        mapping = {"axial": 2, "coronal": 1, "sagittal": 0}  # Axis 0=x (sagittal), 1=y (coronal), 2=z (axial) — NIfTI convention.
         if self.plane not in mapping:
             raise ValueError(f"Unrecognised plane: {self.plane}")
         return self.gt_mask.shape[mapping[self.plane]]
@@ -421,7 +413,9 @@ class Patient:
             img_slice = self.get_image_slice(i, m)
             if img_slice.ndim == 3:
                 img_slice = img_slice[:, :, 0]  # extract grayscale channel (all channels identical)
-            img_slice = img_slice.T  # transpose to match image axes
+            # NIfTI voxel data axes are (x, y, z); slicing a plane gives a 2D array whose
+            # first axis is not the image row. Transpose to (row, col) convention for OpenCV.
+            img_slice = img_slice.T
             channels.append(normalize_to_uint8(img_slice))
 
         # Pad to exactly 3 channels by repeating the last one
@@ -472,6 +466,7 @@ class Patient:
                 "'consensus' is not an anatomical plane and does not support index extraction."
             )
 
+        # NIfTI volume axes: (x=left-right/sagittal, y=front-back/coronal, z=inf-sup/axial).
         mapping = {
             "axial": (slice(None), slice(None), i),
             "coronal": (slice(None), i, slice(None)),

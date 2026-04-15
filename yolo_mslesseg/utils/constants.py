@@ -48,7 +48,7 @@ SPLIT_TRAIN = "train"
 SPLIT_TEST = "test"
 
 # Dataset split sizes (MSLesSeg-Dataset)
-# In CV mode (k_folds > 1), only the train split (P1–P53) is used.
+# Fixed MSLesSeg competition split: 53 training patients (P1–P53), 22 test patients (P54–P75).
 N_TRAIN_PATIENTS = 53
 
 # Modalities
@@ -61,6 +61,8 @@ ANATOMICAL_PLANES = ("axial", "coronal", "sagittal")
 # Timepoints present in the MSLesSeg dataset directory structure.
 # Used to detect whether a patient directory uses timepoint subdirectories.
 # The pipeline currently always uses timepoint "T1".
+# "T1" here refers to the first acquisition timepoint, not the T1-weighted MRI
+# modality. Multi-timepoint support is not exercised by the current pipeline.
 TIMEPOINTS = ("T1", "T2", "T3", "T4")
 
 # Enhancement algorithms
@@ -87,9 +89,13 @@ RESULTS_SUFFIX = "_results"
 RESULTS_GLOBAL_PREFIX = "global_"
 
 # Pipeline defaults
+# Majority-vote threshold: a voxel is classified as lesion if at least this many
+# of the 3 anatomical planes predict it as positive. Set to 3 for unanimity voting.
 CONSENSUS_THRESHOLD = 2
+# Gamma > 1 darkens the image non-linearly, increasing contrast in bright lesion
+# regions relative to surrounding white matter. 2.0 was chosen empirically.
 DEFAULT_GAMMA = 2.0
-METRIC_DECIMAL_PLACES = 3
+METRIC_DECIMAL_PLACES = 3  # Matches the MSLesSeg competition reporting convention.
 WEIGHTS_SUBDIR = "weights"
 ENHANCEMENT_BASE = "Base"
 PLANE_CONSENSUS = "consensus"
