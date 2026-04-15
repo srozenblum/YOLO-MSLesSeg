@@ -1,5 +1,5 @@
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)
-![License](https://img.shields.io/badge/License-TBD-lightgrey)
+![License](https://img.shields.io/badge/License-MIT-green)
 
 # 🧠💻 YOLO-MSLesSeg: Automatic Multiple Sclerosis Lesion Segmentation with YOLO11-seg
 
@@ -323,7 +323,7 @@ biomedical segmentation metrics. The full experimental design is documented in
 
 ## 📄 License
 
-_License to be determined._
+This project is licensed under the [MIT License](LICENSE).
 
 ---
 
