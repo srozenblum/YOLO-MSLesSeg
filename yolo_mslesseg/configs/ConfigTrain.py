@@ -274,7 +274,8 @@ class ConfigTrain:
         """Verifies that input and output directories exist for YOLO model training.
 
         Checks that the dataset base directory exists, and creates the YAML and
-        training output directories if they do not.
+        training output directories if they do not. Both directories are created
+        as a side effect of this call if absent.
 
         Raises:
             FileNotFoundError: If the dataset base directory does not exist.

@@ -131,8 +131,9 @@ def process_patient_consensus(
 
     Args:
         config: ConfigConsensus instance providing model and directory settings.
-        paths_dir: Dictionary of paths per plane plus 'gt'. Defaults to config
-            patient paths if None.
+        paths_dir: Dictionary mapping each anatomical plane name ('axial',
+            'coronal', 'sagittal') and 'gt' to their respective Path objects.
+            If None, paths are taken from config (individual patient mode).
 
     Returns:
         StageResult.COMPLETED if the consensus was generated, StageResult.SKIPPED

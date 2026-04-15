@@ -148,6 +148,10 @@ def save_prediction(pred: np.ndarray, image_filename: str, output_dir: Path) -> 
 
     Returns:
         Path to the saved PNG file, or None if the prediction is empty.
+
+    Note:
+        If output_path already exists, writing is silently skipped and the
+        existing path is returned without overwriting the file.
     """
     if pred is None or pred.size == 0:
         logger.warning(f"⚠️ Empty prediction for {image_filename}, nothing saved.")

@@ -160,6 +160,10 @@ def build_config_name(model: "Model", epochs: int) -> str:
 
     Returns:
         Configuration folder name string.
+
+    Example:
+        >>> build_config_name(model, epochs=50)
+        'T1T2FLAIR_40slices_5folds_50epochs'
     """
     modalities = "".join(model.modality)
 
@@ -384,7 +388,9 @@ def load_model(model_path: str | Path) -> YOLO:
         model_path: Path to the YOLO model weights file.
 
     Returns:
-        Loaded YOLO model instance.
+        Loaded YOLO model instance. YOLO loads weights to GPU automatically
+        if CUDA is available. Calling this function multiple times for the
+        same weights file incurs repeated GPU memory allocation.
 
     Raises:
         RuntimeError: If the model cannot be loaded.
@@ -471,8 +477,9 @@ def get_id(patient: str) -> int | float:
         patient: Patient identifier string (e.g. 'P12').
 
     Returns:
-        Integer ID if a number is found, or infinity if the pattern does
-        not match.
+        Integer ID extracted from the patient string, or float("inf") as a
+        sentinel value if the pattern does not match (sorts unrecognised
+        patients to the end).
     """
     match = re.search(r"P(\d+)", patient)
     return (
@@ -490,7 +497,7 @@ def list_patients(input_dir: str | Path) -> list[str]:
         Sorted list of patient ID strings.
 
     Raises:
-        FileNotFoundError: If no patients are found in the directory.
+        FileNotFoundError: If input_dir does not exist or contains no patients.
     """
     input_path = Path(input_dir)
 
@@ -641,6 +648,9 @@ def prepare_pred_gt_slices(
 def normalize_binary_mask(mask_path: str | Path) -> None:
     """Normalises and saves a binary mask to values 0 (background) and 1 (object).
 
+    Warning:
+        Overwrites mask_path in place.
+
     Args:
         mask_path: Path to the mask file to normalise in place.
     """
@@ -656,7 +666,9 @@ def normalize_to_uint8(image: np.ndarray) -> np.ndarray:
         image: Input image array of any numeric dtype.
 
     Returns:
-        Image array with dtype uint8 and values in [0, 255].
+        Image array with dtype uint8 and values in [0, 255]. If the input
+        has zero range (all identical values), the normalisation step is
+        skipped and the output is an all-zero uint8 array.
     """
     if image.dtype != np.uint8:
         image = image.astype(np.float32)

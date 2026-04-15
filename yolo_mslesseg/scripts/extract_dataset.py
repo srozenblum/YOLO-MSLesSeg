@@ -183,7 +183,9 @@ def save_slices(patient: Patient, images_dir: Path, gt_masks_dir: Path, num_slic
 
     Each image is saved as a 3-channel (RGB) PNG with one channel per modality.
     If fewer than 3 modalities are configured, the last channel is repeated.
-    Filenames follow the pattern {patient_id}_{i}.png.
+    Filenames follow the pattern {patient_id}_{slice_index}.png, where
+    slice_index is the original slice position within the volume (not a
+    sequential counter), so that the index can be recovered during reconstruction.
 
     Args:
         patient: Patient instance providing the slice data.
@@ -238,6 +240,11 @@ def annotate_masks(gt_masks_dir: Path, labels_dir: Path) -> None:
     """Converts ground truth masks to YOLO segmentation annotation format.
 
     Normalises the masks before conversion.
+
+    Note:
+        Existing .txt files in labels_dir are overwritten without warning.
+        If the set of masks has changed since the last run, remove stale label
+        files manually before calling this function.
 
     Args:
         gt_masks_dir: Directory containing the PNG ground truth masks.

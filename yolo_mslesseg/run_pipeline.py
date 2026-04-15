@@ -100,6 +100,9 @@ def verify_consensus_folds(model: Model, epochs: int, k_folds: int) -> tuple[lis
     Returns:
         Tuple of (valid_folds, incomplete_folds) where each element is a sorted
         list of fold indices.
+
+    Raises:
+        AssertionError: If k_folds <= 1.
     """
     assert k_folds > 1, "verify_consensus_folds must only be called with k_folds > 1"
 
@@ -547,7 +550,9 @@ def run_pipeline(
         epochs: Number of training epochs for YOLO training.
         k_folds: Number of cross-validation folds (1 for a fixed split). Defaults to 5.
         patient: Patient instance for individual execution, or None for full mode.
-        full: If True, runs in full mode over all patients; None defers to patient.
+        full: Execution mode selector. True runs the full pipeline over all folds
+            or patients; False or None defers to the patient argument (individual
+            patient mode when patient is set, otherwise no-op).
         train_flag: If True, includes the training stage in the pipeline run.
         clean: If True, deletes existing intermediate files before each stage.
     """
@@ -688,7 +693,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
     args = parser.parse_args(argv)
 
-    if args.gamma != 2.0 and args.enhancement != "GC":
+    if args.gamma != DEFAULT_GAMMA and args.enhancement != "GC":  # Reject only if the user explicitly changed gamma from the default.
         parser.error("--gamma is only valid when --enhancement is GC.")
 
     return args

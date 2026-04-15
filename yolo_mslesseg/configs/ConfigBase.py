@@ -107,6 +107,11 @@ class ConfigBase(ABC):
     def fold_subdir(self) -> str:
         """Returns the fold subdirectory name for path construction.
 
+        Note:
+            Raises ValueError in experiment mode (k_folds > 1, fold_test is None)
+            because no single fold subdirectory can be resolved for the full
+            cross-validation experiment.
+
         Returns:
             'test' when k_folds == 1, or 'fold<fold_test>' when k_folds > 1.
 

@@ -129,6 +129,12 @@ def compute_averages(metrics_dict: dict[str, list[float]]) -> dict[str, dict[str
     Returns:
         Dictionary mapping metric names to dicts with 'mean' and 'std' keys.
 
+    Note:
+        If a patient's metrics could not be computed (e.g. invalid reconstruction),
+        its values are excluded from the lists in metrics_dict before this function
+        is called. Patients with NaN metrics are not explicitly handled here;
+        callers are responsible for filtering them out beforehand.
+
     Raises:
         ValueError: If metrics_dict is empty.
     """
@@ -178,13 +184,14 @@ def process_patient_eval(config: ConfigEval, paths_dir: dict[str, Path] | None =
     gt_vol = paths_dir["gt_vol"]
     results_json = paths_dir["results_json"]
 
-    # If the metrics JSON already exists
+    # fold_mode=True: metrics are needed for aggregation → return cached values.
+    # fold_mode=False (direct/patient call): skip if already computed.
     if path_exists(results_json):
         if fold_mode:
             return read_json(results_json)
-        return None  # Direct call → do not recompute
+        return None  # Already computed; do not overwrite.
 
-    # If it does not exist, compute new metrics
+    # Results JSON does not exist → compute and persist.
     metrics_dict = compute_metrics(
         gt_vol_path=gt_vol, pred_vol_path=pred_vol
     )

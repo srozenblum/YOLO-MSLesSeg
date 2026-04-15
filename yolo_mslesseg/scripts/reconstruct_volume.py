@@ -217,6 +217,10 @@ def reconstruct_volume(pred_masks_dir: Path, reference_volume: Path, output_path
 
     Returns:
         Reconstructed 3D volume as a float32 NumPy array.
+
+    Note:
+        Slices not present in pred_masks_dir remain zero-filled in the output
+        volume (i.e. predicted as background).
     """
     shape_original, affine = load_nifti_reference(reference_volume)
     volume = np.zeros(shape_original, dtype=np.float32)
@@ -253,6 +257,9 @@ def process_patient_volume(patient_id: str, config: ConfigReconstruction, paths_
     Returns:
         StageResult.COMPLETED if the volume was reconstructed, StageResult.SKIPPED
         if skipped (already valid).
+
+    Note:
+        If the volume already exists and is valid, it is not overwritten.
 
     Raises:
         RuntimeError: If the reconstructed volume fails validation.

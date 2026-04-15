@@ -200,7 +200,8 @@ class Patient:
 
         Returns:
             Tuple of (split_name, base_dir) where split_name is 'train' or 'test'
-            and base_dir is the absolute path to the patient's directory.
+            and base_dir is the absolute path to the patient's directory in the
+            MSLesSeg dataset split.
 
         Raises:
             FileNotFoundError: If the patient does not exist in either split.
@@ -310,6 +311,9 @@ class Patient:
     def load_volume(self, modality: str) -> np.ndarray:
         """Returns the 3D volume for the given modality, loading and caching it if needed.
 
+        The volume is loaded from disk on the first call and cached in memory;
+        subsequent calls for the same modality return the cached array.
+
         Args:
             modality: MRI modality string (e.g. 'T1', 'T2', 'FLAIR').
 
@@ -328,7 +332,7 @@ class Patient:
 
     @property
     def gt_mask(self) -> np.ndarray:
-        """Returns the binary ground truth mask.
+        """Returns the binary ground truth mask, loading and caching it if needed.
 
         Returns:
             3D NumPy array with the ground truth mask data.
@@ -427,6 +431,10 @@ class Patient:
     def lesion_slices_multichannel(self, num_slices: int | None = None) -> list[tuple[int, np.ndarray]]:
         """Returns lesion-containing slices as multi-channel images.
 
+        Note:
+            Each HxWx3 array holds three modality channels in memory simultaneously.
+            For large volumes with many lesion slices, memory usage can be significant.
+
         Args:
             num_slices: Maximum number of slices to return. If None or fewer
                 lesion slices exist, all lesion slices are returned.
@@ -495,9 +503,9 @@ class Patient:
     def slices_to_use(self, num_slices: int | None = None) -> list[int]:
         """Returns the lesion slice indices to extract, respecting the slice budget.
 
-        If num_slices is None or fewer lesion slices exist than num_slices,
-        all lesion slices are returned. Otherwise, the central num_slices
-        slices are selected.
+        If num_slices is None or the patient has fewer lesion slices than
+        num_slices, all lesion slices are returned. Otherwise, the central
+        num_slices slices are selected from the sorted lesion slice list.
 
         Args:
             num_slices: Maximum number of slices to return. None means no limit.

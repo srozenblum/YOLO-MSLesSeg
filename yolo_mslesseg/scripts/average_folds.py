@@ -92,6 +92,9 @@ def read_fold_metrics(config: ConfigEval) -> dict[str, list[float]]:
     """
     fold_metrics = {}
 
+    # WARNING: iterdir() order is filesystem-dependent and not guaranteed to be
+    # sorted. Metrics are accumulated regardless of fold order; the final mean
+    # and std are invariant to iteration order.
     for fold_dir in config.results_base_dir.iterdir():
         if fold_dir.is_dir():
             if not fold_dir.name.startswith("fold"):

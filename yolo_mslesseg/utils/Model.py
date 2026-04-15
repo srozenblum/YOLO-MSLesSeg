@@ -147,7 +147,8 @@ class Model:
         Args:
             plane: Anatomical plane string (stored in lowercase).
             num_slices: Slice count as an integer or percentile string.
-            modality: List of MRI modality strings.
+            modality: List of MRI modality strings. Duplicates are removed
+                while preserving order.
             k_folds: Number of cross-validation folds.
             enhancement: Enhancement algorithm name (stored in uppercase), or None.
             gamma: Gamma correction factor (used only when enhancement is 'GC').

@@ -120,9 +120,10 @@ def download_stream(response: requests.Response, destination: Path) -> None:
 def resolve_figshare_download_url(file_id: str) -> str:
     """Resolves a direct download URL for a Figshare file via the API.
 
-    The ndownloader endpoint can return 202 with HTML and zero bytes instead of
-    the actual file. This function queries the Figshare API to obtain the
-    real storage URL from the redirect Location header.
+    The Figshare ndownloader endpoint can return HTTP 202 with an HTML body
+    and zero content bytes instead of the actual file. This function queries
+    the Figshare file API endpoint to obtain the real storage URL by following
+    a single redirect and extracting the Location header.
 
     Args:
         file_id: Figshare file identifier (last path segment of the download URL).
