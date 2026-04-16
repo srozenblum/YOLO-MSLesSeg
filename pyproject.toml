@@ -6,15 +6,15 @@ python_functions = ["test_*"]
 
 [build-system]
 requires = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.backends.legacy:build"
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "yolo-mslesseg"
 version = "0.1.0"
 description = "Automatic multiple sclerosis lesion segmentation in MRI using YOLO11-seg"
-readme = "README.md"
+readme = "README_PyPI.md"
 requires-python = ">=3.10"
-license = { text = "MIT" }
+license = "MIT"
 authors = [
     { name = "Sebastián Rozenblum" },
 ]
@@ -33,6 +33,9 @@ dependencies = [
     "polars>=1.35",
     "psutil>=7.1",
 ]
+
+[tool.setuptools.packages.find]
+include = ["yolo_mslesseg*"]
 
 [project.urls]
 Repository = "https://github.com/srozenblum/YOLO-MSLesSeg"
