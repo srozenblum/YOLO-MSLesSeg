@@ -108,34 +108,13 @@ pip install yolo-mslesseg
 The repository is organised as follows:
 
 ```
-📁 YOLO-MSLesSeg/
+📦 yolo_mslesseg/
 │
-├── 📁 yolo_mslesseg/                           # Main project package
-│   │
-│   ├── run_pipeline.py                         # Script to run the full pipeline
-│   │
-│   ├── 📁 configs/                             # Per-stage configuration classes
-│   │   ├── ConfigBase.py
-│   │   ├── ConfigDataset.py
-│   │   ├── ConfigTrain.py
-│   │   ├── ConfigPred.py
-│   │   ├── ConfigReconstruction.py
-│   │   ├── ConfigEval.py
-│   │   └── ConfigConsensus.py
-│   │
-│   ├── 📁 scripts/                             # Executable scripts that make up the pipeline
-│   │   ├── setup.py
-│   │   ├── extract_dataset.py
-│   │   ├── train.py
-│   │   ├── generate_predictions.py
-│   │   ├── reconstruct_volume.py
-│   │   ├── generate_consensus.py
-│   │   ├── eval.py
-│   │   └── average_folds.py
-│   │
-│   ├── 📁 utils/                               # Utilities and auxiliary modules
-│   │
-│   └── 📁 extras/                              # Additional but non-essential scripts
+├── run_pipeline.py          # Entry point for the full pipeline
+├── 📁 configs/              # Per-stage configuration classes
+├── 📁 scripts/              # Pipeline stage scripts
+├── 📁 utils/                # Utilities and enhancement algorithms
+└── 📁 extras/               # Additional utility scripts
 ```
 
 ---
