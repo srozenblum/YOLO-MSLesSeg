@@ -126,8 +126,10 @@ The repository is organised as follows:
 Once installed, run the full pipeline with:
 
 ```bash
-yolo-mslesseg --plane axial --modality FLAIR --num_slices P50 --enhancement CLAHE --k_folds 5 --epochs 50 --full
+yolo_mslesseg --plane axial --modality FLAIR --num_slices P50 --enhancement CLAHE --k_folds 5 --epochs 50 --full
 ```
+
+> **Note:** Both `yolo_mslesseg` and `yolo-mslesseg` are valid commands.
 
 > **Note:** `yolo-mslesseg` is a CLI-first package. The recommended way to run experiments is through the command line as shown above. Programmatic use via `import` is supported for advanced users building custom workflows.
 
