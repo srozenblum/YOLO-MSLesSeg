@@ -42,3 +42,4 @@ Repository = "https://github.com/srozenblum/YOLO-MSLesSeg"
 
 [project.scripts]
 yolo-mslesseg = "yolo_mslesseg.run_pipeline:main"
+yolo_mslesseg = "yolo_mslesseg.run_pipeline:main"
