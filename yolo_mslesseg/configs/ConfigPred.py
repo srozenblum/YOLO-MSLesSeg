@@ -349,7 +349,8 @@ class ConfigPred(ConfigBase):
         if self.single_fold:
             if not path_exists(self.model_path):
                 raise FileNotFoundError(
-                    f"Trained model not found at {self.model_path}."
+                    f"Trained model not found at {self.model_path}. "
+                    "Run the pipeline with --train first to generate the model weights."
                 )
             return
 
@@ -357,7 +358,8 @@ class ConfigPred(ConfigBase):
             model=self.model, epochs=self.epochs, fold_test=self.fold_test
         ):  # Raises exception if not found
             raise FileNotFoundError(
-                f"Trained model not found at {self.model_path}."
+                f"Trained model not found at {self.model_path}. "
+                "Run the pipeline with --train first to generate the model weights."
             )
 
     def verify_paths(self) -> None:
