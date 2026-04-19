@@ -720,6 +720,7 @@ def main(argv: list[str] | None = None) -> None:
     )
 
     # Ensure the dataset exists before instantiating Patient
+    logger.header("\n📦 Setting up MSLesSeg dataset and directory structure")
     run_setup_pipeline(clean=args.clean)
 
     patient = (
