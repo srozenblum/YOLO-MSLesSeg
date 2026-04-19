@@ -749,6 +749,9 @@ def main(argv: list[str] | None = None) -> None:
             train_flag=args.train,
             clean=args.clean,
         )
+    except FileNotFoundError as e:
+        logger.error(f"❌ Critical pipeline error: {e}")
+        sys.exit(1)
     except Exception as e:
         logger.error(f"❌ Critical pipeline error: {e}", exc_info=e)
         sys.exit(1)
