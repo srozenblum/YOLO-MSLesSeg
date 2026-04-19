@@ -1,7 +1,4 @@
-[![PyPI version](https://img.shields.io/pypi/v/yolo-mslesseg)](https://pypi.org/project/yolo-mslesseg/) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-
-![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-green)
+![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg) [![PyPI version](https://img.shields.io/pypi/v/yolo-mslesseg)](https://pypi.org/project/yolo-mslesseg/) [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
 # 🧠💻 YOLO-MSLesSeg: Automatic Multiple Sclerosis Lesion Segmentation with YOLO11-seg
 
