@@ -383,19 +383,23 @@ def run_dataset_flow(config: ConfigDataset, clean: bool, verbose: bool = False) 
         has_test = config.k_folds == 1 and config.mslesseg_test_dir.is_dir()
         n_test = len(list_patients(config.get_input_dir(SPLIT_TEST))) if has_test else 0
         n_total = n_train + n_test
-        percentile_str = f" (P{percentile})" if percentile is not None else ""
+        per_patient_str = (
+            f"{num_slices} slices/patient (P{percentile})"
+            if percentile is not None
+            else f"{num_slices} slices"
+        )
 
         if num_slices is None:
             logger.info(f"📊 Slices to extract: all lesion slices — {n_total} patients.")
         elif has_test:
             logger.info(
-                f"📊 Slices to extract: {num_slices * n_total}{percentile_str} total "
-                f"({num_slices * n_train} train / {num_slices * n_test} test) — {num_slices} slices × {n_total} patients."
+                f"📊 Slices to extract: {num_slices * n_total} total "
+                f"({num_slices * n_train} train / {num_slices * n_test} test) — {per_patient_str} × {n_total} patients."
             )
         else:
             logger.info(
-                f"📊 Slices to extract: {num_slices * n_total}{percentile_str} total — "
-                f"{num_slices} slices × {n_total} patients."
+                f"📊 Slices to extract: {num_slices * n_total} total — "
+                f"{per_patient_str} × {n_total} patients."
             )
 
     # --- Process patients ---
