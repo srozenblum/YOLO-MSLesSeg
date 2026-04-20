@@ -21,8 +21,7 @@ CLI Usage:
     python -m yolo_mslesseg.scripts.reconstruct_volume \
         --plane sagittal \
         --num_slices P75 \
-        --epochs 25 \
-        --fold_test 1
+        --epochs 25
 
 Inputs:
     - Predicted 2D masks (.png): generated previously with `generate_predictions.py`,

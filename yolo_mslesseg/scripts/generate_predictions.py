@@ -25,8 +25,7 @@ CLI Usage:
         --plane coronal \
         --modality FLAIR \
         --num_slices 50 \
-        --epochs 100 \
-        --fold_test 3
+        --epochs 100
 
 Inputs:
     - Dataset: generated previously with extract_dataset.py and trained with train.py.

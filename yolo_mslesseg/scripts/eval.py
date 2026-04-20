@@ -25,7 +25,6 @@ CLI Usage:
         --modality FLAIR \
         --num_slices P50 \
         --epochs 60 \
-        --fold_test 5 \
         --clean
 
 Inputs:
