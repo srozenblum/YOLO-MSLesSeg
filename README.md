@@ -332,9 +332,9 @@ If you use this work, please cite the following paper:
 
 ```bibtex
 @inproceedings{rozenblum2026yolomslesseg,
-    author    = {Jim{\'e}nez-Partinen, Ariadna and Rozenblum, Sebasti{\'a}n and
-                 Pascual-Gonz{\'a}lez, Mario and Ord{\'o}{\~n}ez-Walkowiak, Mar{\'i}a Paulina and
-                 Guirado-Osorio, V{\'i}ctor and Molina-Cabello, Miguel A.},
+    author    = {Jiménez-Partinen, Ariadna and Rozenblum, Sebastián and
+                 Pascual-González, Mario and Ordóñez-Walkowiak, María Paulina and
+                 Guirado-Osorio, Víctor and Molina-Cabello, Miguel A.},
     title     = {{YOLO-MSLesSeg}: Automated Multiple Sclerosis Lesion Segmentation
                  in {MRI} with Image Enhancement Techniques},
     booktitle = {Soft Computing Models in Industrial and Environmental Applications},
